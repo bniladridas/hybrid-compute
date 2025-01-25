@@ -1,24 +1,27 @@
-# 🚀 HybridCrunch: When Your M1 Mac and a Cloud GPU Fall in Love
+# 🚀 HybridCrunch: When Your M1 Mac and a Cloud GPU Fall in Love  
+**Tagline:** *"Your Mac can’t CUDA, but it can flirt with a cloud GPU."*  
 
-**Tagline:** *"Your Mac can’t CUDA, but it can flirt with a cloud GPU."*
+![C++](https://img.shields.io/badge/C%2B%2B-17-blue?logo=c%2B%2B)  
+![CUDA](https://img.shields.io/badge/CUDA-12.0-green?logo=nvidia)  
+![OpenCV](https://img.shields.io/badge/OpenCV-4.8-orange?logo=opencv)  
+![Humor](https://img.shields.io/badge/Humor-Level%2099%25-yellow)  
 
-![hero-image](docs/Download_Center.png)  
-*(A dramatic visualization of your M1 Mac handing off work to a cloud GPU like a superhero sidekick.)*
+![hero-gif](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdG1wNnRjY2VjbmV4a2F6MWQ2NnN3b3NtYjV6Z2t5cWJ6cGt5b2Q4OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abKhOpu0NwenH3O/giphy.gif)  
+*(Spoiler: The cloud GPU is doing all the work.)*  
 
 ---
 
-## 🌟 **Why This Exists**
-
+## 🌟 **Why This Exists**  
 Let’s face it: **you own a Mac**, which means you’re stuck in a toxic relationship with Apple’s “*we don’t do CUDA*” policy. But you also want NVIDIA engineers to slide into your DMs.  
 
 **HybridCrunch** is your wingman. It’s a *hilariously over-engineered* way to:  
 - **Pretend** your Mac is CUDA-compatible.  
 - **Flex** that you can code in C++, CUDA, *and* write READMEs with personality.  
-- **Distract** everyone from the fact you’re running this on a laptop that costs more than a used car.
+- **Prove** that even a $2,500 Mac can play nice with NVIDIA’s finest.  
 
 ---
 
-## 🛠️ **What This Does (Without Judging You)**
+## 🛠️ **What This Does (Without Judging You)**  
 
 ### **Step 1: M1 Mac (The “I Can Do It Myself” Phase)**  
 - **Preprocess**: Chops images into tiny tiles.  
@@ -34,8 +37,7 @@ Let’s face it: **you own a Mac**, which means you’re stuck in a toxic relati
 
 ---
 
-## 🚦 **How It Works (In Case You’re a Visual Learner)**
-
+## 🚦 **How It Works (In Case You’re a Visual Learner)**  
 ```ascii
 [Your Mac] → "I’m a ✨creative professional✨"  
        ↓  
@@ -46,15 +48,14 @@ Let’s face it: **you own a Mac**, which means you’re stuck in a toxic relati
 
 ---
 
-## ⚡ **Why Should You Care?**
-
+## ⚡ **Why Should You Care?**  
 - **Impress NVIDIA Engineers**: They love people who bend hardware to their will.  
 - **Annoy Apple Engineers**: “Look, I made your M1 talk to an NVIDIA GPU! 😈”  
 - **Justify Your Cloud Bill**: “It’s for *art*, honey!”  
 
 ---
 
-## 🧑💻 **Installation: For Humans**
+## 🧑💻 **Installation: For Humans**  
 
 ### **1. M1 Mac Setup**  
 *(Because you’re too invested in the Apple ecosystem to quit now)*  
@@ -63,8 +64,8 @@ Let’s face it: **you own a Mac**, which means you’re stuck in a toxic relati
 brew install opencv --with-teeny-tiny-screams  
 
 # Clone this repo like you’re stealing the Declaration of Independence  
-git clone https://github.com/yourname/HybridCrunch.git  
-cd HybridCrunch  
+git clone https://github.com/bniladridas/HybridCompute.git  
+cd HybridCompute  
 ```
 
 ### **2. Compile the Preprocessor**  
@@ -87,7 +88,7 @@ nvcc upscale.cu -o upscaler -lopencv_core -lopencv_imgcodecs
 
 ---
 
-## 🎮 **Usage: For the Impatient**
+## 🎮 **Usage: For the Impatient**  
 
 ### **Local Preprocessing**  
 ```bash  
@@ -114,7 +115,7 @@ python3 scripts/stitch.py --input upscaled/ --output masterpiece.jpg
 
 ---
 
-## 📊 **Benchmarks (Because Numbers Don’t Lie)**
+## 📊 **Benchmarks (Because Numbers Don’t Lie)**  
 
 | Hardware          | Time to Upscale 4K Image | Your Emotional State       |  
 |-------------------|--------------------------|----------------------------|  
@@ -124,8 +125,14 @@ python3 scripts/stitch.py --input upscaled/ --output masterpiece.jpg
 
 ---
 
-## 🚧 **Known Issues**  
+## 🔍 **CUDA Nerds Only**  
+- **Kernel Optimization**: Coalesced memory access, 16x16 thread blocks.  
+- **Error Handling**: `CUDA_CHECK` macro validates every API call.  
+- **Bicubic Math**: [See the cubic spline wizardry](cloud_gpu/upscale.cu#L42-L58).  
 
+---
+
+## 🚧 **Known Issues**  
 - **CUDA Errors**: *“Error: GPU not found”* → Did you remember to pay AWS?  
 - **Blurry Output**: Did you implement bicubic interpolation or just *vibes*?  
 - **Existential Dread**: Why are we upscaling cat memes anyway?  
@@ -133,7 +140,6 @@ python3 scripts/stitch.py --input upscaled/ --output masterpiece.jpg
 ---
 
 ## 🌈 **Roadmap (If I Get Bored Enough)**  
-
 - [ ] **Metal Compute Support**: Let your M1 GPU feel included.  
 - [ ] **AI Upscaling**: Replace math with ✨*neural networks*✨.  
 - [ ] **NFT Generator**: Because why not monetize regret?  
@@ -141,7 +147,6 @@ python3 scripts/stitch.py --input upscaled/ --output masterpiece.jpg
 ---
 
 ## 👏 **Contributing**  
-
 **PRs Welcome!** Especially if:  
 - You fix my garbage bicubic implementation.  
 - You add memes to the documentation.  
@@ -150,7 +155,6 @@ python3 scripts/stitch.py --input upscaled/ --output masterpiece.jpg
 ---
 
 ## 📜 **License**  
-
 **MIT License** → Do whatever, just don’t sue me if your cloud bill rivals the GDP of a small nation.  
 
 ---
