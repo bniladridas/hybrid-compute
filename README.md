@@ -160,3 +160,106 @@ python3 scripts/stitch.py --input upscaled/ --output masterpiece.jpg
 ---
 
 *Made with ❤️, 🧉, and a concerning amount of coffee.*  
+
+## 🧑💻 **Updated Installation Instructions**  
+
+### **1. M1 Mac Setup**  
+*(Because you’re too invested in the Apple ecosystem to quit now)*  
+```bash  
+# Install OpenCV (because we all need emotional support)  
+brew install opencv --with-teeny-tiny-screams  
+
+# Clone this repo like you’re stealing the Declaration of Independence  
+git clone https://github.com/bniladridas/HybridCompute.git  
+cd HybridCompute  
+```
+
+### **2. Compile the Preprocessor**  
+*(Where your Mac pretends to be useful)*  
+```bash  
+mkdir build && cd build  
+cmake .. -DCMAKE_BUILD_TYPE="FingersCrossed"  
+make -j4  # -j8 if you’re feeling spicy 🌶️  
+```
+
+### **3. Cloud GPU Setup**  
+*(Where you throw money at AWS)*  
+1. Launch a GPU instance.  
+2. Cry softly at the hourly cost.  
+3. Compile the CUDA code using the new CMakeLists.txt file:  
+```bash  
+cd cloud_gpu  
+mkdir build && cd build  
+cmake ..  
+make -j4  # Adjust based on your instance type  
+```
+
+## 🎮 **Updated Usage Instructions**  
+
+### **Local Preprocessing**  
+```bash  
+# Split image into tiles  
+./preprocess cat_meme.jpg tiles/  
+
+# Watch your Mac’s fan make airplane noises ✈️  
+```
+
+### **Cloud Upscaling**  
+```bash  
+# Send tiles to the cloud (and your wallet to the shadow realm)  
+./scripts/transfer_tiles.sh  
+
+# Run the CUDA code using the new CMakeLists.txt file  
+cd cloud_gpu/build  
+./upscaler  
+
+# Wait 3-5 business days for CUDA to work its magic  
+```
+
+### **Stitch the Final Image**  
+```bash  
+python3 scripts/stitch.py --input upscaled/ --output masterpiece.jpg  
+
+# Marvel at your creation. Cry if it’s blurry.  
+```
+*Made with ❤️, 🧉, and a concerning amount of coffee.*  
+
+---
+
+## 🧑💻 **Updated Installation Instructions**  
+
+### **1. M1 Mac Setup**  
+*(Because you’re too invested in the Apple ecosystem to quit now)*  
+```bash  
+# Install OpenCV (because we all need emotional support)  
+brew install opencv --with-teeny-tiny-screams  
+
+# Clone this repo like you’re stealing the Declaration of Independence  
+git clone https://github.com/bniladridas/HybridCompute.git  
+cd HybridCompute  
+```
+
+### **2. Compile the Preprocessor**  
+*(Where your Mac pretends to be useful)*  
+```bash  
+mkdir build && cd build  
+cmake .. -DCMAKE_BUILD_TYPE="FingersCrossed"  
+make -j4  # -j8 if you’re feeling spicy 🌶️  
+```
+
+### **3. Cloud GPU Setup**  
+*(Where you throw money at AWS)*  
+1. Launch a GPU instance.  
+2. Cry softly at the hourly cost.  
+3. Compile the CUDA code using CMake:  
+```bash  
+make -j4  # Adjust based on your instance's capabilities  
+```
+
+---
+
+## 🎮 **Updated Usage Instructions**  
+
+### **Local Preprocessing**  
+```bash  
+# Split image into tiles  
