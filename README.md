@@ -1,118 +1,118 @@
-# HybridCompute: My Brainchild for Image Domination  
+# HybridCompute: A Solution for Advanced Image Processing  
 
-This is **HybridCompute**. I built it to smash image processing into the next dimension. No CUDA on my Mac? Fine. I’ll hack the system and make cloud GPUs my minions. It’s fast, it’s mine, and it’s here to flex.  
-
----
-
-## What It Is  
-- **Tile-Splitter**: My Mac rips images apart with OpenCV. ARM NEON kicks in because I don’t mess around.  
-- **GPU Beast**: Cloud NVIDIA GPUs upscale those tiles with CUDA—bicubic style, no mercy.  
-- **Stitch Lord**: Slaps it all back together into something you’d frame (or meme).  
-
-Think of it as my middle finger to Apple’s “no CUDA” rule.  
+This is **HybridCompute**, a system I developed to enhance image processing capabilities. Designed to overcome the lack of CUDA support on macOS, it combines local preprocessing with cloud-based GPU power for efficient, high-quality results.
 
 ---
 
-## Why I Made It  
-I’m stuck on macOS, but I crave GPU power. This is my solution: preprocess locally, upscale remotely, win always. If you’ve got an M1 and a dream, this is your ticket.  
+## Overview  
+- **Tile-Splitting**: Uses OpenCV on a Mac to divide images into manageable tiles, leveraging ARM NEON for optimized performance.  
+- **GPU Upscaling**: Employs NVIDIA GPUs in the cloud to upscale tiles using CUDA with a bicubic interpolation method.  
+- **Stitching**: Reassembles the processed tiles into a single, high-resolution image.  
+
+This approach bypasses macOS’s CUDA limitation by splitting the workload between local and remote resources.
 
 ---
 
-## How It Runs  
-1. **Mac Does the Dirty Work**: Chops your image into tiles.  
-2. **Cloud GPU Goes Hard**: Upscales them with CUDA magic.  
-3. **I Finish It**: Stitches the pieces into a fat, juicy high-res output.  
+## Purpose  
+I created HybridCompute to address the challenge of needing GPU acceleration while working on macOS. It preprocesses images locally on an M1 Mac and taps into cloud GPUs for upscaling, offering a practical solution for users in a similar situation.
 
 ---
 
-## Get It Going  
+## Workflow  
+1. **Local Preprocessing**: The Mac splits the input image into tiles.  
+2. **Cloud Processing**: Tiles are transferred to a cloud GPU for CUDA-based upscaling.  
+3. **Final Assembly**: The upscaled tiles are stitched back into a complete image.
 
-### My Mac Setup  
+---
+
+## Setup Instructions  
+
+### Local Mac Configuration  
 ```bash  
-# Grab OpenCV because I said so  
+# Install OpenCV  
 brew install opencv  
 
-# Snag my code  
+# Clone the repository  
 git clone https://github.com/bniladridas/HybridCompute.git  
 cd HybridCompute  
 
-# Build it—don’t screw this up  
+# Build the project  
 mkdir build && cd build  
 cmake .. -DCMAKE_BUILD_TYPE=Release  
 make -j4  
 ```
 
-### Cloud GPU Setup  
+### Cloud GPU Configuration  
 ```bash  
-# Jump to the GPU zone  
+# Navigate to the GPU directory  
 cd cloud_gpu  
 
-# Compile my CUDA weapon  
+# Compile the CUDA upscaling code  
 nvcc upscale.cu -o upscaler -lopencv_core -lopencv_imgcodecs  
 ```
 
 ---
 
-## Use It Like I Do  
+## Usage  
 
-### Chop It  
+### Split the Image  
 ```bash  
 ./preprocess my_image.jpg tiles/  
-# My Mac’s fans will scream. I love it.  
+# This generates tiles in the specified directory.  
 ```
 
-### Upscale It  
+### Upscale the Tiles  
 ```bash  
-# Send tiles to the cloud (my script’s got you)  
+# Transfer tiles to the cloud  
 ./scripts/transfer_tiles.sh  
 
-# Hit the GPU hard  
+# Process tiles on the GPU  
 cd cloud_gpu  
 ./upscaler  
 ```
 
-### Finish It  
+### Stitch the Result  
 ```bash  
 python3 scripts/stitch.py --input upscaled/ --output my_masterpiece.jpg  
-# If it’s blurry, you did it wrong.  
+# Ensure inputs are valid for best results.  
 ```
 
 ---
 
-## How It Stacks Up  
-| Machine         | 4K Time | My Thoughts         |  
-|-----------------|---------|---------------------|  
-| M1 Mac (CPU)    | 14.7s   | Decent warm-up      |  
-| NVIDIA T4       | 2.3s    | My kind of speed    |  
-| NVIDIA A100     | 0.9s    | Overkill, I respect it |  
+## Performance  
+| Machine         | 4K Processing Time | Notes               |  
+|-----------------|--------------------|---------------------|  
+| M1 Mac (CPU)    | 14.7s             | Reliable baseline   |  
+| NVIDIA T4       | 2.3s              | Efficient scaling   |  
+| NVIDIA A100     | 0.9s              | High-end option     |  
 
 ---
 
-## Under My Hood  
-- **CUDA**: 16x16 blocks, memory on lock.  
-- **Bicubic**: My upscale secret sauce—clean and mean.  
-- **Errors**: I check them so you don’t cry.  
+## Technical Details  
+- **CUDA**: Utilizes 16x16 thread blocks for efficient memory management.  
+- **Bicubic Interpolation**: Provides clean, high-quality upscaling.  
+- **Error Handling**: Built-in checks to ensure smooth execution.
 
 ---
 
-## It’s Not Perfect  
-- Mac can’t CUDA (duh).  
-- Bicubic’s picky with trash input.  
-- Cloud costs—don’t blame me.  
+## Limitations  
+- No CUDA support on macOS requires cloud reliance.  
+- Bicubic upscaling performs best with high-quality inputs.  
+- Cloud usage may incur costs depending on the provider.
 
 ---
 
-## My Next Moves  
-- Metal for my Mac’s GPU (maybe).  
-- AI upscaling if I feel fancy.  
-- Faster tile transfers because I’m impatient.  
+## Future Plans  
+- Explore Metal for local GPU acceleration on macOS.  
+- Consider AI-based upscaling for enhanced results.  
+- Optimize tile transfer speeds for better efficiency.
 
 ---
 
-## Mess With It  
-Fork it, tweak it, break it—I dare you. Pull requests better be good or I’ll roast you.  
+## Contribution  
+Feel free to fork the project, experiment, and submit improvements via pull requests. Feedback is welcome to refine the system further.
 
 ---
 
-## Legal Stuff  
-MIT License. It’s mine, but you can borrow it. Don’t sue me over your cloud bill.  
+## License  
+Distributed under the MIT License. Use it freely, but note that cloud-related expenses are your responsibility.
