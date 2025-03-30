@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HybridCompute Project</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #000000;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-top: 30px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            border-left: 3px solid #e0e0e0;
+        }
+
+        .container {
+            margin-bottom: 40px;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tech-item {
+            background-color: #f5f5f5;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .citation {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 3px solid #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .clone-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .clone-method {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .project-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-box {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .clone-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HybridCompute ("HybridCrunch")</h1>
+        <p>Bridging macOS and Cloud GPU Computing</p>
+        <!-- Add your HybridCompute image here when available -->
+        <!-- <img src="YOUR_IMAGE_URL_HERE" alt="HybridCompute Workflow" class="project-image"> -->
+    </header>
+
+    <div class="container">
+        <h2>Project Overview</h2>
+        <p>HybridCompute is an experimental project that bridges the gap between the limitations of macOS and the power of CUDA-capable cloud GPUs.</p>
+
+        <div class="feature-box">
+            <h3>Two-Step Processing Approach</h3>
+            <ul>
+                <li><strong>Local Preprocessing on M1 Macs:</strong> Splits images into tiles using OpenCV and ARM NEON intrinsics</li>
+                <li><strong>Cloud GPU Upscaling:</strong> Processes tiles on CUDA-capable cloud GPUs using bicubic interpolation</li>
+            </ul>
+        </div>
+
+        <h2>Why It's Interesting</h2>
+        <ul>
+            <li>Circumvents macOS's lack of native CUDA support</li>
+            <li>Combines multiple technologies (C++, CUDA, OpenCV) with a humorous twist</li>
+            <li>Shows how modest machines can interface with powerful cloud GPUs</li>
+        </ul>
+
+        <h2>Technology Stack</h2>
+        <div class="tech-stack">
+            <div class="tech-item">C++</div>
+            <div class="tech-item">CUDA</div>
+            <div class="tech-item">OpenCV</div>
+            <div class="tech-item">ARM NEON</div>
+            <div class="tech-item">macOS</div>
+            <div class="tech-item">Cloud GPU</div>
+        </div>
+
+        <h2>Clone Repository</h2>
+        <div class="clone-options">
+            <div class="clone-method">
+                <h3>HTTPS</h3>
+                <pre><code>git clone https://github.com/bniladridas/hybridcompute.git</code></pre>
+                <p>Recommended for most users. Requires GitHub credentials.</p>
+            </div>
+            <div class="clone-method">
+                <h3>SSH</h3>
+                <pre><code>git clone git@github.com:bniladridas/hybridcompute.git</code></pre>
+                <p>Requires SSH key setup. <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh" target="_blank">SSH setup guide</a></p>
+            </div>
+        </div>
+
+        <h2>Future Development</h2>
+        <div class="feature-box">
+            <h3>Potential Enhancements</h3>
+            <ul>
+                <li><strong>Metal Compute Support:</strong> Harness M1 GPU directly via Apple's Metal API</li>
+                <li><strong>AI Upscaling:</strong> Implement neural network-based upscaling techniques</li>
+                <li><strong>Optimizations:</strong> Improve CUDA kernels and error handling</li>
+                <li><strong>Documentation:</strong> Enhanced guides and contributor documentation</li>
+            </ul>
+        </div>
+
+        <h2>Community Contributions</h2>
+        <p>We welcome contributions in these areas:</p>
+        <ul>
+            <li>Optimizing CUDA kernels</li>
+            <li>Expanding test cases</li>
+            <li>Enhancing error handling</li>
+            <li>Adding new features like Metal support</li>
+        </ul>
+
+        <h2>Website Vision</h2>
+        <p>A dedicated website could serve as a central hub to:</p>
+        <ul>
+            <li>Showcase the project with demos and benchmarks</li>
+            <li>Provide detailed installation guides and tutorials</li>
+            <li>Host community discussions and FAQs</li>
+            <li>Share project updates and roadmap</li>
+        </ul>
+
+        <h2>Get Started</h2>
+        <p>Explore the project repository on GitHub: <a href="https://github.com/bniladridas/hybridcompute" target="_blank">github.com/bniladridas/hybridcompute</a></p>
+    </div>
+</body>
+</html>
