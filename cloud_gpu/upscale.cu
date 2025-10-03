@@ -2,7 +2,10 @@
 #include <iostream>
 #include <cuda_runtime.h>
 
+
 // Enhanced bicubic upscaling kernel
+
+
 
 __device__ float cubicInterpolate(float p0, float p1, float p2, float p3, float t) {
     return p1 + 0.5f * t * (p2 - p0 + t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 + t * (3.0f * (p1 - p2) + p3 - p0)));
