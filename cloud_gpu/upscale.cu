@@ -2,25 +2,57 @@
 #include <iostream>
 #include <cuda_runtime.h>
 
+// Enhanced bicubic upscaling kernel
+
+__device__ float cubicInterpolate(float p0, float p1, float p2, float p3, float t) {
+    return p1 + 0.5f * t * (p2 - p0 + t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 + t * (3.0f * (p1 - p2) + p3 - p0)));
+}
+
 __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int in_h, int scale) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (x >= in_w || y >= in_h) return;
 
-    // Simplified bicubic logic (replace with actual algorithm)
     for (int i = 0; i < scale; i++) {
         for (int j = 0; j < scale; j++) {
+            float gx = (float)x + (float)i / (float)scale;
+            float gy = (float)y + (float)j / (float)scale;
+
+            int gxi = (int)gx;
+            int gyi = (int)gy;
+
+            float c[4][4];
+            for (int m = -1; m <= 2; m++) {
+                for (int n = -1; n <= 2; n++) {
+                    int px = min(max(gxi + m, 0), in_w - 1);
+                    int py = min(max(gyi + n, 0), in_h - 1);
+                    c[m + 1][n + 1] = input[(py * in_w + px) * 3];
+                }
+            }
+
+            float col[4];
+            for (int m = 0; m < 4; m++) {
+                col[m] = cubicInterpolate(c[m][0], c[m][1], c[m][2], c[m][3], gx - gxi);
+            }
+
+            float value = cubicInterpolate(col[0], col[1], col[2], col[3], gy - gyi);
             int out_idx = ((y * scale + j) * (in_w * scale) + (x * scale + i)) * 3;
-            output[out_idx] = input[(y * in_w + x) * 3];        // R
-            output[out_idx + 1] = input[(y * in_w + x) * 3 + 1];// G
-            output[out_idx + 2] = input[(y * in_w + x) * 3 + 2];// B
+            output[out_idx] = min(max((int)value, 0), 255);
         }
     }
 }
 
+#define CUDA_CHECK(call) \
+    do { \
+        cudaError_t err = call; \
+        if (err != cudaSuccess) { \
+            std::cerr << "CUDA error in " << __FILE__ << " at line " << __LINE__ << ": " << cudaGetErrorString(err) << std::endl; \
+            return -1; \
+        } \
+    } while (0)
+
 int main() {
-    // Load input tile (replace with actual file I/O)
     cv::Mat input = cv::imread("input_tile.jpg");
     if (input.empty()) {
         std::cerr << "Error: Could not load image!" << std::endl;
@@ -29,7 +61,7 @@ int main() {
 
     int in_w = input.cols;
     int in_h = input.rows;
-    int scale = 2; // Example scale factor
+    int scale = 2;
     int out_w = in_w * scale;
     int out_h = in_h * scale;
 
@@ -39,19 +71,19 @@ int main() {
     size_t input_size = in_w * in_h * 3 * sizeof(uchar);
     size_t output_size = out_w * out_h * 3 * sizeof(uchar);
 
-    cudaMalloc(&d_input, input_size);
-    cudaMalloc(&d_output, output_size);
+    CUDA_CHECK(cudaMalloc(&d_input, input_size));
+    CUDA_CHECK(cudaMalloc(&d_output, output_size));
 
-    cudaMemcpy(d_input, input.data, input_size, cudaMemcpyHostToDevice);
+    CUDA_CHECK(cudaMemcpy(d_input, input.data, input_size, cudaMemcpyHostToDevice));
 
     dim3 blockDim(16, 16);
     dim3 gridDim((in_w + blockDim.x - 1) / blockDim.x, (in_h + blockDim.y - 1) / blockDim.y);
     bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, scale);
 
-    cudaMemcpy(output.data, d_output, output_size, cudaMemcpyDeviceToHost);
+    CUDA_CHECK(cudaMemcpy(output.data, d_output, output_size, cudaMemcpyDeviceToHost));
 
-    cudaFree(d_input);
-    cudaFree(d_output);
+    CUDA_CHECK(cudaFree(d_input));
+    CUDA_CHECK(cudaFree(d_output));
 
     cv::imwrite("output_tile.jpg", output);
 
