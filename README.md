@@ -1,158 +1,118 @@
-# 🚀 HybridCrunch: When Your M1 Mac and a Cloud GPU Fall in Love
+# HybridCompute: A Solution for Advanced Image Processing  
 
-**Tagline:** *"Your Mac can’t CUDA, but it can flirt with a cloud GPU."*
-
-![hero-image](docs/Download_Center.png)  
-*(A dramatic visualization of your M1 Mac handing off work to a cloud GPU like a superhero sidekick.)*
+This is **HybridCompute**, a system I developed to enhance image processing capabilities. Designed to overcome the lack of CUDA support on macOS, it combines local preprocessing with cloud-based GPU power for efficient, high-quality results.
 
 ---
 
-## 🌟 **Why This Exists**
+## Overview  
+- **Tile-Splitting**: Uses OpenCV on a Mac to divide images into manageable tiles, leveraging ARM NEON for optimized performance.  
+- **GPU Upscaling**: Employs NVIDIA GPUs in the cloud to upscale tiles using CUDA with a bicubic interpolation method.  
+- **Stitching**: Reassembles the processed tiles into a single, high-resolution image.  
 
-Let’s face it: **you own a Mac**, which means you’re stuck in a toxic relationship with Apple’s “*we don’t do CUDA*” policy. But you also want NVIDIA engineers to slide into your DMs.  
-
-**HybridCrunch** is your wingman. It’s a *hilariously over-engineered* way to:  
-- **Pretend** your Mac is CUDA-compatible.  
-- **Flex** that you can code in C++, CUDA, *and* write READMEs with personality.  
-- **Distract** everyone from the fact you’re running this on a laptop that costs more than a used car.
+This approach bypasses macOS’s CUDA limitation by splitting the workload between local and remote resources.
 
 ---
 
-## 🛠️ **What This Does (Without Judging You)**
-
-### **Step 1: M1 Mac (The “I Can Do It Myself” Phase)**  
-- **Preprocess**: Chops images into tiny tiles.  
-- **Secret Sauce**: Uses ARM NEON intrinsics to make your Mac sweat like it’s running Fortnite.  
-
-### **Step 2: Cloud GPU (The “Actually Useful” Phase)**  
-- **CUDA Upscaling**: Sends tiles to a cloud GPU that’s probably mining crypto when you’re not looking.  
-- **Bicubic Magic**: Makes pixels *fancier* using math even your calculus teacher forgot.  
-
-### **Step 3: Stitching (The “Putting It All Together” Phase)**  
-- **Reassembles** the upscaled tiles into a final image.  
-- **Hides** the fact that 12% of the tiles are upside down.  
+## Purpose  
+I created HybridCompute to address the challenge of needing GPU acceleration while working on macOS. It preprocesses images locally on an M1 Mac and taps into cloud GPUs for upscaling, offering a practical solution for users in a similar situation.
 
 ---
 
-## 🚦 **How It Works (In Case You’re a Visual Learner)**
-
-```ascii
-[Your Mac] → "I’m a ✨creative professional✨"  
-       ↓  
-[Cloud GPU] → "lol CUDA go brrrrr"  
-       ↓  
-[Final Image] → "Look ma, no pixelation!"  
-```
+## Workflow  
+1. **Local Preprocessing**: The Mac splits the input image into tiles.  
+2. **Cloud Processing**: Tiles are transferred to a cloud GPU for CUDA-based upscaling.  
+3. **Final Assembly**: The upscaled tiles are stitched back into a complete image.
 
 ---
 
-## ⚡ **Why Should You Care?**
+## Setup Instructions  
 
-- **Impress NVIDIA Engineers**: They love people who bend hardware to their will.  
-- **Annoy Apple Engineers**: “Look, I made your M1 talk to an NVIDIA GPU! 😈”  
-- **Justify Your Cloud Bill**: “It’s for *art*, honey!”  
-
----
-
-## 🧑💻 **Installation: For Humans**
-
-### **1. M1 Mac Setup**  
-*(Because you’re too invested in the Apple ecosystem to quit now)*  
+### Local Mac Configuration  
 ```bash  
-# Install OpenCV (because we all need emotional support)  
-brew install opencv --with-teeny-tiny-screams  
+# Install OpenCV  
+brew install opencv  
 
-# Clone this repo like you’re stealing the Declaration of Independence  
-git clone https://github.com/yourname/HybridCrunch.git  
-cd HybridCrunch  
-```
+# Clone the repository  
+git clone https://github.com/bniladridas/HybridCompute.git  
+cd HybridCompute  
 
-### **2. Compile the Preprocessor**  
-*(Where your Mac pretends to be useful)*  
-```bash  
+# Build the project  
 mkdir build && cd build  
-cmake .. -DCMAKE_BUILD_TYPE="FingersCrossed"  
-make -j4  # -j8 if you’re feeling spicy 🌶️  
+cmake .. -DCMAKE_BUILD_TYPE=Release  
+make -j4  
 ```
 
-### **3. Cloud GPU Setup**  
-*(Where you throw money at AWS)*  
-1. Launch a GPU instance.  
-2. Cry softly at the hourly cost.  
-3. Compile the CUDA code:  
+### Cloud GPU Configuration  
 ```bash  
+# Navigate to the GPU directory  
 cd cloud_gpu  
+
+# Compile the CUDA upscaling code  
 nvcc upscale.cu -o upscaler -lopencv_core -lopencv_imgcodecs  
 ```
 
 ---
 
-## 🎮 **Usage: For the Impatient**
+## Usage  
 
-### **Local Preprocessing**  
+### Split the Image  
 ```bash  
-# Split image into tiles  
-./preprocess cat_meme.jpg tiles/  
-
-# Watch your Mac’s fan make airplane noises ✈️  
+./preprocess my_image.jpg tiles/  
+# This generates tiles in the specified directory.  
 ```
 
-### **Cloud Upscaling**  
+### Upscale the Tiles  
 ```bash  
-# Send tiles to the cloud (and your wallet to the shadow realm)  
+# Transfer tiles to the cloud  
 ./scripts/transfer_tiles.sh  
 
-# Wait 3-5 business days for CUDA to work its magic  
+# Process tiles on the GPU  
+cd cloud_gpu  
+./upscaler  
 ```
 
-### **Stitch the Final Image**  
+### Stitch the Result  
 ```bash  
-python3 scripts/stitch.py --input upscaled/ --output masterpiece.jpg  
-
-# Marvel at your creation. Cry if it’s blurry.  
+python3 scripts/stitch.py --input upscaled/ --output my_masterpiece.jpg  
+# Ensure inputs are valid for best results.  
 ```
 
 ---
 
-## 📊 **Benchmarks (Because Numbers Don’t Lie)**
-
-| Hardware          | Time to Upscale 4K Image | Your Emotional State       |  
-|-------------------|--------------------------|----------------------------|  
-| **M1 Mac (CPU)**  | 14.7 seconds             | 😊 “This is fine!”          |  
-| **NVIDIA T4**     | 2.3 seconds              | 😎 “I’m basically Tony Stark.” |  
-| **NVIDIA A100**   | 0.9 seconds              | 🚀 “I HAVE THE POWER OF GOD”   |  
-
----
-
-## 🚧 **Known Issues**  
-
-- **CUDA Errors**: *“Error: GPU not found”* → Did you remember to pay AWS?  
-- **Blurry Output**: Did you implement bicubic interpolation or just *vibes*?  
-- **Existential Dread**: Why are we upscaling cat memes anyway?  
+## Performance  
+| Machine         | 4K Processing Time | Notes               |  
+|-----------------|--------------------|---------------------|  
+| M1 Mac (CPU)    | 14.7s             | Reliable baseline   |  
+| NVIDIA T4       | 2.3s              | Efficient scaling   |  
+| NVIDIA A100     | 0.9s              | High-end option     |  
 
 ---
 
-## 🌈 **Roadmap (If I Get Bored Enough)**  
-
-- [ ] **Metal Compute Support**: Let your M1 GPU feel included.  
-- [ ] **AI Upscaling**: Replace math with ✨*neural networks*✨.  
-- [ ] **NFT Generator**: Because why not monetize regret?  
-
----
-
-## 👏 **Contributing**  
-
-**PRs Welcome!** Especially if:  
-- You fix my garbage bicubic implementation.  
-- You add memes to the documentation.  
-- You explain why CUDA error messages look like eldritch runes.  
+## Technical Details  
+- **CUDA**: Utilizes 16x16 thread blocks for efficient memory management.  
+- **Bicubic Interpolation**: Provides clean, high-quality upscaling.  
+- **Error Handling**: Built-in checks to ensure smooth execution.
 
 ---
 
-## 📜 **License**  
-
-**MIT License** → Do whatever, just don’t sue me if your cloud bill rivals the GDP of a small nation.  
+## Limitations  
+- No CUDA support on macOS requires cloud reliance.  
+- Bicubic upscaling performs best with high-quality inputs.  
+- Cloud usage may incur costs depending on the provider.
 
 ---
 
-*Made with ❤️, 🧉, and a concerning amount of coffee.*  
+## Future Plans  
+- Explore Metal for local GPU acceleration on macOS.  
+- Consider AI-based upscaling for enhanced results.  
+- Optimize tile transfer speeds for better efficiency.
+
+---
+
+## Contribution  
+Feel free to fork the project, experiment, and submit improvements via pull requests. Feedback is welcome to refine the system further.
+
+---
+
+## License  
+Distributed under the MIT License. Use it freely, but note that cloud-related expenses are your responsibility.
