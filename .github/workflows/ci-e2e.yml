@@ -80,7 +80,6 @@ jobs:
         python -m coverage run --source=scripts scripts/stitch.py
         # Verify output exists
         test -f test_images/final_output.jpg && echo "E2E test passed"
-        python -m coverage xml || true
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
