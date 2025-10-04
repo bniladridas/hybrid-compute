@@ -4,11 +4,6 @@ import sys
 
 runner_os = os.environ.get('RUNNER_OS', '')
 
-if runner_os == 'Windows':
-    # Activate conda
-    subprocess.run(['source', '/c/Miniconda/etc/profile.d/conda.sh'], shell=True)
-    subprocess.run(['conda', 'activate', 'base'], shell=True)
-
 # Create dirs
 os.makedirs('test_images/tiles', exist_ok=True)
 os.makedirs('test_images/upscaled', exist_ok=True)
