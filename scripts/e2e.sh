@@ -1,5 +1,3 @@
-#!/bin/bash
-
 if [ "$RUNNER_OS" == "Windows" ]; then
   source /c/Miniconda/etc/profile.d/conda.sh
   conda activate base
