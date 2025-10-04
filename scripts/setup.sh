@@ -23,7 +23,7 @@ else
 fi
 
 echo "Installing Python dependencies..."
-pip install -r requirements.txt --break-system-packages
-python3 -m pip install opencv-python --break-system-packages
+pip install -r requirements.txt --user
+python3 -m pip install opencv-python --user
 
 echo "Setup complete."
