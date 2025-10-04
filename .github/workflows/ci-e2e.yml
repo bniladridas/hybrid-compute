@@ -58,7 +58,7 @@ jobs:
     - name: Run unit tests
       run: |
         python -m pytest tests/
-        cd build && ctest
+        cd build && ctest -C Release
 
     - name: Run e2e test
       run: |
