@@ -71,7 +71,10 @@ jobs:
     - name: Run e2e test (Windows)
       if: runner.os == 'Windows'
       shell: bash
-      run: conda run python scripts/e2e.py
+      run: |
+        eval "$(C:/Miniconda/Scripts/conda shell.bash hook)"
+        conda activate base
+        python scripts/e2e.py
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
