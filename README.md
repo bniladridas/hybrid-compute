@@ -68,7 +68,7 @@ python3 -m pip install opencv-python --force
 ```bash
 # On cloud instance with CUDA
 cd cloud_gpu
-nvcc upscale.cu -o upscaler -lopencv_core -lopencv_imgcodecs
+nvcc upscale.cu -o upscaler -I/usr/include/opencv4 -lopencv_core -lopencv_imgcodecs
 ```
 **Usage**
 **Quick Run**  
