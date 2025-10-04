@@ -76,10 +76,11 @@ cd build && ctest
    ```bash
    ./scripts/transfer_tiles.sh
    ```
-3. **Upscale tiles on cloud** (currently hardcoded for single tile):
-   ```bash
-   cd cloud_gpu && ./upscaler
-   ```
+3. **Upscale tiles on cloud**:
+    ```bash
+    cd cloud_gpu && ./upscaler input_tile.jpg output_tile.jpg
+    ```
+    (Replace with actual tile filenames; defaults to input_tile.jpg/output_tile.jpg if no args provided)
 4. **Stitch upscaled tiles** (currently hardcoded for 4x4 grid):
    ```bash
    python3 scripts/stitch.py
