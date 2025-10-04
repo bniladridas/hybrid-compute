@@ -69,7 +69,11 @@ jobs:
       shell: bash
       run: |
         mkdir -p test_images/tiles test_images/upscaled
-        magick convert -size 256x256 xc:red test_images/test.jpg
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          convert -size 256x256 xc:red test_images/test.jpg
+        else
+          magick convert -size 256x256 xc:red test_images/test.jpg
+        fi
         if [ "$RUNNER_OS" == "Windows" ]; then
           ./build/Release/preprocess.exe test_images test_images/tiles
         else
