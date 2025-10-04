@@ -67,7 +67,7 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          eval "$(C:/Miniconda/Scripts/conda shell.bash hook)"
+          source /c/Miniconda/etc/profile.d/conda.sh
           conda activate base
         fi
         mkdir -p test_images/tiles test_images/upscaled
