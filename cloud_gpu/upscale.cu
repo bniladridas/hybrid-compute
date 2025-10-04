@@ -103,5 +103,7 @@ int main(int argc, char** argv) {
     // Save output image
     cv::imwrite(output_file, output);
 
+    std::cout << "Upscaling complete. Output saved to " << output_file << std::endl;
+
     return 0;
 }
