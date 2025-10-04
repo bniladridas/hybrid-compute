@@ -53,11 +53,14 @@ __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int 
         } \
     } while (0)
 
-int main() {
+int main(int argc, char** argv) {
+    std::string input_file = (argc > 1) ? argv[1] : "input_tile.jpg";
+    std::string output_file = (argc > 2) ? argv[2] : "output_tile.jpg";
+
     // Load the input image
-    cv::Mat input = cv::imread("input_tile.jpg");
+    cv::Mat input = cv::imread(input_file);
     if (input.empty()) {
-        std::cerr << "Error: Could not load image!" << std::endl;
+        std::cerr << "Error: Could not load image from " << input_file << "!" << std::endl;
         return -1;
     }
 
@@ -87,6 +90,9 @@ int main() {
     dim3 gridDim((in_w + blockDim.x - 1) / blockDim.x, (in_h + blockDim.y - 1) / blockDim.y);
     bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, scale);
 
+    // Synchronize and check for kernel errors
+    CUDA_CHECK(cudaDeviceSynchronize());
+
     // Copy result back to host
     CUDA_CHECK(cudaMemcpy(output.data, d_output, output_size, cudaMemcpyDeviceToHost));
 
@@ -95,7 +101,7 @@ int main() {
     CUDA_CHECK(cudaFree(d_output));
 
     // Save output image
-    cv::imwrite("output_tile.jpg", output);
+    cv::imwrite(output_file, output);
 
     return 0;
 }
