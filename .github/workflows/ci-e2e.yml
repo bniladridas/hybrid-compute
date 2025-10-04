@@ -69,7 +69,7 @@ jobs:
       shell: bash
       run: |
         mkdir -p test_images/tiles test_images/upscaled
-        python -c "import cv2; import numpy as np; cv2.imwrite('test_images/test.jpg', np.full((256,256,3), (0,0,255), dtype=np.uint8))"
+        python create_test_image.py
         if [ "$RUNNER_OS" == "Windows" ]; then
           ./build/Release/preprocess.exe test_images test_images/tiles
         else
