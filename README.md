@@ -1,3 +1,7 @@
+<div align="center">
+  <h1>🧸</h1>
+</div>
+
 **`Hybrid-compute`** is an image upscaling tool that works around macOS CUDA limits. It does the tiling on your local CPU, then sends the tiles to cloud GPUs for the heavy lifting. The tiles get upscaled with CUDA-powered bicubic interpolation on NVIDIA GPUs and are stitched back together into a clean, high-res image.
 **Features**
 - **Local Tile Splitting**: Efficiently divides images into 64x64 pixel tiles using OpenCV on macOS.
