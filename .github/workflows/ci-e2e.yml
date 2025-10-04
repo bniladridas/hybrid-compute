@@ -70,7 +70,7 @@ jobs:
         ./build/preprocess test_images test_images/tiles
         cp test_images/tiles/* test_images/upscaled/
         for i in {0..15}; do mv test_images/upscaled/test_tile_$i.jpg test_images/upscaled/tile_$i.jpg; done
-        python -m coverage run scripts/stitch.py
+        python -m coverage run --source=scripts scripts/stitch.py
         # Verify output exists
         test -f test_images/final_output.jpg && echo "E2E test passed"
         python -m coverage xml
