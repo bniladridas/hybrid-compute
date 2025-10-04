@@ -38,7 +38,7 @@ jobs:
         if [ "$RUNNER_OS" == "Windows" ]; then
           C:/Miniconda/Scripts/conda install numpy pytest
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          python3 -m pip install --break-system-packages numpy coverage pytest opencv-python
+          python3 -m pip install --break-system-packages opencv-python coverage pytest
         else
           python3 -m pip install --break-system-packages -r requirements.txt
         fi
