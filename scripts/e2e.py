@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import cv2
 
 runner_os = os.environ.get('RUNNER_OS', '')
 
@@ -30,6 +31,16 @@ for i in range(16):
     if os.path.exists(src):
         os.replace(src, dst)
 print("Mv done")
+
+# Mock upscale tiles (simulate 2x CUDA upscale using CPU)
+for i in range(16):
+    tile_path = f'test_images/upscaled/tile_{i}.jpg'
+    if os.path.exists(tile_path):
+        img = cv2.imread(tile_path)
+        if img is not None:
+            upscaled = cv2.resize(img, (img.shape[1] * 2, img.shape[0] * 2), interpolation=cv2.INTER_CUBIC)
+            cv2.imwrite(tile_path, upscaled)
+print("Mock upscale done")
 
 # Stitch
 if runner_os == 'Windows':

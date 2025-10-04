@@ -85,5 +85,10 @@ cd build && ctest
    python3 scripts/stitch.py
    ```
 *Note: Scripts are currently hardcoded for specific file names and grid sizes. Modify as needed for your use case.*
+**Verification**
+To ensure the project components work correctly:
+- **CUDA Build Check**: Run `scripts/check_cuda_build.sh` on a CUDA-enabled system to verify `upscale.cu` compiles without errors.
+- **Local E2E Testing**: The `scripts/e2e.py` script now includes mock CPU-based upscaling to simulate the full pipeline (tiling → upscale → stitching) without requiring GPU hardware.
+- **Code Review**: Manually inspect `cloud_gpu/upscale.cu` for CUDA best practices and logic correctness.
 **License**  
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
