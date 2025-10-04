@@ -58,6 +58,9 @@ jobs:
     - name: Run unit tests
       run: |
         python -m pytest tests/
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          export PATH="$PATH:C:/Miniconda/Library/bin"
+        fi
         cd build && ctest -C Release
 
     - name: Run e2e test
