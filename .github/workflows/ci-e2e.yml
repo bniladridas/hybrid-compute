@@ -33,6 +33,7 @@ jobs:
         fi
 
     - name: Install Python dependencies
+      shell: bash
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
           C:/Miniconda/Scripts/conda install numpy pytest
@@ -69,6 +70,7 @@ jobs:
 
     - name: Run e2e test (Windows)
       if: runner.os == 'Windows'
+      shell: bash
       run: conda run python scripts/e2e.py
 
     - name: Upload coverage to Codecov
