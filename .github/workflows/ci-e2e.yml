@@ -26,7 +26,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake libopencv-dev build-essential imagemagick
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          brew install opencv cmake imagemagick
+          brew install cmake imagemagick
         elif [ "$RUNNER_OS" == "Windows" ]; then
           C:/Miniconda/Scripts/conda install opencv cmake
           choco install imagemagick
