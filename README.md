@@ -24,6 +24,19 @@ Run the setup script to install all dependencies:
 ```bash
 ./scripts/setup.sh
 ```
+
+**Docker Setup**  
+For containerized environments:  
+- **Local CPU components**:  
+  ```bash
+  docker build -t hybrid-compute .
+  docker run --rm hybrid-compute
+  ```
+- **CUDA GPU components** (requires NVIDIA GPU):  
+  ```bash
+  docker build -f Dockerfile.cuda -t hybrid-compute-cuda .
+  docker run --rm --gpus all -v /path/to/tiles:/app/tiles hybrid-compute-cuda ./cloud_gpu/upscaler tiles/input_tile.jpg tiles/output_tile.jpg
+  ```
 **Manual Setup**
 **Local (macOS)**
 ```bash

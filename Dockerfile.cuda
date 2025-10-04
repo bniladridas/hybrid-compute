@@ -1,0 +1,30 @@
+# Dockerfile for hybrid-compute CUDA upscaling (requires NVIDIA GPU)
+FROM nvidia/cuda:11.8-devel-ubuntu22.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    cmake \
+    build-essential \
+    libopencv-dev \
+    python3 \
+    python3-pip \
+    imagemagick \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy source
+COPY . .
+
+# Install Python dependencies
+RUN pip3 install --break-system-packages -r requirements.txt
+
+# Build with CUDA support
+RUN mkdir build && cd build && cmake .. && make
+
+# Build CUDA upscale
+RUN cd cloud_gpu && nvcc upscale.cu -o upscaler -lopencv_core -lopencv_imgcodecs
+
+# Default command (example: upscale a tile)
+CMD ["./cloud_gpu/upscaler", "input_tile.jpg", "output_tile.jpg"]
