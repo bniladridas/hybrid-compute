@@ -63,15 +63,8 @@ jobs:
         fi
         cd build && ctest -C Release
 
-    - name: Run e2e test (Linux/macOS)
-      if: runner.os != 'Windows'
-      shell: bash
-      run: bash scripts/e2e.sh
-
-    - name: Run e2e test (Windows)
-      if: runner.os == 'Windows'
-      shell: cmd
-      run: type scripts\e2e.sh | bash
+    - name: Run e2e test
+      run: python scripts/e2e.py
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
