@@ -34,8 +34,8 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        python3 -m pip install -r requirements.txt --break-system-packages
-        python3 -m pip install opencv-python --break-system-packages
+        python3 -m pip install -r requirements.txt
+        python3 -m pip install opencv-python
 
     - name: Build preprocess
       shell: bash
