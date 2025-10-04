@@ -48,7 +48,11 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake ..
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          cmake .. -DCMAKE_PREFIX_PATH=C:/Miniconda/Library
+        else
+          cmake ..
+        fi
         cmake --build . --config Release
 
     - name: Run unit tests
