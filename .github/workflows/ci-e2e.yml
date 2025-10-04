@@ -66,6 +66,7 @@ jobs:
         cd build && ctest -C Release
 
     - name: Run e2e test
+      shell: bash
       run: |
         mkdir -p test_images/tiles test_images/upscaled
         convert -size 256x256 xc:red test_images/test.jpg
