@@ -14,6 +14,8 @@ def stitch_tiles(input_dir, output_path, tile_count=16):
     tiles = np.array(tiles)
     grid_size = int(np.sqrt(tile_count))
     stitched = cv2.vconcat([cv2.hconcat(list(tiles_row)) for tiles_row in np.array_split(tiles, grid_size)])
+    print("Stitched shape:", stitched.shape)
+    print("About to write to", output_path)
     success = cv2.imwrite(output_path, stitched)
     if success:
         print("Stitch completed successfully")
