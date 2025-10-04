@@ -50,10 +50,12 @@ jobs:
         cd build
   if [ "$RUNNER_OS" == "Windows" ]; then
     cmake .. -DCMAKE_PREFIX_PATH=C:/Miniconda/Library
-  elif [ "$RUNNER_OS" == "macOS" ]; then
-    cmake .. -DCMAKE_PREFIX_PATH=/opt/homebrew
   else
-    cmake ..
+    if [ "$RUNNER_OS" == "macOS" ]; then
+      cmake .. -DCMAKE_PREFIX_PATH=/opt/homebrew
+    else
+      cmake ..
+    fi
   fi
         cmake --build . --config Release
 
