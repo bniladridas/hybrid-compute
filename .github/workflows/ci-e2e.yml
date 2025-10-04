@@ -60,7 +60,8 @@ jobs:
       run: |
         python -m pytest tests/
         if [ "$RUNNER_OS" == "Windows" ]; then
-          export PATH="$PATH:C:/Miniconda/Library/bin"
+          eval "$(C:/Miniconda/Scripts/conda shell.bash hook)"
+          conda activate base
         fi
         cd build && ctest -C Release
 
