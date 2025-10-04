@@ -77,7 +77,11 @@ jobs:
         fi
         cp test_images/tiles/* test_images/upscaled/
         i=0; while [ $i -le 15 ]; do mv test_images/upscaled/test_tile_$i.jpg test_images/upscaled/tile_$i.jpg; i=$((i+1)); done
-        python -m coverage run --source=scripts scripts/stitch.py
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          python scripts/stitch.py
+        else
+          python -m coverage run --source=scripts scripts/stitch.py
+        fi
         # Verify output exists
         test -f test_images/final_output.jpg && echo "E2E test passed"
 
