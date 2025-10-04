@@ -2,6 +2,8 @@ import cv2
 import os
 import numpy as np
 
+print("Starting stitch")
+
 def stitch_tiles(input_dir, output_path, tile_count=16):
     tiles = []
     for i in range(tile_count):
