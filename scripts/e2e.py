@@ -2,6 +2,8 @@ import os
 import subprocess
 import sys
 import cv2
+import shutil
+import glob
 
 runner_os = os.environ.get('RUNNER_OS', '')
 
@@ -21,7 +23,8 @@ else:
 print("Preprocess done")
 
 # Copy tiles
-subprocess.run(['cp', 'test_images/tiles/*', 'test_images/upscaled/'], shell=True)
+for tile in glob.glob('test_images/tiles/*.jpg'):
+    shutil.copy(tile, 'test_images/upscaled/')
 print("Cp done")
 
 # Rename tiles
