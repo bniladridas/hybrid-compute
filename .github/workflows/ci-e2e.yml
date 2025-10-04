@@ -69,11 +69,7 @@ jobs:
       shell: bash
       run: |
         mkdir -p test_images/tiles test_images/upscaled
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          convert -size 256x256 xc:red test_images/test.jpg
-        else
-          magick convert -size 256x256 xc:red test_images/test.jpg
-        fi
+        python3 -c "import cv2; import numpy as np; cv2.imwrite('test_images/test.jpg', np.full((256,256,3), (0,0,255), dtype=np.uint8))"
         if [ "$RUNNER_OS" == "Windows" ]; then
           ./build/Release/preprocess.exe test_images test_images/tiles
         else
