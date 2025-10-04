@@ -1,0 +1,11 @@
+# This file defines the code owners for the hybrid-compute project
+# Code owners are automatically requested for review when a pull request changes files they own
+
+# Global owners
+* @bniladridas
+
+# Specific directories
+cloud_gpu/ @bniladridas
+scripts/ @bniladridas
+src/ @bniladridas
+tests/ @bniladridas
