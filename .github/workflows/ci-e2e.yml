@@ -75,7 +75,7 @@ jobs:
         i=0; while [ $i -le 15 ]; do mv test_images/upscaled/test_tile_$i.jpg test_images/upscaled/tile_$i.jpg; i=$((i+1)); done
         echo "Mv done"
         if [ "$RUNNER_OS" == "Windows" ]; then
-          python3 scripts/stitch.py
+          python scripts/stitch.py
         else
           python -m coverage run --source=scripts scripts/stitch.py
         fi
