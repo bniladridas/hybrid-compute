@@ -71,7 +71,7 @@ jobs:
     - name: Run e2e test (Windows)
       if: runner.os == 'Windows'
       shell: cmd
-      run: bash -s < scripts\e2e.sh
+      run: type scripts\e2e.sh | bash
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
