@@ -28,7 +28,7 @@ jobs:
         elif [ "$RUNNER_OS" == "macOS" ]; then
           brew install opencv cmake imagemagick
         elif [ "$RUNNER_OS" == "Windows" ]; then
-          choco install cmake opencv imagemagick
+          conda install -c conda-forge opencv cmake imagemagick
         fi
 
     - name: Install Python dependencies
@@ -47,16 +47,8 @@ jobs:
       run: |
         mkdir build
         cd build
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          cmake .. -DCMAKE_PREFIX_PATH=C:/ProgramData/chocolatey/lib/opencv
-        else
-          cmake ..
-        fi
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          make -j$NUMBER_OF_PROCESSORS
-        else
-          make -j$(nproc)
-        fi
+        cmake ..
+        cmake --build . --config Release
 
     - name: Run unit tests
       run: |
