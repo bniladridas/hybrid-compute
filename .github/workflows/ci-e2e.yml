@@ -69,7 +69,7 @@ jobs:
       shell: bash
       run: |
         mkdir -p test_images/tiles test_images/upscaled
-        python create_test_image.py
+        python3 create_test_image.py
         if [ "$RUNNER_OS" == "Windows" ]; then
           ./build/Release/preprocess.exe test_images test_images/tiles
         else
