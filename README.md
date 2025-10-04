@@ -11,6 +11,7 @@
 - macOS with Homebrew or conda  
 - CMake  
 - OpenCV  
+- NumPy  
 - Python 3 with pip  
 - Cloud instance with NVIDIA GPU and CUDA toolkit  
 **Setup**
