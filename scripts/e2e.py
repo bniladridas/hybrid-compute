@@ -28,7 +28,7 @@ for i in range(16):
     src = f'test_images/upscaled/test_tile_{i}.jpg'
     dst = f'test_images/upscaled/tile_{i}.jpg'
     if os.path.exists(src):
-        os.rename(src, dst)
+        os.replace(src, dst)
 print("Mv done")
 
 # Stitch
