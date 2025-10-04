@@ -48,7 +48,7 @@ jobs:
         mkdir build
         cd build
         if [ "$RUNNER_OS" == "Windows" ]; then
-          cmake .. -DCMAKE_PREFIX_PATH=C:/ProgramData/chocolatey/lib/opencv/tools/opencv/build
+          cmake .. -DCMAKE_PREFIX_PATH=C:/ProgramData/chocolatey/lib/opencv
         else
           cmake ..
         fi
