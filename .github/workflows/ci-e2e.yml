@@ -64,7 +64,7 @@ jobs:
         cd build && ctest -C Release
 
     - name: Run e2e test
-      run: python scripts/e2e.py
+      run: ${{ runner.os == 'Windows' && 'conda run python scripts/e2e.py' || 'python scripts/e2e.py' }}
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
