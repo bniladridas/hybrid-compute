@@ -31,8 +31,8 @@ conda install -c conda-forge opencv cmake imagemagick
 git clone https://github.com/bniladridas/hybrid-compute.git
 cd hybrid-compute
 # Install Python dependencies
-pip install -r requirements.txt --break-system-packages
-python3 -m pip install opencv-python --break-system-packages
+pip install -r requirements.txt --user
+python3 -m pip install opencv-python --user
 # Test cv2 import
 python3 -c "import cv2; print('cv2 works:', cv2.__version__)"
 # Build local tools
