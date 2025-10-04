@@ -28,7 +28,8 @@ jobs:
         elif [ "$RUNNER_OS" == "macOS" ]; then
           brew install opencv cmake imagemagick
         elif [ "$RUNNER_OS" == "Windows" ]; then
-          C:/Miniconda/Scripts/conda install -c conda-forge opencv cmake imagemagick
+          C:/Miniconda/Scripts/conda install -c conda-forge opencv cmake
+          choco install imagemagick
         fi
 
     - name: Install Python dependencies
