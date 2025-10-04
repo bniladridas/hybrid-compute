@@ -1,0 +1,78 @@
+name: CI E2E
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          export PATH="$CONDA/bin:$PATH"
+        fi
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y cmake libopencv-dev build-essential imagemagick
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          brew install opencv cmake imagemagick
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          choco install cmake opencv imagemagick
+        fi
+
+    - name: Install Python dependencies
+      run: |
+        pip install -r requirements.txt --break-system-packages
+        python3 -m pip install opencv-python --break-system-packages
+
+    - name: Build preprocess
+      shell: bash
+      run: |
+        mkdir build
+        cd build
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          cmake .. -DCMAKE_PREFIX_PATH=C:/ProgramData/chocolatey/lib/opencv/tools/opencv/build
+        else
+          cmake ..
+        fi
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          make -j$NUMBER_OF_PROCESSORS
+        else
+          make -j$(nproc)
+        fi
+
+    - name: Run unit tests
+      run: |
+        python -m pytest tests/
+        cd build && ctest
+
+    - name: Run e2e test
+      run: |
+        mkdir -p test_images/tiles test_images/upscaled
+        convert -size 256x256 xc:red test_images/test.jpg
+        ./build/preprocess test_images test_images/tiles
+        cp test_images/tiles/* test_images/upscaled/
+        for i in {0..15}; do mv test_images/upscaled/test_tile_$i.jpg test_images/upscaled/tile_$i.jpg; done
+        python -m coverage run scripts/stitch.py
+        # Verify output exists
+        test -f test_images/final_output.jpg && echo "E2E test passed"
+        python -m coverage xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false

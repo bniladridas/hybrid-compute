@@ -1,0 +1,16 @@
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+preprocess
+upscale
+build/
+__pycache__/
+*.pyc
+*.o
+*.log
+.DS_Store
+.coverage
+coverage.xml
+test_images/
+Miniconda3-latest-MacOSX-arm64.sh
