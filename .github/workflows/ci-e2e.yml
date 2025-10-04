@@ -69,7 +69,11 @@ jobs:
       shell: bash
       run: |
         mkdir -p test_images/tiles test_images/upscaled
-        magick convert -size 256x256 xc:red test_images/test.jpg
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          magick convert -size 256x256 xc:red test_images/test.jpg
+        else
+          convert -size 256x256 xc:red test_images/test.jpg
+        fi
         ./build/preprocess test_images test_images/tiles
         cp test_images/tiles/* test_images/upscaled/
         for i in {0..15}; do mv test_images/upscaled/test_tile_$i.jpg test_images/upscaled/tile_$i.jpg; done
