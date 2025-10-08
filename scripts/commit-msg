@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Enforce conventional commit standards
+# - Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+# - Lowercase
+# - First line ≤60 characters
+
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+first_line=$(echo "$commit_msg" | head -n1)
+
+# Check length
+if [ ${#first_line} -gt 60 ]; then
+    echo "Error: Commit message first line exceeds 60 characters"
+    exit 1
+fi
+
+# Check lowercase
+if [[ "$first_line" =~ [A-Z] ]]; then
+    echo "Error: Commit message must be all lowercase"
+    exit 1
+fi
+
+# Check conventional commit format
+if ! [[ "$first_line" =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert): ]]; then
+    echo "Error: Commit message must start with a conventional commit type (e.g., feat:, fix:, etc.)"
+    exit 1
+fi
+
+exit 0
