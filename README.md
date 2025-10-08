@@ -113,7 +113,11 @@ This project enforces conventional commit standards for clean history:
 - Commit messages must start with a type: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `chore:`, `ci:`, `build:`, or `revert:`.
 - All text must be lowercase.
 - The first line must be ≤60 characters.
-The `commit-msg` git hook automatically enforces this on commits.
+To enable enforcement, copy the hook:
+```bash
+cp scripts/commit-msg .git/hooks/commit-msg
+chmod +x .git/hooks/commit-msg
+```
 To clean up existing commit messages in history:
 ```bash
 git filter-branch --msg-filter 'bash scripts/rewrite_msg.sh' -- --all
