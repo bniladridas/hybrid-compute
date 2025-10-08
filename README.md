@@ -108,5 +108,16 @@ To ensure the project components work correctly:
 - **CUDA Build Check**: Run `scripts/check_cuda_build.sh` on a CUDA-enabled system to verify `upscale.cu` compiles without errors.
 - **Local E2E Testing**: The `scripts/e2e.py` script now includes mock CPU-based upscaling to simulate the full pipeline (tiling → upscale → stitching) without requiring GPU hardware.
 - **Code Review**: Manually inspect `cloud_gpu/upscale.cu` for CUDA best practices and logic correctness.
+**Git Commit Standards**
+This project enforces conventional commit standards for clean history:
+- Commit messages must start with a type: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `chore:`, `ci:`, `build:`, or `revert:`.
+- All text must be lowercase.
+- The first line must be ≤60 characters.
+The `commit-msg` git hook automatically enforces this on commits.
+To clean up existing commit messages in history:
+```bash
+git filter-branch --msg-filter 'bash scripts/rewrite_msg.sh' -- --all
+git push --force origin main  # if needed
+```
 **License**  
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
