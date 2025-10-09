@@ -1,6 +1,10 @@
 # Dockerfile for hybrid-compute (local CPU components)
 FROM ubuntu:22.04
 
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     cmake \
@@ -19,7 +23,7 @@ WORKDIR /app
 COPY . .
 
 # Install Python dependencies
-RUN pip3 install --break-system-packages -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # Build the project
 RUN mkdir build && cd build && cmake .. && make
