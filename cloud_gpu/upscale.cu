@@ -3,9 +3,36 @@
 #include <cuda_runtime.h>
 #include <string>
 #include <exception>
+#include <cstring>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-__device__ float cubicInterpolate(float p0, float p1, float p2, float p3, float t) {
+__host__ __device__ float cubicInterpolate(float p0, float p1, float p2, float p3, float t) {
     return p1 + 0.5f * t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 + t * (3.0f * (p1 - p2) + p3 - p0));
+}
+
+__host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, float gx, float gy, int c) {
+    int gxi = (int)gx;
+    int gyi = (int)gy;
+
+    float vals[4][4];
+    for (int m = -1; m <= 2; m++) {
+        for (int n = -1; n <= 2; n++) {
+            int px = min(max(gxi + m, 0), in_w - 1);
+            int py = min(max(gyi + n, 0), in_h - 1);
+            vals[m + 1][n + 1] = input[(py * in_w + px) * 3 + c];
+        }
+    }
+
+    float col[4];
+    for (int m = 0; m < 4; m++) {
+        col[m] = cubicInterpolate(vals[m][0], vals[m][1], vals[m][2], vals[m][3], gx - gxi);
+    }
+
+    float value = cubicInterpolate(col[0], col[1], col[2], col[3], gy - gyi);
+
+    return min(max(value, 0.0f), 255.0f);
 }
 
 __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int in_h, int scale) {
@@ -20,27 +47,10 @@ __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int 
                 float gx = (float)x + (float)i / (float)scale;
                 float gy = (float)y + (float)j / (float)scale;
 
-                int gxi = (int)gx;
-                int gyi = (int)gy;
-
-                float vals[4][4];
-                for (int m = -1; m <= 2; m++) {
-                    for (int n = -1; n <= 2; n++) {
-                        int px = min(max(gxi + m, 0), in_w - 1);
-                        int py = min(max(gyi + n, 0), in_h - 1);
-                        vals[m + 1][n + 1] = input[(py * in_w + px) * 3 + c];
-                    }
-                }
-
-                float col[4];
-                for (int m = 0; m < 4; m++) {
-                    col[m] = cubicInterpolate(vals[m][0], vals[m][1], vals[m][2], vals[m][3], gx - gxi);
-                }
-
-                float value = cubicInterpolate(col[0], col[1], col[2], col[3], gy - gyi);
+                float value = getBicubicValue(input, in_w, in_h, gx, gy, c);
 
                 int out_idx = ((y * scale + j) * (in_w * scale) + (x * scale + i)) * 3 + c;
-                output[out_idx] = min(max((int)value, 0), 255);
+                output[out_idx] = (uchar)value;
             }
         }
     }
@@ -92,31 +102,61 @@ int main(int argc, char** argv) {
     // Create output image
     cv::Mat output(out_h, out_w, CV_8UC3);
 
-    // Allocate device memory
+    // Check for GPU availability
+    int deviceCount = 0;
+    cudaGetDeviceCount(&deviceCount);
+    bool useGPU = deviceCount > 0;
+
+    // Allocate memory
     uchar *d_input, *d_output;
     size_t input_size = in_w * in_h * 3 * sizeof(uchar);
     size_t output_size = out_w * out_h * 3 * sizeof(uchar);
 
-    CUDA_CHECK(cudaMalloc(&d_input, input_size));
-    CUDA_CHECK(cudaMalloc(&d_output, output_size));
+    if (useGPU) {
+        CUDA_CHECK(cudaMallocManaged(&d_input, input_size));
+        CUDA_CHECK(cudaMallocManaged(&d_output, output_size));
+        memcpy(d_input, input.data, input_size);
+    } else {
+        d_input = input.data;
+        d_output = output.data;
+    }
 
-    // Copy input to device
-    CUDA_CHECK(cudaMemcpy(d_input, input.data, input_size, cudaMemcpyHostToDevice));
+    if (useGPU) {
+        // Launch kernel
+        dim3 blockDim(16, 16);
+        dim3 gridDim((in_w + blockDim.x - 1) / blockDim.x, (in_h + blockDim.y - 1) / blockDim.y);
+        bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, scale);
 
-    // Launch kernel
-    dim3 blockDim(16, 16);
-    dim3 gridDim((in_w + blockDim.x - 1) / blockDim.x, (in_h + blockDim.y - 1) / blockDim.y);
-    bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, scale);
+        // Synchronize and check for kernel errors
+        CUDA_CHECK(cudaDeviceSynchronize());
 
-    // Synchronize and check for kernel errors
-    CUDA_CHECK(cudaDeviceSynchronize());
+        // Copy result back to host
+        memcpy(output.data, d_output, output_size);
+    } else {
+        // CPU fallback
+        #pragma omp parallel for collapse(2)
+        for (int y = 0; y < in_h; y++) {
+            for (int x = 0; x < in_w; x++) {
+                for (int c = 0; c < 3; c++) {
+                    for (int i = 0; i < scale; i++) {
+                        for (int j = 0; j < scale; j++) {
+                            float gx = (float)x + (float)i / (float)scale;
+                            float gy = (float)y + (float)j / (float)scale;
+                            float value = getBicubicValue(d_input, in_w, in_h, gx, gy, c);
+                            int out_idx = ((y * scale + j) * out_w + (x * scale + i)) * 3 + c;
+                            d_output[out_idx] = (uchar)value;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-    // Copy result back to host
-    CUDA_CHECK(cudaMemcpy(output.data, d_output, output_size, cudaMemcpyDeviceToHost));
-
-    // Free device memory
-    CUDA_CHECK(cudaFree(d_input));
-    CUDA_CHECK(cudaFree(d_output));
+    // Free memory if GPU
+    if (useGPU) {
+        CUDA_CHECK(cudaFree(d_input));
+        CUDA_CHECK(cudaFree(d_output));
+    }
 
     // Save output image
     cv::imwrite(output_file, output);
