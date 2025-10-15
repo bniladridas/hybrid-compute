@@ -14,22 +14,17 @@ find_package(OpenCV REQUIRED)
 find_package(CUDAToolkit)
 find_package(OpenMP)
 
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
-add_executable(preprocess src/preprocess.cpp)
-target_link_libraries(preprocess ${OpenCV_LIBS})
-target_include_directories(preprocess PRIVATE ${CMAKE_SOURCE_DIR}/include)
-
+option(CUDA_ARCH "CUDA architecture to target" "75")
 if(CUDAToolkit_FOUND)
     enable_language(CUDA)
-    set(CMAKE_CUDA_ARCHITECTURES 75)
+    set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
     add_executable(upscaler cloud_gpu/upscale.cu)
     target_link_libraries(upscaler CUDA::cudart ${OpenCV_LIBS})
     target_include_directories(upscaler PRIVATE ${CMAKE_SOURCE_DIR}/include)
     if(OpenMP_CXX_FOUND)
         target_link_libraries(upscaler OpenMP::OpenMP_CXX)
     endif()
+endif()
 endif()
 
 # Unit tests
