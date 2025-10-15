@@ -37,3 +37,7 @@ add_executable(test_upscaler tests/test_upscaler.cpp)
 target_link_libraries(test_upscaler ${OpenCV_LIBS})
 target_include_directories(test_upscaler PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME test_upscaler COMMAND test_upscaler)
+
+add_executable(preprocess src/preprocess.cpp)
+target_link_libraries(preprocess ${OpenCV_LIBS})
+target_include_directories(preprocess PRIVATE ${CMAKE_SOURCE_DIR}/include)
