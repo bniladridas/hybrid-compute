@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(hybrid-compute LANGUAGES CXX)
+project(hybrid-compute LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,6 +11,7 @@ endif()
 
 find_package(OpenCV REQUIRED)
 find_package(CUDAToolkit)
+find_package(OpenMP)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -18,7 +19,13 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 add_executable(preprocess src/preprocess.cpp)
 target_link_libraries(preprocess ${OpenCV_LIBS})
 
-
+if(CUDAToolkit_FOUND)
+    add_executable(upscaler cloud_gpu/upscale.cu)
+    target_link_libraries(upscaler CUDA::cudart ${OpenCV_LIBS})
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(upscaler OpenMP::OpenMP_CXX)
+    endif()
+endif()
 
 # Unit tests
 enable_testing()
