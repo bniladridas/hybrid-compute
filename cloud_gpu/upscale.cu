@@ -144,57 +144,18 @@ int main(int argc, char** argv) {
     int out_w = in_w * scale;
     int out_h = in_h * scale;
 
-    // Create output image
-    cv::Mat output(out_h, out_w, input.type());
 
-    // Check for GPU availability
-    int deviceCount = 0;
-    cudaGetDeviceCount(&deviceCount);
-    bool useGPU = deviceCount > 0;
-
-    // Allocate memory
-    uchar *d_input, *d_output;
-    size_t input_size = in_w * in_h * 3 * sizeof(uchar);
-    size_t output_size = out_w * out_h * 3 * sizeof(uchar);
-
-    if (useGPU) {
-        CUDA_CHECK(cudaMalloc(&d_input, input_size));
-        CUDA_CHECK(cudaMalloc(&d_output, output_size));
-        CUDA_CHECK(cudaMemcpy(d_input, input.data, input_size, cudaMemcpyHostToDevice));
-
-        // Launch CUDA kernel with 16x16 thread blocks
-        dim3 blockDim(16, 16);
-        dim3 gridDim((in_w + blockDim.x - 1) / blockDim.x, (in_h + blockDim.y - 1) / blockDim.y);
-        bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, scale);
-
-        // Synchronize and check for kernel errors
-        CUDA_CHECK(cudaDeviceSynchronize());
-
-        // Copy result back to host
-        CUDA_CHECK(cudaMemcpy(output.data, d_output, output_size, cudaMemcpyDeviceToHost));
-
-        // Free device memory
-        CUDA_CHECK(cudaFree(d_input));
-        CUDA_CHECK(cudaFree(d_output));
-    } else {
-        // CPU fallback with OpenMP parallelization
-        d_input = input.data;
-        d_output = output.data;
-        #pragma omp parallel for
-        for (int y_out = 0; y_out < out_h; y_out++) {
-            for (int x_out = 0; x_out < out_w; x_out++) {
-                float gx = (float)x_out / (float)scale;
-                float gy = (float)y_out / (float)scale;
-                for (int c = 0; c < 3; c++) {
-                    float value = getBicubicValue(d_input, in_w, in_h, gx, gy, c);
-                    int out_idx = (y_out * out_w + x_out) * 3 + c;
-                    d_output[out_idx] = (uchar)value;
-                }
             }
         }
     }
 
-    // Create output image
+    // Save output image
+    cv::imwrite(output_file, output);
+
+    std::cout << "Upscaling complete. Output saved to " << output_file << std::endl;
+
+    return 0;
+}
     cv::Mat output(out_h, out_w, input.type());
 
     // Check for GPU availability
