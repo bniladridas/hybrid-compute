@@ -1,3 +1,14 @@
+/**
+ * Bicubic Image Upscaling Tool
+ *
+ * This program performs 2x bicubic upscaling on images using CUDA for GPU acceleration
+ * or falls back to CPU with OpenMP parallelization. Bicubic interpolation provides
+ * high-quality upscaling by considering a 4x4 neighborhood of pixels around each
+ * target location and applying cubic interpolation in both x and y directions.
+ *
+ * Usage: ./upscaler [input_file] [output_file] [scale]
+ */
+
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <cuda_runtime.h>
@@ -8,39 +19,48 @@
 #include <omp.h>
 #endif
 
-// Cubic interpolation function for 1D
+// Clamp function for readability
+__host__ __device__ float clamp(float value, float min_val, float max_val) {
+    return min(max(value, min_val), max_val);
+}
+
+// Cubic interpolation function for 1D (Catmull-Rom spline)
 __host__ __device__ float cubicInterpolate(float p0, float p1, float p2, float p3, float t) {
     return p1 + 0.5f * t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 + t * (3.0f * (p1 - p2) + p3 - p0));
 }
 
 // Perform bicubic interpolation on a pre-fetched 4x4 neighborhood
+// Bicubic interpolation uses a 4x4 grid of pixels around the target point,
+// interpolating first in x-direction for each row, then in y-direction.
 __host__ __device__ float perform_interpolation(const float vals[4][4], float tx, float ty) {
     float col[4];
     for (int m = 0; m < 4; m++) {
         col[m] = cubicInterpolate(vals[m][0], vals[m][1], vals[m][2], vals[m][3], tx);
     }
     float value = cubicInterpolate(col[0], col[1], col[2], col[3], ty);
-    return min(max(value, 0.0f), 255.0f);
+    return clamp(value, 0.0f, 255.0f);
 }
 
 // Fetch the 4x4 neighborhood values for a given channel
-__host__ __device__ void fetchVals(uchar* input, int in_w, int in_h, int gxi, int gyi, int c, float vals[4][4]) {
+__host__ __device__ void fetchVals(uchar* input, int in_w, int in_h, int channels, int gxi, int gyi, int c, float vals[4][4]) {
     for (int m = -1; m <= 2; m++) {
         for (int n = -1; n <= 2; n++) {
-            int px = min(max(gxi + m, 0), in_w - 1);
-            int py = min(max(gyi + n, 0), in_h - 1);
-            vals[m + 1][n + 1] = input[(py * in_w + px) * 3 + c];
+            int px = clamp(gxi + m, 0, in_w - 1);
+            int py = clamp(gyi + n, 0, in_h - 1);
+            vals[m + 1][n + 1] = input[(py * in_w + px) * channels + c];
         }
+    }
+}
     }
 }
 
 // Compute bicubic interpolated value at (gx, gy) for channel c
-__host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, float gx, float gy, int c) {
+__host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, int channels, float gx, float gy, int c) {
     int gxi = (int)gx;
     int gyi = (int)gy;
 
     float vals[4][4];
-    fetchVals(input, in_w, in_h, gxi, gyi, c, vals);
+    fetchVals(input, in_w, in_h, channels, gxi, gyi, c, vals);
 
     float tx = gx - gxi;
     float ty = gy - gyi;
@@ -48,7 +68,7 @@ __host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, floa
 }
 
 // CUDA kernel for bicubic upscaling
-__global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int in_h, int scale) {
+__global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int in_h, int channels, int scale) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -57,9 +77,9 @@ __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int 
     int gxi = x;
     int gyi = y;
 
-    for (int c = 0; c < 3; c++) {
+    for (int c = 0; c < channels; c++) {
         float vals[4][4];
-        fetchVals(input, in_w, in_h, gxi, gyi, c, vals);
+        fetchVals(input, in_w, in_h, channels, gxi, gyi, c, vals);
 
         for (int i = 0; i < scale; i++) {
             for (int j = 0; j < scale; j++) {
@@ -70,7 +90,7 @@ __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int 
 
                 float value = perform_interpolation(vals, tx, ty);
 
-                int out_idx = ((y * scale + j) * (in_w * scale) + (x * scale + i)) * 3 + c;
+                int out_idx = ((y * scale + j) * (in_w * scale) + (x * scale + i)) * channels + c;
                 output[out_idx] = (uchar)value;
             }
         }
@@ -116,14 +136,21 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    // Calculate dimensions
+    // Get image properties
     int in_w = input.cols;
     int in_h = input.rows;
+    int channels = input.channels();
     int out_w = in_w * scale;
     int out_h = in_h * scale;
 
+    // Validate inputs
+    if (channels < 1 || channels > 4) {
+        std::cerr << "Error: Unsupported number of channels: " << channels << std::endl;
+        return -1;
+    }
+
     // Create output image
-    cv::Mat output(out_h, out_w, CV_8UC3);
+    cv::Mat output(out_h, out_w, input.type());
 
     // Check for GPU availability
     int deviceCount = 0;
@@ -132,8 +159,8 @@ int main(int argc, char** argv) {
 
     // Allocate memory: use unified memory for GPU, host pointers for CPU
     uchar *d_input, *d_output;
-    size_t input_size = in_w * in_h * 3 * sizeof(uchar);
-    size_t output_size = out_w * out_h * 3 * sizeof(uchar);
+    size_t input_size = in_w * in_h * channels * sizeof(uchar);
+    size_t output_size = out_w * out_h * channels * sizeof(uchar);
 
     if (useGPU) {
         CUDA_CHECK(cudaMallocManaged(&d_input, input_size));
@@ -148,7 +175,7 @@ int main(int argc, char** argv) {
         // Launch CUDA kernel with 16x16 thread blocks
         dim3 blockDim(16, 16);
         dim3 gridDim((in_w + blockDim.x - 1) / blockDim.x, (in_h + blockDim.y - 1) / blockDim.y);
-        bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, scale);
+        bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, channels, scale);
 
         // Synchronize and check for kernel errors
         CUDA_CHECK(cudaDeviceSynchronize());
@@ -162,9 +189,9 @@ int main(int argc, char** argv) {
             for (int x_out = 0; x_out < out_w; x_out++) {
                 float gx = (float)x_out / (float)scale;
                 float gy = (float)y_out / (float)scale;
-                for (int c = 0; c < 3; c++) {
-                    float value = getBicubicValue(d_input, in_w, in_h, gx, gy, c);
-                    int out_idx = (y_out * out_w + x_out) * 3 + c;
+                for (int c = 0; c < channels; c++) {
+                    float value = getBicubicValue(d_input, in_w, in_h, channels, gx, gy, c);
+                    int out_idx = (y_out * out_w + x_out) * channels + c;
                     d_output[out_idx] = (uchar)value;
                 }
             }
