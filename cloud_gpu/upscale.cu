@@ -9,17 +9,6 @@
  * Usage: ./upscaler [input_file] [output_file] [scale]
  */
 
-/**
- * Bicubic Image Upscaling Tool
- *
- * This program performs 2x bicubic upscaling on images using CUDA for GPU acceleration
- * or falls back to CPU with OpenMP parallelization. Bicubic interpolation provides
- * high-quality upscaling by considering a 4x4 neighborhood of pixels around each
- * target location and applying cubic interpolation in both x and y directions.
- *
- * Usage: ./upscaler [input_file] [output_file] [scale]
- */
-
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <cuda_runtime.h>
@@ -32,8 +21,8 @@
 #endif
 
 // Clamp function for readability
-__host__ __device__ float clamp(float value, float min_val, float max_val) {
-    return min(max(value, min_val), max_val);
+__host__ __device__ inline float clamp(float value, float min_val, float max_val) {
+    return fminf(fmaxf(value, min_val), max_val);
 }
 
 // Cubic interpolation function for 1D (Catmull-Rom spline)
@@ -48,7 +37,7 @@ __host__ __device__ float perform_interpolation(const float vals[4][4], float tx
         col[m] = cubicInterpolate(vals[m][0], vals[m][1], vals[m][2], vals[m][3], tx);
     }
     float value = cubicInterpolate(col[0], col[1], col[2], col[3], ty);
-    return fminf(fmaxf(value, 0.0f), 255.0f);
+    return clamp(value, 0.0f, 255.0f);
 }
 
 // Fetch the 4x4 neighborhood values for a given channel
