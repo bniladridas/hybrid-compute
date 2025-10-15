@@ -21,6 +21,24 @@ __host__ __device__ float perform_interpolation(const float vals[4][4], float tx
     return min(max(value, 0.0f), 255.0f);
 }
 
+__host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, float gx, float gy, int c) {
+    int gxi = (int)gx;
+    int gyi = (int)gy;
+
+    float vals[4][4];
+    for (int m = -1; m <= 2; m++) {
+        for (int n = -1; n <= 2; n++) {
+            int px = min(max(gxi + m, 0), in_w - 1);
+            int py = min(max(gyi + n, 0), in_h - 1);
+            vals[m + 1][n + 1] = input[(py * in_w + px) * 3 + c];
+        }
+    }
+
+    float tx = gx - gxi;
+    float ty = gy - gyi;
+    return perform_interpolation(vals, tx, ty);
+}
+
 __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int in_h, int scale) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -134,33 +152,15 @@ int main(int argc, char** argv) {
         memcpy(output.data, d_output, output_size);
     } else {
         // CPU fallback
-        #pragma omp parallel for collapse(2)
-        for (int y = 0; y < in_h; y++) {
-            for (int x = 0; x < in_w; x++) {
-                int gxi = x;
-                int gyi = y;
-
-                float vals[4][4];
-                for (int m = -1; m <= 2; m++) {
-                    for (int n = -1; n <= 2; n++) {
-                        int px = min(max(gxi + m, 0), in_w - 1);
-                        int py = min(max(gyi + n, 0), in_h - 1);
-                        vals[m + 1][n + 1] = d_input[(py * in_w + px) * 3];
-                    }
-                }
-
+        #pragma omp parallel for
+        for (int y_out = 0; y_out < out_h; y_out++) {
+            for (int x_out = 0; x_out < out_w; x_out++) {
+                float gx = (float)x_out / (float)scale;
+                float gy = (float)y_out / (float)scale;
                 for (int c = 0; c < 3; c++) {
-                    for (int i = 0; i < scale; i++) {
-                        for (int j = 0; j < scale; j++) {
-                            float gx = (float)x + (float)i / (float)scale;
-                            float gy = (float)y + (float)j / (float)scale;
-                            float tx = gx - gxi;
-                            float ty = gy - gyi;
-                            float value = perform_interpolation(vals, tx, ty);
-                            int out_idx = ((y * scale + j) * out_w + (x * scale + i)) * 3 + c;
-                            d_output[out_idx] = (uchar)value;
-                        }
-                    }
+                    float value = getBicubicValue(d_input, in_w, in_h, gx, gy, c);
+                    int out_idx = (y_out * out_w + x_out) * 3 + c;
+                    d_output[out_idx] = (uchar)value;
                 }
             }
         }
