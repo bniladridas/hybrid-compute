@@ -70,7 +70,7 @@ __device__ void fetchValsTex(cudaTextureObject_t* texObjs, int in_w, int in_h, i
         for (int n = -1; n <= 2; n++) {
             int px = clamp(gxi + m, 0, in_w - 1);
             int py = clamp(gyi + n, 0, in_h - 1);
-            vals[m + 1][n + 1] = tex2D<unsigned char>(texObjs[c], px + 0.5f, py + 0.5f);
+            vals[m + 1][n + 1] = tex2D<unsigned char>(texObjs[c], px, py);
         }
     }
 }
