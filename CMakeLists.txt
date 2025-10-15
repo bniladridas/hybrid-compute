@@ -20,6 +20,7 @@ add_executable(preprocess src/preprocess.cpp)
 target_link_libraries(preprocess ${OpenCV_LIBS})
 
 if(CUDAToolkit_FOUND)
+    enable_language(CUDA)
     add_executable(upscaler cloud_gpu/upscale.cu)
     target_link_libraries(upscaler CUDA::cudart ${OpenCV_LIBS})
     if(OpenMP_CXX_FOUND)
