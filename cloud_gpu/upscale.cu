@@ -8,10 +8,12 @@
 #include <omp.h>
 #endif
 
+// Cubic interpolation function for 1D
 __host__ __device__ float cubicInterpolate(float p0, float p1, float p2, float p3, float t) {
     return p1 + 0.5f * t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 + t * (3.0f * (p1 - p2) + p3 - p0));
 }
 
+// Perform bicubic interpolation on a pre-fetched 4x4 neighborhood
 __host__ __device__ float perform_interpolation(const float vals[4][4], float tx, float ty) {
     float col[4];
     for (int m = 0; m < 4; m++) {
@@ -21,11 +23,8 @@ __host__ __device__ float perform_interpolation(const float vals[4][4], float tx
     return min(max(value, 0.0f), 255.0f);
 }
 
-__host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, float gx, float gy, int c) {
-    int gxi = (int)gx;
-    int gyi = (int)gy;
-
-    float vals[4][4];
+// Fetch the 4x4 neighborhood values for a given channel
+__host__ __device__ void fetchVals(uchar* input, int in_w, int in_h, int gxi, int gyi, int c, float vals[4][4]) {
     for (int m = -1; m <= 2; m++) {
         for (int n = -1; n <= 2; n++) {
             int px = min(max(gxi + m, 0), in_w - 1);
@@ -33,12 +32,22 @@ __host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, floa
             vals[m + 1][n + 1] = input[(py * in_w + px) * 3 + c];
         }
     }
+}
+
+// Compute bicubic interpolated value at (gx, gy) for channel c
+__host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, float gx, float gy, int c) {
+    int gxi = (int)gx;
+    int gyi = (int)gy;
+
+    float vals[4][4];
+    fetchVals(input, in_w, in_h, gxi, gyi, c, vals);
 
     float tx = gx - gxi;
     float ty = gy - gyi;
     return perform_interpolation(vals, tx, ty);
 }
 
+// CUDA kernel for bicubic upscaling
 __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int in_h, int scale) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -48,16 +57,10 @@ __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int 
     int gxi = x;
     int gyi = y;
 
-    float vals[4][4];
-    for (int m = -1; m <= 2; m++) {
-        for (int n = -1; n <= 2; n++) {
-            int px = min(max(gxi + m, 0), in_w - 1);
-            int py = min(max(gyi + n, 0), in_h - 1);
-            vals[m + 1][n + 1] = input[(py * in_w + px) * 3];
-        }
-    }
-
     for (int c = 0; c < 3; c++) {
+        float vals[4][4];
+        fetchVals(input, in_w, in_h, gxi, gyi, c, vals);
+
         for (int i = 0; i < scale; i++) {
             for (int j = 0; j < scale; j++) {
                 float gx = (float)x + (float)i / (float)scale;
@@ -74,6 +77,7 @@ __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int 
     }
 }
 
+// Macro for CUDA error checking
 #define CUDA_CHECK(call) \
     do { \
         cudaError_t err = call; \
@@ -83,6 +87,7 @@ __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int 
         } \
     } while (0)
 
+// Main function: performs bicubic upscaling using CUDA if available, else CPU
 int main(int argc, char** argv) {
     if (argc > 4) {
         std::cerr << "Usage: ./upscale [input_file] [output_file] [scale]\n";
@@ -125,7 +130,7 @@ int main(int argc, char** argv) {
     cudaGetDeviceCount(&deviceCount);
     bool useGPU = deviceCount > 0;
 
-    // Allocate memory
+    // Allocate memory: use unified memory for GPU, host pointers for CPU
     uchar *d_input, *d_output;
     size_t input_size = in_w * in_h * 3 * sizeof(uchar);
     size_t output_size = out_w * out_h * 3 * sizeof(uchar);
@@ -140,7 +145,7 @@ int main(int argc, char** argv) {
     }
 
     if (useGPU) {
-        // Launch kernel
+        // Launch CUDA kernel with 16x16 thread blocks
         dim3 blockDim(16, 16);
         dim3 gridDim((in_w + blockDim.x - 1) / blockDim.x, (in_h + blockDim.y - 1) / blockDim.y);
         bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, scale);
@@ -151,7 +156,7 @@ int main(int argc, char** argv) {
         // Copy result back to host
         memcpy(output.data, d_output, output_size);
     } else {
-        // CPU fallback
+        // CPU fallback with OpenMP parallelization
         #pragma omp parallel for
         for (int y_out = 0; y_out < out_h; y_out++) {
             for (int x_out = 0; x_out < out_w; x_out++) {
