@@ -12,26 +12,12 @@ __host__ __device__ float cubicInterpolate(float p0, float p1, float p2, float p
     return p1 + 0.5f * t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 + t * (3.0f * (p1 - p2) + p3 - p0));
 }
 
-__host__ __device__ float getBicubicValue(uchar* input, int in_w, int in_h, float gx, float gy, int c) {
-    int gxi = (int)gx;
-    int gyi = (int)gy;
-
-    float vals[4][4];
-    for (int m = -1; m <= 2; m++) {
-        for (int n = -1; n <= 2; n++) {
-            int px = min(max(gxi + m, 0), in_w - 1);
-            int py = min(max(gyi + n, 0), in_h - 1);
-            vals[m + 1][n + 1] = input[(py * in_w + px) * 3 + c];
-        }
-    }
-
+__host__ __device__ float perform_interpolation(const float vals[4][4], float tx, float ty) {
     float col[4];
     for (int m = 0; m < 4; m++) {
-        col[m] = cubicInterpolate(vals[m][0], vals[m][1], vals[m][2], vals[m][3], gx - gxi);
+        col[m] = cubicInterpolate(vals[m][0], vals[m][1], vals[m][2], vals[m][3], tx);
     }
-
-    float value = cubicInterpolate(col[0], col[1], col[2], col[3], gy - gyi);
-
+    float value = cubicInterpolate(col[0], col[1], col[2], col[3], ty);
     return min(max(value, 0.0f), 255.0f);
 }
 
@@ -41,13 +27,27 @@ __global__ void bicubicUpscaleKernel(uchar* input, uchar* output, int in_w, int 
 
     if (x >= in_w || y >= in_h) return;
 
+    int gxi = x;
+    int gyi = y;
+
+    float vals[4][4];
+    for (int m = -1; m <= 2; m++) {
+        for (int n = -1; n <= 2; n++) {
+            int px = min(max(gxi + m, 0), in_w - 1);
+            int py = min(max(gyi + n, 0), in_h - 1);
+            vals[m + 1][n + 1] = input[(py * in_w + px) * 3];
+        }
+    }
+
     for (int c = 0; c < 3; c++) {
         for (int i = 0; i < scale; i++) {
             for (int j = 0; j < scale; j++) {
                 float gx = (float)x + (float)i / (float)scale;
                 float gy = (float)y + (float)j / (float)scale;
+                float tx = gx - gxi;
+                float ty = gy - gyi;
 
-                float value = getBicubicValue(input, in_w, in_h, gx, gy, c);
+                float value = perform_interpolation(vals, tx, ty);
 
                 int out_idx = ((y * scale + j) * (in_w * scale) + (x * scale + i)) * 3 + c;
                 output[out_idx] = (uchar)value;
@@ -137,12 +137,26 @@ int main(int argc, char** argv) {
         #pragma omp parallel for collapse(2)
         for (int y = 0; y < in_h; y++) {
             for (int x = 0; x < in_w; x++) {
+                int gxi = x;
+                int gyi = y;
+
+                float vals[4][4];
+                for (int m = -1; m <= 2; m++) {
+                    for (int n = -1; n <= 2; n++) {
+                        int px = min(max(gxi + m, 0), in_w - 1);
+                        int py = min(max(gyi + n, 0), in_h - 1);
+                        vals[m + 1][n + 1] = d_input[(py * in_w + px) * 3];
+                    }
+                }
+
                 for (int c = 0; c < 3; c++) {
                     for (int i = 0; i < scale; i++) {
                         for (int j = 0; j < scale; j++) {
                             float gx = (float)x + (float)i / (float)scale;
                             float gy = (float)y + (float)j / (float)scale;
-                            float value = getBicubicValue(d_input, in_w, in_h, gx, gy, c);
+                            float tx = gx - gxi;
+                            float ty = gy - gyi;
+                            float value = perform_interpolation(vals, tx, ty);
                             int out_idx = ((y * scale + j) * out_w + (x * scale + i)) * 3 + c;
                             d_output[out_idx] = (uchar)value;
                         }
