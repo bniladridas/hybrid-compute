@@ -144,18 +144,7 @@ int main(int argc, char** argv) {
     int out_w = in_w * scale;
     int out_h = in_h * scale;
 
-
-            }
-        }
-    }
-
-    // Save output image
-    cv::imwrite(output_file, output);
-
-    std::cout << "Upscaling complete. Output saved to " << output_file << std::endl;
-
-    return 0;
-}
+    // Create output image
     cv::Mat output(out_h, out_w, input.type());
 
     // Check for GPU availability
@@ -163,74 +152,46 @@ int main(int argc, char** argv) {
     cudaGetDeviceCount(&deviceCount);
     bool useGPU = deviceCount > 0;
 
-    // Allocate memory: use unified memory for output, textures for input on GPU
-    uchar *d_output;
-    size_t output_size = out_w * out_h * channels * sizeof(uchar);
-    cudaTextureObject_t texObjs[4]; // max 4 channels
-    cudaArray* cuArrays[4];
+    // Allocate memory
+    uchar *d_input, *d_output;
+    size_t input_size = in_w * in_h * 3 * sizeof(uchar);
+    size_t output_size = out_w * out_h * 3 * sizeof(uchar);
 
     if (useGPU) {
-        // Split input into channels and create textures
-        std::vector<cv::Mat> channelMats;
-        cv::split(input, channelMats);
+        CUDA_CHECK(cudaMalloc(&d_input, input_size));
+        CUDA_CHECK(cudaMalloc(&d_output, output_size));
+        CUDA_CHECK(cudaMemcpy(d_input, input.data, input_size, cudaMemcpyHostToDevice));
 
-        for (int c = 0; c < channels; c++) {
-            cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(8, 0, 0, 0, cudaChannelFormatKindUnsigned);
-            CUDA_CHECK(cudaMallocArray(&cuArrays[c], &channelDesc, in_w, in_h));
-            CUDA_CHECK(cudaMemcpy2DToArray(cuArrays[c], 0, 0, channelMats[c].data, in_w, in_w, in_h, cudaMemcpyHostToDevice));
-
-            cudaResourceDesc resDesc = {};
-            resDesc.resType = cudaResourceTypeArray;
-            resDesc.res.array.array = cuArrays[c];
-
-            cudaTextureDesc texDesc = {};
-            texDesc.addressMode[0] = cudaAddressModeClamp;
-            texDesc.addressMode[1] = cudaAddressModeClamp;
-            texDesc.filterMode = cudaFilterModePoint;
-            texDesc.readMode = cudaReadModeElementType;
-
-            CUDA_CHECK(cudaCreateTextureObject(&texObjs[c], &resDesc, &texDesc, nullptr));
-        }
-
-        CUDA_CHECK(cudaMallocManaged(&d_output, output_size));
-    } else {
-        d_output = output.data;
-    }
-
-    if (useGPU) {
         // Launch CUDA kernel with 16x16 thread blocks
         dim3 blockDim(16, 16);
         dim3 gridDim((in_w + blockDim.x - 1) / blockDim.x, (in_h + blockDim.y - 1) / blockDim.y);
-        bicubicUpscaleKernel<<<gridDim, blockDim>>>(texObjs, d_output, in_w, in_h, channels, scale);
+        bicubicUpscaleKernel<<<gridDim, blockDim>>>(d_input, d_output, in_w, in_h, scale);
 
         // Synchronize and check for kernel errors
         CUDA_CHECK(cudaDeviceSynchronize());
 
         // Copy result back to host
-        memcpy(output.data, d_output, output_size);
+        CUDA_CHECK(cudaMemcpy(output.data, d_output, output_size, cudaMemcpyDeviceToHost));
+
+        // Free device memory
+        CUDA_CHECK(cudaFree(d_input));
+        CUDA_CHECK(cudaFree(d_output));
     } else {
         // CPU fallback with OpenMP parallelization
+        d_input = input.data;
+        d_output = output.data;
         #pragma omp parallel for
         for (int y_out = 0; y_out < out_h; y_out++) {
             for (int x_out = 0; x_out < out_w; x_out++) {
                 float gx = (float)x_out / (float)scale;
                 float gy = (float)y_out / (float)scale;
-                for (int c = 0; c < channels; c++) {
-                    float value = getBicubicValue((uchar*)input.data, in_w, in_h, channels, gx, gy, c);
-                    int out_idx = (y_out * out_w + x_out) * channels + c;
+                for (int c = 0; c < 3; c++) {
+                    float value = getBicubicValue(d_input, in_w, in_h, gx, gy, c);
+                    int out_idx = (y_out * out_w + x_out) * 3 + c;
                     d_output[out_idx] = (uchar)value;
                 }
             }
         }
-    }
-
-    // Free memory if GPU
-    if (useGPU) {
-        for (int c = 0; c < channels; c++) {
-            CUDA_CHECK(cudaDestroyTextureObject(texObjs[c]));
-            CUDA_CHECK(cudaFreeArray(cuArrays[c]));
-        }
-        CUDA_CHECK(cudaFree(d_output));
     }
 
     // Save output image
