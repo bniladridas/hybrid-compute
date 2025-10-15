@@ -22,6 +22,7 @@ target_link_libraries(preprocess ${OpenCV_LIBS})
 target_include_directories(preprocess PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 if(CUDAToolkit_FOUND)
+    enable_language(CUDA)
     set(CMAKE_CUDA_ARCHITECTURES 75)
     add_executable(upscaler cloud_gpu/upscale.cu)
     target_link_libraries(upscaler CUDA::cudart ${OpenCV_LIBS})
