@@ -16,7 +16,6 @@ find_package(OpenMP)
 
 if(CUDAToolkit_FOUND)
     set(CMAKE_CUDA_ARCHITECTURES 75)
-    enable_language(CUDA)
     add_executable(upscaler cloud_gpu/upscale.cu)
     target_link_libraries(upscaler CUDA::cudart ${OpenCV_LIBS})
     if(OpenMP_CXX_FOUND)
