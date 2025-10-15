@@ -25,7 +25,6 @@ if(CUDAToolkit_FOUND)
         target_link_libraries(upscaler OpenMP::OpenMP_CXX)
     endif()
 endif()
-endif()
 
 # Unit tests
 enable_testing()
