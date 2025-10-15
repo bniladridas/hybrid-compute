@@ -26,6 +26,7 @@
 #include <string>
 #include <exception>
 #include <cstring>
+#include <cmath>
 #include <vector>
 #ifdef _OPENMP
 #include <omp.h>
@@ -42,13 +43,14 @@ __host__ __device__ float cubicInterpolate(float p0, float p1, float p2, float p
 }
 
 // Perform bicubic interpolation on a pre-fetched 4x4 neighborhood
-// Bicubic interpolation uses a 4x4 grid of pixels around the target point,
-// interpolating first in x-direction for each row, then in y-direction.
 __host__ __device__ float perform_interpolation(const float vals[4][4], float tx, float ty) {
     float col[4];
     for (int m = 0; m < 4; m++) {
         col[m] = cubicInterpolate(vals[m][0], vals[m][1], vals[m][2], vals[m][3], tx);
     }
+    float value = cubicInterpolate(col[0], col[1], col[2], col[3], ty);
+    return fminf(fmaxf(value, 0.0f), 255.0f);
+}
     float value = cubicInterpolate(col[0], col[1], col[2], col[3], ty);
     return clamp(value, 0.0f, 255.0f);
 }
