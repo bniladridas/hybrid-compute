@@ -33,3 +33,7 @@ enable_testing()
 add_executable(test_utils tests/test_utils.cpp)
 target_link_libraries(test_utils ${OpenCV_LIBS})
 add_test(NAME test_utils COMMAND test_utils)
+
+add_executable(test_upscaler tests/test_upscaler.cpp)
+target_link_libraries(test_upscaler ${OpenCV_LIBS})
+add_test(NAME test_upscaler COMMAND test_upscaler)
