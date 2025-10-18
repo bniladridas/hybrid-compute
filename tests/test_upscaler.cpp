@@ -73,6 +73,9 @@ int main() {
     result = getBicubicValue((unsigned char*)high_image, w, h, channels, 1.5f, 1.5f, 0);
     assert(result <= 255.0f && result >= 0.0f);
 
-    std::cout << "All upscaler tests passed!" << std::endl;
+    // Integration test: check if upscale executable exists and runs
+    // Note: This assumes the executable is built; in CI it may not be
+    // For now, just check the unit tests
+    std::cout << "All upscaler unit tests passed!" << std::endl;
     return 0;
 }
