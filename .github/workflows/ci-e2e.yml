@@ -26,7 +26,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake libopencv-dev build-essential imagemagick
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          brew install opencv cmake imagemagick
+          brew install cmake imagemagick
+          python3 -m pip install --break-system-packages opencv-python
         elif [ "$RUNNER_OS" == "Windows" ]; then
           C:/Miniconda/Scripts/conda install opencv cmake
           choco install imagemagick
@@ -38,8 +39,7 @@ jobs:
         if [ "$RUNNER_OS" == "Windows" ]; then
           C:/Miniconda/Scripts/conda install numpy pytest
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          # opencv-python needed for Python tests (e.g., test_stitch.py imports cv2)
-          python3 -m pip install --break-system-packages opencv-python coverage pytest
+          python3 -m pip install --break-system-packages coverage pytest
         else
           python3 -m pip install --break-system-packages -r requirements.txt
         fi
@@ -52,7 +52,8 @@ jobs:
         if [ "$RUNNER_OS" == "Windows" ]; then
           cmake .. -DCMAKE_PREFIX_PATH=C:/Miniconda/Library
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          cmake .. -DCMAKE_PREFIX_PATH=/opt/homebrew
+          PYTHON_SITE=$(python3 -c "import site; print(site.getsitepackages()[0])")
+          cmake .. -DCMAKE_PREFIX_PATH=$PYTHON_SITE
         else
           cmake ..
         fi
