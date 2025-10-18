@@ -38,6 +38,7 @@ jobs:
         if [ "$RUNNER_OS" == "Windows" ]; then
           C:/Miniconda/Scripts/conda install numpy pytest
         elif [ "$RUNNER_OS" == "macOS" ]; then
+          # opencv-python needed for Python tests (e.g., test_stitch.py imports cv2)
           python3 -m pip install --break-system-packages opencv-python coverage pytest
         else
           python3 -m pip install --break-system-packages -r requirements.txt
