@@ -53,10 +53,14 @@ int main() {
         {{0,0,0}, {64,64,64}, {128,128,128}, {192,192,192}}
     };
 
-    // Test interpolation at (1.5, 1.5) for channel 0
+    // Test interpolation at (1.5, 1.5) for channel 0 (scale=2 equivalent)
     float result = getBicubicValue((unsigned char*)test_image, w, h, channels, 1.5f, 1.5f, 0);
     // Expected around 64 (linear interpolation), but bicubic should be similar
     assert(result >= 60 && result <= 68); // Allow some tolerance
+
+    // Test interpolation at (1.25, 1.25) for channel 0 (scale=4 equivalent)
+    result = getBicubicValue((unsigned char*)test_image, w, h, channels, 1.25f, 1.25f, 0);
+    assert(result >= 48 && result <= 80); // Wider tolerance for different position
 
     // Test edge case: at integer position (1,1)
     result = getBicubicValue((unsigned char*)test_image, w, h, channels, 1.0f, 1.0f, 0);
