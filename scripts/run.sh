@@ -29,8 +29,10 @@ magick convert -size 256x256 xc:red test_images/test.jpg
 cp test_images/tiles/* test_images/upscaled/
 for i in {0..15}; do mv test_images/upscaled/test_tile_$i.jpg test_images/upscaled/tile_$i.jpg; done
 # Upscale tiles
-for i in {0..15}; do
-    ./build/upscale test_images/upscaled/tile_$i.jpg test_images/upscaled/tile_$i.jpg
+for tile in test_images/upscaled/tile_*.jpg; do
+    if [ -f "$tile" ]; then
+        ./build/upscale "$tile" "$tile"
+    fi
 done
 python3 scripts/stitch.py test_images/upscaled test_images/final_output.jpg
 test -f test_images/final_output.jpg && echo "E2E test passed"
