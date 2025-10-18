@@ -140,6 +140,7 @@ int main(int argc, char** argv) {
     int deviceCount = 0;
     cudaGetDeviceCount(&deviceCount);
     bool useGPU = deviceCount > 0;
+    std::cout << "Using " << (useGPU ? "GPU" : "CPU") << " for upscaling" << std::endl;
 
     // Allocate memory
     uchar *d_input, *d_output;
