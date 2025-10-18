@@ -39,7 +39,7 @@ print("Mv done")
 for i in range(16):
     tile_path = f'test_images/upscaled/tile_{i}.jpg'
     if os.path.exists(tile_path):
-        subprocess.run(['./build/upscale', tile_path, tile_path])
+        subprocess.run(['./build/Release/upscale.exe' if runner_os == 'Windows' else './build/upscale', tile_path, tile_path], check=True)
 print("Upscale done")
 
 # Stitch
