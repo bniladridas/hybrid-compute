@@ -2,22 +2,22 @@
   <h1>🧸</h1>
 </div>
 
-**`Hybrid-compute`** is an image upscaling tool that works around macOS CUDA limits. It does the tiling on your local CPU, then sends the tiles to cloud GPUs for the heavy lifting. The tiles get upscaled with CUDA-powered bicubic interpolation on NVIDIA GPUs and are stitched back together into a clean, high-res image.
+**`Hybrid-compute`** is an image upscaling tool that leverages hybrid CPU/GPU computing for efficient image processing. It splits images into tiles locally, upscales them using isomorphic bicubic interpolation (GPU-accelerated with CUDA if available, CPU fallback with OpenMP), and stitches them back into high-resolution images.
 **Features**
-- **Local Tile Splitting**: Efficiently divides images into 64x64 pixel tiles using OpenCV on macOS.
-- **Cloud GPU Upscaling**: Performs 2x bicubic upscaling on tiles using CUDA kernels optimized for NVIDIA GPUs.
+- **Local Tile Splitting**: Efficiently divides images into tiles using OpenCV.
+- **Isomorphic Upscaling**: Performs 2x bicubic upscaling on tiles using CUDA on GPU or OpenMP on CPU, with automatic fallback.
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
 **Workflow**
-1. **Split**: Process input images locally to create tiles.  
-2. Transfer and upscale tiles in the cloud.  
-3. Stitch upscaled tiles into the final image.  
+1. **Split**: Process input images locally to create tiles.
+2. **Upscale**: Upscale tiles locally using GPU (if available) or CPU.
+3. **Stitch**: Combine upscaled tiles into the final image.  
 **Prerequisites**
-- macOS with Homebrew or conda  
-- CMake  
-- OpenCV  
-- NumPy  
-- Python 3 with pip  
-- Cloud instance with NVIDIA GPU and CUDA toolkit  
+- macOS, Linux, or Windows
+- CMake
+- OpenCV
+- NumPy
+- Python 3 with pip
+- Optional: NVIDIA GPU with CUDA toolkit for GPU acceleration  
 **Setup**
 **Quick Setup**  
 Run the setup script to install all dependencies:  
@@ -32,10 +32,10 @@ For containerized environments:
   docker build -t hybrid-compute .
   docker run --rm hybrid-compute
   ```
-- **CUDA GPU components** (requires NVIDIA GPU):  
+- **CUDA GPU components** (requires NVIDIA GPU):
   ```bash
   docker build -f Dockerfile.cuda -t hybrid-compute-cuda .
-  docker run --rm --gpus all -v /path/to/tiles:/app/tiles hybrid-compute-cuda ./cloud_gpu/upscaler tiles/input_tile.jpg tiles/output_tile.jpg
+  docker run --rm --gpus all hybrid-compute-cuda ./build/upscale input_tile.jpg output_tile.jpg
   ```
 **Manual Setup**
 **Local (macOS)**
@@ -55,7 +55,7 @@ python3 -c "import cv2; print('cv2 works:', cv2.__version__)"
 # Build local tools
 mkdir build && cd build
 cmake ..
-make -j4
+make -j4  # Builds preprocess, upscale (if CUDA available), and tests
 ```
 **Ubuntu**
 ```bash
@@ -64,12 +64,8 @@ sudo apt-get install -y cmake libopencv-dev build-essential imagemagick
 pip install -r requirements.txt
 python3 -m pip install opencv-python --force
 ```
-**Cloud GPU**
-```bash
-# On cloud instance with CUDA
-cd cloud_gpu
-nvcc upscale.cu -o upscaler -I/usr/include/opencv4 -lopencv_core -lopencv_imgcodecs
-```
+**GPU Support**
+The upscale tool automatically detects GPU availability and uses CUDA for acceleration, falling back to CPU with OpenMP if no GPU is found.
 **Usage**
 **Quick Run**  
 To build, test, and run e2e locally:
@@ -87,27 +83,24 @@ cd build && ctest
 **Manual Usage**
 1. **Split images into tiles**:
    ```bash
-   ./preprocess path/to/input_images/ path/to/tiles/
+   ./build/preprocess path/to/input_images/ path/to/tiles/
    ```
-2. **Transfer tiles to cloud** (update script with your cloud details):
+2. **Upscale tiles**:
    ```bash
-   ./scripts/transfer_tiles.sh
+   ./build/upscale input_tile.jpg output_tile.jpg [scale]
    ```
-3. **Upscale tiles on cloud**:
-    ```bash
-    cd cloud_gpu && ./upscaler input_tile.jpg output_tile.jpg
-    ```
-    (Replace with actual tile filenames; defaults to input_tile.jpg/output_tile.jpg if no args provided)
-4. **Stitch upscaled tiles** (currently hardcoded for 4x4 grid):
+   (Scale defaults to 2; uses GPU if available, CPU otherwise)
+3. **Stitch upscaled tiles**:
    ```bash
-   python3 scripts/stitch.py
+   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg
    ```
-*Note: Scripts are currently hardcoded for specific file names and grid sizes. Modify as needed for your use case.*
+*Note: Adjust paths and grid sizes as needed for your use case.*
 **Verification**
 To ensure the project components work correctly:
-- **CUDA Build Check**: Run `scripts/check_cuda_build.sh` on a CUDA-enabled system to verify `upscale.cu` compiles without errors.
-- **Local E2E Testing**: The `scripts/e2e.py` script now includes mock CPU-based upscaling to simulate the full pipeline (tiling → upscale → stitching) without requiring GPU hardware.
-- **Code Review**: Manually inspect `cloud_gpu/upscale.cu` for CUDA best practices and logic correctness.
+- **Build Check**: Run `mkdir build && cd build && cmake .. && make` to verify all components compile.
+- **Local E2E Testing**: The `scripts/e2e.py` script runs the full pipeline (tiling → upscale → stitching) with actual GPU/CPU upscaling.
+- **Unit Tests**: Run `python3 -m pytest tests/` and `cd build && ctest` for comprehensive testing.
+- **Code Review**: Inspect `cloud_gpu/upscale.cu` for isomorphic CUDA/CPU logic and `tests/test_upscaler.cpp` for unit tests.
 **Git Commit Standards**
 This project enforces conventional commit standards for clean history:
 - Commit messages must start with a type: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `chore:`, `ci:`, `build:`, or `revert:`.
