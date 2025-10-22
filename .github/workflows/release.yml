@@ -1,7 +1,7 @@
 ---
 name: Release
 
-on:  # yamllint disable=truthy
+"on":  # yamllint disable=truthy
   push:
     branches: [main, trunk]
 
@@ -34,10 +34,11 @@ jobs:
       - name: Configure git
         run: |
           git config user.name "harper-release-bot"
-          git config user.email "237646224+harper-release-bot@users.noreply.github.com"
+          git config user.email \
+            "237646224+harper-release-bot@users.noreply.github.com"
 
-      - name: Run semantic release
-        run: semantic-release version --push --tag --changelog --vcs-release  # yamllint disable=line-length
+      - name: Run semantic release  # yamllint disable=line-length
+        run: semantic-release version --push --tag --changelog --vcs-release
         env:  # yamllint disable=line-length
           GITHUB_TOKEN: ${{ secrets.HARPER_RELEASE_BOT_TOKEN }}
 

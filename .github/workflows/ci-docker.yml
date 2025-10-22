@@ -1,7 +1,7 @@
 ---
 name: CI Docker
 
-on:  # yamllint disable=truthy
+"on":  # yamllint disable=truthy
   push:
     branches: [main]
   pull_request:
@@ -22,4 +22,4 @@ jobs:
       - name: Build CUDA Docker image
         run: docker build -f Dockerfile.cuda -t hybrid-compute-cuda .
 
-      # Note: CUDA testing requires GPU runners, so only build is tested here
+        # Note: CUDA testing requires GPU runners, so only build is tested here

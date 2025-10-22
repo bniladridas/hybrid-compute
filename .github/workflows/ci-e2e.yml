@@ -1,7 +1,7 @@
 ---
 name: CI E2E
 
-on:  # yamllint disable=truthy
+"on":  # yamllint disable=truthy
   push:
     branches: [main]
   pull_request:
@@ -23,15 +23,19 @@ jobs:
         with:
           auto-update-conda: true
 
-      - name: Install dependencies
+      - name: Install dependencies  # yamllint disable=line-length
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
             export PATH="$CONDA/bin:$PATH"
           fi
-        if [ "$RUNNER_OS" == "Linux" ]; then
+          if [ "$RUNNER_OS" == "Linux" ]; then
           sudo apt-get update
-          sudo apt-get install -y cmake libopencv-dev build-essential imagemagick
+          sudo apt-get install -y \
+            cmake \
+            libopencv-dev \
+            build-essential \
+            imagemagick
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install imagemagick
             conda install opencv cmake
