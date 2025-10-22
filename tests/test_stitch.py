@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -14,7 +15,7 @@ def create_dummy_tiles(input_dir: str, tile_count: int, tile_size: tuple[int, in
         cv2.imwrite(os.path.join(input_dir, f"tile_{i}.jpg"), img)
 
 
-def test_stitch_tiles_success(tmp_path) -> None:
+def test_stitch_tiles_success(tmp_path: Path) -> None:
     input_dir = tmp_path / "input"
     output_path = tmp_path / "output.jpg"
     tile_count = 16
@@ -30,7 +31,7 @@ def test_stitch_tiles_success(tmp_path) -> None:
     assert stitched.shape == expected_shape
 
 
-def test_stitch_tiles_missing_tile(tmp_path) -> None:
+def test_stitch_tiles_missing_tile(tmp_path: Path) -> None:
     input_dir = tmp_path / "input"
     output_path = tmp_path / "output.jpg"
     tile_count = 16
