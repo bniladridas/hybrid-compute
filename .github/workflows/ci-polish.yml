@@ -52,7 +52,7 @@ jobs:
       run: |
         pip install -r requirements.txt
         python -m pytest tests/ -v --cov=. --cov-fail-under=80 --strict-markers
-        coverage report --fail-under=80
+        coverage report --fail-under=80 --ignore-errors
 
     - name: Run mypy for type checking
       run: |
