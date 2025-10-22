@@ -39,3 +39,12 @@ def test_stitch_tiles_missing_tile(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="not a perfect square"):
         stitch_tiles(str(input_dir), str(output_path))
+
+
+def test_stitch_tiles_no_tiles(tmp_path: Path) -> None:
+    input_dir = tmp_path / "input"
+    output_path = tmp_path / "output.jpg"
+    os.makedirs(input_dir, exist_ok=True)  # Create empty dir
+
+    with pytest.raises(ValueError, match="No tile files found"):
+        stitch_tiles(str(input_dir), str(output_path))

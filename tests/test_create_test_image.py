@@ -1,0 +1,29 @@
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def test_create_test_image(tmp_path):
+    """Test that create_test_image.py creates a test image."""
+    # Change to tmp_path to avoid cluttering the repo
+    original_cwd = Path.cwd()
+    try:
+        os.chdir(tmp_path)
+        # Run the script
+        result = subprocess.run([sys.executable, str(original_cwd / "create_test_image.py")], check=True)
+        assert result.returncode == 0
+
+        # Check if test_images/test.jpg was created
+        test_image_path = Path("test_images/test.jpg")
+        assert test_image_path.exists()
+
+        # Optionally, check image properties
+        import cv2
+
+        img = cv2.imread(str(test_image_path))
+        assert img is not None
+        assert img.shape == (256, 256, 3)
+        assert img.dtype == "uint8"
+    finally:
+        os.chdir(original_cwd)
