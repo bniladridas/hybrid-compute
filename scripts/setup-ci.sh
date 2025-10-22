@@ -10,7 +10,7 @@ set -e
 PLATFORM=${1:-linux}
 CUDA=${2:-false}
 
-echo "Setting up dependencies for $PLATFORM..."
+echo -e "\033[32mSetting up dependencies for $PLATFORM...\033[0m"
 
 if [ "$PLATFORM" == "linux" ]; then
     sudo apt-get update
@@ -24,9 +24,9 @@ if [ "$PLATFORM" == "linux" ]; then
             sudo dpkg -i /tmp/cuda-keyring.deb
             sudo apt-get update
             sudo apt-get install -y cuda-toolkit-12-6 || \
-              echo "CUDA installation skipped"
+              echo -e "\033[33mCUDA installation skipped\033[0m"
         else
-            echo "CUDA keyring download failed"
+            echo -e "\033[31mCUDA keyring download failed\033[0m"
             exit 1
         fi
     fi
@@ -44,4 +44,4 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 pip install black isort ruff yamllint pre-commit pytest coverage pytest-cov mypy
 
-echo "Setup complete for $PLATFORM"
+echo -e "\033[32mSetup complete for $PLATFORM\033[0m"
