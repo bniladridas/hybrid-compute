@@ -21,22 +21,42 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install black isort ruff yamllint pre-commit
+        pip install black isort ruff yamllint pre-commit pytest coverage mypy
 
-    - name: Run pre-commit
-      run: pre-commit run --all-files
+    - name: Run pre-commit (strict)
+      run: pre-commit run --all-files --show-diff-on-failure
 
-    - name: Build and test
+    - name: Build with warnings as errors
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake libopencv-dev build-essential
+        sudo apt-get install -y cmake libopencv-dev build-essential clang-tidy
         mkdir build
         cd build
-        cmake ..
+        cmake .. \
+          -DCMAKE_CXX_FLAGS="-Werror -Wall -Wextra" \
+          -DCMAKE_C_FLAGS="-Werror -Wall -Wextra"
         make
-        ctest
 
-    - name: Run Python tests
+    - name: Run clang-tidy on C/C++ code
+      run: |
+        cd build
+        # Run clang-tidy on source files (warnings as errors)
+        find ../src ../include ../tests \
+          -name "*.cpp" -o -name "*.c" -o -name "*.hpp" -o -name "*.h" | \
+          xargs clang-tidy --warnings-as-errors=* || exit 1
+
+    - name: Run unit tests with strict output
+      run: |
+        cd build
+        ctest --output-on-failure --verbose
+
+    - name: Run Python tests with coverage
       run: |
         pip install -r requirements.txt
-        python -m pytest tests/ -v
+        python -m pytest tests/ -v --cov=. --cov-fail-under=80 --strict-markers
+        coverage report --fail-under=80
+
+    - name: Run mypy for type checking
+      run: |
+        mypy scripts/ tests/ \
+          --ignore-missing-imports --strict --no-error-summary
