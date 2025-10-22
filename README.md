@@ -18,6 +18,7 @@
 - NumPy
 - Python 3.9+ with pip
 - Cloud instance with NVIDIA GPU and CUDA toolkit (for GPU upscaling)
+*Note: Conda is installed automatically on macOS via the setup script.*
 **Setup**
 **Quick Setup**
 Run the setup script to install all dependencies:
