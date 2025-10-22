@@ -31,7 +31,7 @@ python3 -c "import cv2; print('cv2 works:', cv2.__version__)"
 
 echo "Running e2e test..."
 mkdir -p test_images/tiles test_images/upscaled
-magick convert -size 256x256 xc:red test_images/test.jpg
+python3 -c "import cv2; import numpy as np; img = np.full((256,256,3), (0,0,255), np.uint8); cv2.imwrite('test_images/test.jpg', img)"
 ./build/preprocess test_images test_images/tiles
 cp test_images/tiles/* test_images/upscaled/
 for i in {0..15}; do mv test_images/upscaled/test_tile_$i.jpg test_images/upscaled/tile_$i.jpg; done
