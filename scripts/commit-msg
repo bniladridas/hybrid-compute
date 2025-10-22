@@ -16,7 +16,7 @@ if [ ${#first_line} -gt 60 ]; then
 fi
 
 # Check lowercase
-if [[ "$first_line" =~ [A-Z] ]]; then
+if [[ "$commit_msg" =~ [A-Z] ]]; then
     echo "Error: Commit message must be all lowercase"
     exit 1
 fi
