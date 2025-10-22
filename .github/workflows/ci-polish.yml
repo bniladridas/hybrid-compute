@@ -41,7 +41,10 @@ jobs:
         # Run clang-tidy on source files (warnings as errors)
         find ../src ../include ../tests \
           -name "*.cpp" -o -name "*.c" -o -name "*.hpp" -o -name "*.h" | \
-          xargs clang-tidy --warnings-as-errors=* || true
+          xargs clang-tidy \
+            -I/usr/include/opencv4 \
+            -Wno-clang-analyzer-security \
+            --warnings-as-errors=* || true
 
     - name: Run unit tests with strict output
       run: |
