@@ -4,7 +4,7 @@
 
 **`Hybrid-compute`** is an image upscaling tool that works around macOS CUDA limits. It does the tiling on your local CPU, then sends the tiles to cloud GPUs for the heavy lifting. The tiles get upscaled with CUDA-powered bicubic interpolation on NVIDIA GPUs and are stitched back together into a clean, high-res image.
 **Features**
-- **Local Tile Splitting**: Efficiently divides images into 64x64 pixel tiles using OpenCV on macOS.
+- **Local Tile Splitting**: Efficiently divides images into 64x64 pixel tiles using OpenCV (C++) or stb_image (C) on macOS/Linux/Windows.
 - **Cloud GPU Upscaling**: Performs 2x bicubic upscaling on tiles using CUDA kernels optimized for NVIDIA GPUs.
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
 **Workflow**
@@ -14,11 +14,11 @@
 **Prerequisites**
 - macOS with Homebrew, Linux (Ubuntu) with apt, or Windows with Chocolatey
 - CMake
-- OpenCV
+- OpenCV (for C++ version) or stb_image (for C version)
 - NumPy
 - Python 3.9+ with pip
 - Cloud instance with NVIDIA GPU and CUDA toolkit (for GPU upscaling)
-*Note: Conda is installed automatically on macOS via the setup script.*
+*Note: Conda is installed automatically on macOS via the setup script. The C version has no external dependencies beyond stb_image (header-only).*
 **Setup**
 **Quick Setup**
 Run the setup script to install all dependencies:
@@ -94,13 +94,17 @@ To run unit tests:
 ```bash
 # Python tests
 python3 -m pytest tests/
-# C++ tests (after building)
+# C/C++ tests (after building)
 cd build && ctest
 ```
 **Manual Usage**
-1. **Split images into tiles**:
+1. **Split images into tiles** (C++ version with OpenCV):
    ```bash
    ./preprocess path/to/input_images/ path/to/tiles/
+   ```
+   Or (C version with stb_image, no OpenCV required):
+   ```bash
+   ./preprocess_c path/to/input_images/ path/to/tiles/
    ```
 2. **Transfer tiles to cloud** (update script with your cloud details):
    ```bash
