@@ -8,6 +8,7 @@
 set -e
 
 PLATFORM=${1:-linux}
+CUDA=${2:-false}
 
 echo "Setting up dependencies for $PLATFORM..."
 
@@ -15,8 +16,8 @@ if [ "$PLATFORM" == "linux" ]; then
     sudo apt-get update
     sudo apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick
     # CUDA for linux CI
-    if [ "$CUDA" == "true" ]; then
-        if wget -q \
+    if [ "$CUDA" == "cuda" ]; then
+        if wget --tries=3 -q \
           https://developer.download.nvidia.com/compute/cuda/repos/ \
           ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
           -O /tmp/cuda-keyring.deb; then
@@ -25,8 +26,10 @@ if [ "$PLATFORM" == "linux" ]; then
             sudo apt-get install -y cuda-toolkit-12-6 || \
               echo "CUDA installation skipped"
         else
-            echo "CUDA keyring download failed, skipping CUDA installation"
+            echo "CUDA keyring download failed"
+            exit 1
         fi
+    fi
     fi
 elif [ "$PLATFORM" == "macos" ]; then
     brew install imagemagick
