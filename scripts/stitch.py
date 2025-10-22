@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -11,13 +12,13 @@ sys.stdout.flush()
 def stitch_tiles(input_dir, output_path):
     tiles = []
     tile_files = sorted(
-        [f for f in os.listdir(input_dir) if f.startswith("tile_") and f.endswith(".jpg")],
-        key=lambda f: int(f.partition("_")[2].partition(".")[0]),
+        [f for f in Path(input_dir).iterdir() if f.name.startswith("tile_") and f.name.endswith(".jpg")],
+        key=lambda f: int(f.name.partition("_")[2].partition(".")[0]),
     )
     if not tile_files:
         raise ValueError("No tile files found in input directory")
     for tile_file in tile_files:
-        img = cv2.imread(os.path.join(input_dir, tile_file))
+        img = cv2.imread(str(tile_file))
         if img is None:
             raise ValueError(f"Could not load {tile_file}")
         tiles.append(img)
