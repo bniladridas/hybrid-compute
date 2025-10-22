@@ -6,7 +6,7 @@ from pathlib import Path
 import cv2
 
 
-def test_create_test_image(tmp_path):
+def test_create_test_image(tmp_path: Path) -> None:
     """Test that create_test_image.py creates a test image."""
     # Create test_images dir in tmp_path
     test_images_dir = tmp_path / "test_images"
