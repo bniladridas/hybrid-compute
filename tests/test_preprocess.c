@@ -26,8 +26,8 @@ int main() {
     system("mkdir -p test_images");
     system("python3 ../create_test_image.py");
 
-    // Run preprocess_c (assuming it's in parent directory)
-    system("../preprocess_c test_images test_output_tiles");
+    // Run preprocess_c (in same directory)
+    system("./preprocess_c test_images test_output_tiles");
 
     // Check if output directory exists
     struct stat st;
