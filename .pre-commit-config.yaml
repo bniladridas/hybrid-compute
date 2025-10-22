@@ -11,7 +11,6 @@ repos:
         language: python
         types: [python]
         require_serial: true
-        args: [--line-length=127, --safe, --quiet]
 
   # Import sorting
   - repo: https://github.com/pycqa/isort
@@ -20,7 +19,7 @@ repos:
       - id: isort
         name: isort (python)
         description: "Sorts Python imports"
-        entry: isort --profile black --line-length=127
+        entry: isort
         language: python
         types: [python]
         require_serial: true
@@ -32,7 +31,6 @@ repos:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
-        args: [--line-length=127]
 
   # YAML Linting
   - repo: https://github.com/adrienverge/yamllint.git
