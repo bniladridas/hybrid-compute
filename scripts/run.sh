@@ -6,8 +6,15 @@ set -e
 
 echo "Building preprocess..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    eval "$(~/miniconda3/bin/conda shell.bash hook)"
-    conda activate base
+    # Dynamic conda detection
+    CONDA_PATH=$(find /usr/local /opt/homebrew -type f -name conda 2>/dev/null | head -n1)
+    if [[ -f "$CONDA_PATH" ]]; then
+        eval "$($CONDA_PATH shell.bash hook)"
+        conda activate base
+    else
+        echo "Conda not found. Please install miniconda."
+        exit 1
+    fi
 fi
 mkdir -p build
 cd build
