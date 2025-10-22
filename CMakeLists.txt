@@ -44,7 +44,9 @@ target_include_directories(preprocess PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOU
 
 add_executable(preprocess_c src/preprocess.c)
 target_include_directories(preprocess_c PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(preprocess_c m)
 
 add_executable(test_preprocess tests/test_preprocess.c)
 target_include_directories(test_preprocess PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_preprocess m)
 add_test(NAME test_preprocess COMMAND test_preprocess)
