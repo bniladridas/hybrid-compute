@@ -1,5 +1,4 @@
 import os
-from typing import Tuple
 
 import cv2
 import numpy as np
@@ -8,7 +7,7 @@ import pytest
 from scripts.stitch import stitch_tiles
 
 
-def create_dummy_tiles(input_dir: str, tile_count: int, tile_size: Tuple[int, int] = (10, 10)) -> None:
+def create_dummy_tiles(input_dir: str, tile_count: int, tile_size: tuple[int, int] = (10, 10)) -> None:
     os.makedirs(input_dir, exist_ok=True)
     for i in range(tile_count):
         img = np.random.randint(0, 256, (tile_size[1], tile_size[0], 3), dtype=np.uint8)
