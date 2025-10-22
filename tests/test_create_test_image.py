@@ -3,6 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import cv2
+
 
 def test_create_test_image(tmp_path):
     """Test that create_test_image.py creates a test image."""
@@ -19,8 +21,6 @@ def test_create_test_image(tmp_path):
         assert test_image_path.exists()
 
         # Optionally, check image properties
-        import cv2
-
         img = cv2.imread(str(test_image_path))
         assert img is not None
         assert img.shape == (256, 256, 3)
