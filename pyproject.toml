@@ -24,7 +24,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.coverage.run]
-omit = ["scripts/e2e.py", "create_test_image.py"]
+omit = ["scripts/e2e.py", "create_test_image.py", "config.py", "config-3.py"]
 
 [tool.coverage.report]
 exclude_lines = [
