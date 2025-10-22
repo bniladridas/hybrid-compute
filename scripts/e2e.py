@@ -13,13 +13,13 @@ os.makedirs("test_images/tiles", exist_ok=True)
 os.makedirs("test_images/upscaled", exist_ok=True)
 
 # Create test image
-subprocess.run([sys.executable, "create_test_image.py"])
+subprocess.run([sys.executable, "create_test_image.py"], check=False)
 
 # Preprocess
 if runner_os == "Windows":
-    subprocess.run(["./build/Release/preprocess.exe", "test_images", "test_images/tiles"])
+    subprocess.run(["./build/Release/preprocess.exe", "test_images", "test_images/tiles"], check=False)
 else:
-    subprocess.run(["./build/preprocess", "test_images", "test_images/tiles"])
+    subprocess.run(["./build/preprocess", "test_images", "test_images/tiles"], check=False)
 
 print("Preprocess done")
 
@@ -48,7 +48,7 @@ print("Mock upscale done")
 
 # Stitch
 if runner_os == "Windows":
-    subprocess.run([sys.executable, "scripts/stitch.py", "test_images/upscaled", "test_images/final_output.jpg"])
+    subprocess.run([sys.executable, "scripts/stitch.py", "test_images/upscaled", "test_images/final_output.jpg"], check=False)
 else:
     subprocess.run(
         [
@@ -60,7 +60,8 @@ else:
             "scripts/stitch.py",
             "test_images/upscaled",
             "test_images/final_output.jpg",
-        ]
+        ],
+        check=False,
     )
 
 print("Stitch done")
