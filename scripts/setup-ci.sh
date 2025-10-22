@@ -18,11 +18,11 @@ if [ "$PLATFORM" == "linux" ]; then
     if [ "$CUDA" == "true" ]; then
         wget -q \
           https://developer.download.nvidia.com/compute/cuda/repos/ \
-          ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
+          ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
           -O /tmp/cuda-keyring.deb
         sudo dpkg -i /tmp/cuda-keyring.deb
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends cuda-toolkit-11-8 || \
+        sudo apt-get install -y cuda-toolkit-12-6 || \
           echo "CUDA installation skipped"
     fi
 elif [ "$PLATFORM" == "macos" ]; then
