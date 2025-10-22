@@ -12,7 +12,6 @@ PLATFORM=${1:-linux}
 echo "Setting up dependencies for $PLATFORM..."
 
 if [ "$PLATFORM" == "linux" ]; then
-    sudo apt-get update
     sudo apt-get install -y cmake libopencv-dev build-essential imagemagick
     # CUDA for linux CI
     if [ "$CUDA" == "true" ]; then
@@ -21,7 +20,6 @@ if [ "$PLATFORM" == "linux" ]; then
           ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
           -O /tmp/cuda-keyring.deb
         sudo dpkg -i /tmp/cuda-keyring.deb
-        sudo apt-get update
         sudo apt-get install -y cuda-toolkit-11-8 || \
           echo "CUDA installation skipped"
     fi
