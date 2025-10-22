@@ -1,15 +1,34 @@
 #include <stdio.h>
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#else
+#include <dirent.h>
+#include <unistd.h> // for access
+#endif
+
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
 #include <sys/stat.h>
 #include <assert.h>
-#include <unistd.h> // for access
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 int count_files_in_dir(const char* dir_path) {
+#ifdef _WIN32
+    char search_path[1024];
+    snprintf(search_path, sizeof(search_path), "%s\\*", dir_path);
+    WIN32_FIND_DATA find_data;
+    HANDLE hFind = FindFirstFile(search_path, &find_data);
+    if (hFind == INVALID_HANDLE_VALUE) return -1;
+    int count = 0;
+    do {
+        if (!(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) count++;
+    } while (FindNextFile(hFind, &find_data));
+    FindClose(hFind);
+    return count;
+#else
     DIR* dir = opendir(dir_path);
     if (!dir) return -1;
     int count = 0;
@@ -19,6 +38,7 @@ int count_files_in_dir(const char* dir_path) {
     }
     closedir(dir);
     return count;
+#endif
 }
 
 int main() {

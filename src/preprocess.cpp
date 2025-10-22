@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     if (argc == 4) {
         try {
             tile_size = std::stoi(argv[3]);
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
             std::cerr << "Error: Invalid tile_size value provided: " << argv[3] << std::endl;
             return -1;
         }

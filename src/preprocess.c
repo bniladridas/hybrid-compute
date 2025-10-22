@@ -1,3 +1,11 @@
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#include <direct.h>
+#else
+#include <dirent.h>
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -6,7 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -63,9 +70,51 @@ int main(int argc, char** argv) {
     // Create output folder if it does not exist
     struct stat st = {0};
     if (stat(output_folder, &st) == -1) {
+#ifdef _WIN32
+        _mkdir(output_folder);
+#else
         mkdir(output_folder, 0700);
+#endif
     }
 
+#ifdef _WIN32
+    // Windows directory iteration
+    char search_path[1024];
+    snprintf(search_path, sizeof(search_path), "%s\\*", input_folder);
+    WIN32_FIND_DATA find_data;
+    HANDLE hFind = FindFirstFile(search_path, &find_data);
+    if (hFind == INVALID_HANDLE_VALUE) {
+        fprintf(stderr, "Error opening input folder: %s\n", input_folder);
+        return -1;
+    }
+    do {
+        if (!(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {  // Regular file
+            char input_path[1024];
+            snprintf(input_path, sizeof(input_path), "%s\\%s", input_folder, find_data.cFileName);
+
+            int width, height, channels;
+            unsigned char* image = stbi_load(input_path, &width, &height, &channels, 0);
+            if (!image) {
+                fprintf(stderr, "Error loading image: %s\n", input_path);
+                continue;
+            }
+
+            // Extract base name without extension
+            char base_name[256];
+            strcpy(base_name, find_data.cFileName);
+            char* dot = strrchr(base_name, '.');
+            if (dot) *dot = '\0';
+
+            splitImageIntoTiles(image, width, height, channels, tile_size, output_folder, base_name);
+
+            stbi_image_free(image);
+
+            printf("Processed %s and saved tiles!\n", input_path);
+        }
+    } while (FindNextFile(hFind, &find_data));
+    FindClose(hFind);
+#else
+    // POSIX directory iteration
     DIR* dir = opendir(input_folder);
     if (!dir) {
         fprintf(stderr, "Error opening input folder: %s\n", input_folder);
@@ -100,5 +149,6 @@ int main(int argc, char** argv) {
     }
 
     closedir(dir);
+#endif
     return 0;
 }
