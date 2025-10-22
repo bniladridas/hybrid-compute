@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -9,7 +10,7 @@ sys.stdout.flush()
 
 
 def stitch_tiles(input_dir: str, output_path: str) -> None:
-    tiles: list[np.ndarray] = []
+    tiles: list[np.ndarray[Any, np.dtype[Any]]] = []
     tile_files = sorted(
         [f for f in Path(input_dir).iterdir() if f.name.startswith("tile_") and f.name.endswith(".jpg")],
         key=lambda f: int(f.name.partition("_")[2].partition(".")[0]),
