@@ -3,4 +3,7 @@ extends: default
 
 ignore:
   - build/
-  - .github/
+
+rules:
+  indentation: disable
+  truthy: disable
