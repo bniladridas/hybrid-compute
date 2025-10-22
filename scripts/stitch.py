@@ -8,8 +8,8 @@ print("Starting stitch")
 sys.stdout.flush()
 
 
-def stitch_tiles(input_dir, output_path):
-    tiles = []
+def stitch_tiles(input_dir: str, output_path: str) -> None:
+    tiles: list[np.ndarray] = []
     tile_files = sorted(
         [f for f in Path(input_dir).iterdir() if f.name.startswith("tile_") and f.name.endswith(".jpg")],
         key=lambda f: int(f.name.partition("_")[2].partition(".")[0]),
@@ -22,11 +22,11 @@ def stitch_tiles(input_dir, output_path):
             raise ValueError(f"Could not load {tile_file}")
         tiles.append(img)
     tile_count = len(tiles)
-    tiles = np.array(tiles)
+    tiles_array = np.array(tiles)
     grid_size = int(np.sqrt(tile_count))
     if grid_size * grid_size != tile_count:
         raise ValueError(f"Tile count {tile_count} is not a perfect square")
-    stitched = cv2.vconcat([cv2.hconcat(list(tiles_row)) for tiles_row in np.array_split(tiles, grid_size)])
+    stitched = cv2.vconcat([cv2.hconcat(list(tiles_row)) for tiles_row in np.array_split(tiles_array, grid_size)])
     print("Stitched shape:", stitched.shape)
     print("About to write to", output_path)
     sys.stdout.flush()
