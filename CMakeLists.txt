@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0104 NEW)
-project(hybrid-compute LANGUAGES CXX)
+project(hybrid-compute LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -41,3 +41,10 @@ add_test(NAME test_upscaler COMMAND test_upscaler)
 add_executable(preprocess src/preprocess.cpp)
 target_link_libraries(preprocess ${OpenCV_LIBS})
 target_include_directories(preprocess PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(preprocess_c src/preprocess.c)
+target_include_directories(preprocess_c PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(test_preprocess tests/test_preprocess.c)
+target_include_directories(test_preprocess PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME test_preprocess COMMAND test_preprocess)
