@@ -26,8 +26,7 @@ if [ "$PLATFORM" == "linux" ]; then
             sudo apt-get install -y cuda-toolkit-12-6 || \
               echo -e "\033[33mCUDA installation skipped\033[0m"
         else
-            echo -e "\033[31mCUDA keyring download failed\033[0m"
-            exit 1
+            echo -e "\033[31mCUDA keyring download failed, skipping CUDA setup\033[0m"
         fi
     fi
 elif [ "$PLATFORM" == "macos" ]; then
