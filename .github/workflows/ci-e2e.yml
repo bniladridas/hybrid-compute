@@ -33,15 +33,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake \
             libopencv-dev build-essential imagemagick
-          # Install CUDA toolkit for GPU support
-          wget -q \
-            https://developer.download.nvidia.com/compute/cuda/repos/ \
-            ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
-            -O /tmp/cuda-keyring.deb
-          sudo dpkg -i /tmp/cuda-keyring.deb
-          sudo apt-get update
-          sudo apt-get install -y cuda-toolkit-11-8 || \
-            echo "CUDA installation skipped"
         elif [ "$RUNNER_OS" == "macOS" ]; then
           brew install imagemagick
           conda install opencv cmake
@@ -76,20 +67,6 @@ jobs:
           cmake ..
         fi
         cmake --build . --config Release
-
-    - name: Build CUDA upscale (Linux)
-      if: runner.os == 'Linux'
-      shell: bash
-      run: |
-        if command -v nvcc >/dev/null 2>&1; then
-          cd cloud_gpu
-          nvcc upscale.cu -o upscale \
-            -I/usr/include/opencv4 \
-            -lopencv_core -lopencv_imgcodecs
-          echo "CUDA upscale built successfully"
-        else
-          echo "CUDA not available, skipping upscale build"
-        fi
 
     - name: Run unit tests
       shell: bash
