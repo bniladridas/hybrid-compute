@@ -12,12 +12,12 @@
 2. Transfer and upscale tiles in the cloud.
 3. Stitch upscaled tiles into the final image.
 **Prerequisites**
-- macOS with Homebrew or conda
+- macOS with Homebrew, Linux (Ubuntu) with apt, or Windows with Chocolatey
 - CMake
 - OpenCV
 - NumPy
-- Python 3 with pip
-- Cloud instance with NVIDIA GPU and CUDA toolkit
+- Python 3.9+ with pip
+- Cloud instance with NVIDIA GPU and CUDA toolkit (for GPU upscaling)
 **Setup**
 **Quick Setup**
 Run the setup script to install all dependencies:
@@ -38,31 +38,43 @@ For containerized environments:
   docker run --rm --gpus all -v /path/to/tiles:/app/tiles hybrid-compute-cuda ./cloud_gpu/upscaler tiles/input_tile.jpg tiles/output_tile.jpg
   ```
 **Manual Setup**
-**Local (macOS)**
+**macOS**
 ```bash
-# Install conda
-curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh && bash Miniconda3-latest-MacOSX-arm64.sh -b
-source ~/miniconda3/bin/activate
-conda install -c conda-forge opencv cmake imagemagick
-# Clone repository
-git clone https://github.com/bniladridas/hybrid-compute.git
-cd hybrid-compute
+# Install dependencies
+brew install --cask miniconda
+eval "$(/opt/homebrew/Caskroom/miniconda/base/bin/conda shell.bash hook)"
+conda init bash
+conda install -c conda-forge opencv cmake imagemagick -y
 # Install Python dependencies
 pip install -r requirements.txt --user
-python3 -m pip install opencv-python --user
 # Test cv2 import
 python3 -c "import cv2; print('cv2 works:', cv2.__version__)"
 # Build local tools
 mkdir build && cd build
 cmake ..
-make -j4
+make -j$(sysctl -n hw.ncpu)
 ```
 **Ubuntu**
 ```bash
 sudo apt-get update
-sudo apt-get install -y cmake libopencv-dev build-essential imagemagick
+sudo apt-get install -y cmake libopencv-dev build-essential imagemagick wget
+# Install CUDA (optional)
+wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
+sudo dpkg -i /tmp/cuda-keyring.deb
+sudo apt-get update
+sudo apt-get install -y cuda-toolkit-11-8 || echo "CUDA installation skipped"
 pip install -r requirements.txt
-python3 -m pip install opencv-python --force
+```
+**Windows**
+```bash
+# Install dependencies
+choco install cmake opencv imagemagick -y
+# Install Python dependencies
+pip install -r requirements.txt --user
+# Build local tools
+mkdir build && cd build
+cmake ..
+cmake --build . --config Release
 ```
 **Cloud GPU**
 ```bash
@@ -100,13 +112,13 @@ cd build && ctest
     (Replace with actual tile filenames; defaults to input_tile.jpg/output_tile.jpg if no args provided)
 4. **Stitch upscaled tiles** (currently hardcoded for 4x4 grid):
    ```bash
-   python3 scripts/stitch.py
+   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg
    ```
 *Note: Scripts are currently hardcoded for specific file names and grid sizes. Modify as needed for your use case.*
 **Verification**
 To ensure the project components work correctly:
 - **CUDA Build Check**: Run `scripts/check_cuda_build.sh` on a CUDA-enabled system to verify `upscale.cu` compiles without errors.
-- **Local E2E Testing**: The `scripts/e2e.py` script now includes mock CPU-based upscaling to simulate the full pipeline (tiling → upscale → stitching) without requiring GPU hardware.
+- **Local E2E Testing**: The `scripts/run.sh` script simulates the full pipeline (tiling → copy tiles → stitching) without actual upscaling or GPU hardware. `scripts/e2e.py` provides additional end-to-end validation.
 - **Code Review**: Manually inspect `cloud_gpu/upscale.cu` for CUDA best practices and logic correctness.
 **Git Commit Standards**
 This project enforces conventional commit standards for clean history:
