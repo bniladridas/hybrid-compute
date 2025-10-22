@@ -8,6 +8,10 @@ import cv2
 
 def test_create_test_image(tmp_path):
     """Test that create_test_image.py creates a test image."""
+    # Create test_images dir in tmp_path
+    test_images_dir = tmp_path / "test_images"
+    test_images_dir.mkdir()
+
     # Change to tmp_path to avoid cluttering the repo
     original_cwd = Path.cwd()
     try:
