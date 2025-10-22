@@ -57,4 +57,5 @@ jobs:
     - name: Run mypy for type checking
       run: |
         mypy scripts/ tests/ \
-          --ignore-missing-imports --strict --no-error-summary
+          --ignore-missing-imports --strict \
+          --no-error-summary --no-namespace-packages
