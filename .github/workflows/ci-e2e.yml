@@ -1,10 +1,11 @@
+---
 name: CI E2E
 
-on:
+on:  # yamllint disable=truthy
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   e2e:
@@ -14,95 +15,95 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup Miniconda (macOS)
-      if: runner.os == 'macOS'
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
+      - name: Setup Miniconda (macOS)
+        if: runner.os == 'macOS'
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
 
-    - name: Install dependencies
-      shell: bash
-      run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          export PATH="$CONDA/bin:$PATH"
-        fi
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            export PATH="$CONDA/bin:$PATH"
+          fi
         if [ "$RUNNER_OS" == "Linux" ]; then
           sudo apt-get update
           sudo apt-get install -y cmake libopencv-dev build-essential imagemagick
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          brew install imagemagick
-          conda install opencv cmake
-        elif [ "$RUNNER_OS" == "Windows" ]; then
-          C:/Miniconda/Scripts/conda install opencv cmake
-          choco install imagemagick
-        fi
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install imagemagick
+            conda install opencv cmake
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            C:/Miniconda/Scripts/conda install opencv cmake
+            choco install imagemagick
+          fi
 
-    - name: Install Python dependencies
-      shell: bash
-      run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          C:/Miniconda/Scripts/conda install numpy pytest
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          conda install numpy pytest coverage
-        else
-          python3 -m pip install --break-system-packages -r requirements.txt
-        fi
+      - name: Install Python dependencies
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            C:/Miniconda/Scripts/conda install numpy pytest
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            conda install numpy pytest coverage
+          else
+            python3 -m pip install --break-system-packages -r requirements.txt
+          fi
 
-    - name: Build preprocess
-      shell: bash
-      run: |
-        mkdir build
-        cd build
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          cmake .. -DCMAKE_PREFIX_PATH=C:/Miniconda/Library
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          eval "$(conda shell.bash hook)"
-          conda activate base
-          CONDA_PREFIX=$CONDA_PREFIX cmake ..
-        else
-          cmake ..
-        fi
-        cmake --build . --config Release
+      - name: Build preprocess
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cmake .. -DCMAKE_PREFIX_PATH=C:/Miniconda/Library
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            eval "$(conda shell.bash hook)"
+            conda activate base
+            CONDA_PREFIX=$CONDA_PREFIX cmake ..
+          else
+            cmake ..
+          fi
+          cmake --build . --config Release
 
-    - name: Run unit tests
-      shell: bash
-      run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
+      - name: Run unit tests
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            eval "$(C:/Miniconda/Scripts/conda shell.bash hook)"
+            conda activate base
+            python -m pytest tests/
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            eval "$(conda shell.bash hook)"
+            conda activate base
+            python -m pytest tests/
+          else
+            python3 -m pytest tests/
+          fi
+          cd build && ctest -C Release
+
+      - name: Run e2e test (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            eval "$(conda shell.bash hook)"
+            conda activate base
+          fi
+          python3 scripts/e2e.py
+
+      - name: Run e2e test (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
           eval "$(C:/Miniconda/Scripts/conda shell.bash hook)"
           conda activate base
-          python -m pytest tests/
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          eval "$(conda shell.bash hook)"
-          conda activate base
-          python -m pytest tests/
-        else
-          python3 -m pytest tests/
-        fi
-        cd build && ctest -C Release
+          python scripts/e2e.py
 
-    - name: Run e2e test (Linux/macOS)
-      if: runner.os != 'Windows'
-      run: |
-        if [ "$RUNNER_OS" == "macOS" ]; then
-          eval "$(conda shell.bash hook)"
-          conda activate base
-        fi
-        python3 scripts/e2e.py
-
-    - name: Run e2e test (Windows)
-      if: runner.os == 'Windows'
-      shell: bash
-      run: |
-        eval "$(C:/Miniconda/Scripts/conda shell.bash hook)"
-        conda activate base
-        python scripts/e2e.py
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
