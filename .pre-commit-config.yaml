@@ -1,0 +1,59 @@
+---
+repos:
+  # Python Formatting
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        name: black
+        description: "Black: The uncompromising Python code formatter"
+        entry: black
+        language: python
+        types: [python]
+        require_serial: true
+        args: [--line-length=127, --safe, --quiet]
+
+  # Import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (python)
+        description: "Sorts Python imports"
+        entry: isort --profile black --line-length=127
+        language: python
+        types: [python]
+        require_serial: true
+
+  # Python Linting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.13
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        args: [--line-length=127]
+
+  # YAML Linting
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        name: yamllint
+        description: This hook runs yamllint.
+        entry: yamllint
+        language: python
+        types: [yaml]
+        args: [--strict]
+        additional_dependencies: [yamllint]
+
+  # Basic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-yaml
+        args: [--allow-multiple-documents, --unsafe]
+      - id: end-of-file-fixer
+        exclude: \.min\.(js|css)$
+      - id: trailing-whitespace
+        args: []
