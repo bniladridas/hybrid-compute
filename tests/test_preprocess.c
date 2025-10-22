@@ -24,7 +24,7 @@ int count_files_in_dir(const char* dir_path) {
 int main() {
     // Create test image directory and image
     system("mkdir -p test_images");
-    system("python ../create_test_image.py");
+    system("python3 ../create_test_image.py");
 
     // Run preprocess_c (assuming it's in parent directory)
     system("../preprocess_c test_images test_output_tiles");
