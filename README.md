@@ -8,31 +8,31 @@
 - **Cloud GPU Upscaling**: Performs 2x bicubic upscaling on tiles using CUDA kernels optimized for NVIDIA GPUs.
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
 **Workflow**
-1. **Split**: Process input images locally to create tiles.  
-2. Transfer and upscale tiles in the cloud.  
-3. Stitch upscaled tiles into the final image.  
+1. **Split**: Process input images locally to create tiles.
+2. Transfer and upscale tiles in the cloud.
+3. Stitch upscaled tiles into the final image.
 **Prerequisites**
-- macOS with Homebrew or conda  
-- CMake  
-- OpenCV  
-- NumPy  
-- Python 3 with pip  
-- Cloud instance with NVIDIA GPU and CUDA toolkit  
+- macOS with Homebrew or conda
+- CMake
+- OpenCV
+- NumPy
+- Python 3 with pip
+- Cloud instance with NVIDIA GPU and CUDA toolkit
 **Setup**
-**Quick Setup**  
-Run the setup script to install all dependencies:  
+**Quick Setup**
+Run the setup script to install all dependencies:
 ```bash
 ./scripts/setup.sh
 ```
 
-**Docker Setup**  
-For containerized environments:  
-- **Local CPU components**:  
+**Docker Setup**
+For containerized environments:
+- **Local CPU components**:
   ```bash
   docker build -t hybrid-compute .
   docker run --rm hybrid-compute
   ```
-- **CUDA GPU components** (requires NVIDIA GPU):  
+- **CUDA GPU components** (requires NVIDIA GPU):
   ```bash
   docker build -f Dockerfile.cuda -t hybrid-compute-cuda .
   docker run --rm --gpus all -v /path/to/tiles:/app/tiles hybrid-compute-cuda ./cloud_gpu/upscaler tiles/input_tile.jpg tiles/output_tile.jpg
@@ -71,7 +71,7 @@ cd cloud_gpu
 nvcc upscale.cu -o upscaler -I/usr/include/opencv4 -lopencv_core -lopencv_imgcodecs
 ```
 **Usage**
-**Quick Run**  
+**Quick Run**
 To build, test, and run e2e locally:
 ```bash
 ./scripts/run.sh
@@ -123,5 +123,5 @@ To clean up existing commit messages in history:
 git filter-branch --msg-filter 'bash scripts/rewrite_msg.sh' -- --all
 git push --force origin main  # if needed
 ```
-**License**  
+**License**
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
