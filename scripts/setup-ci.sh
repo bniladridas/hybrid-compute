@@ -36,6 +36,6 @@ fi
 # Python dependencies (common)
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-pip install black isort ruff yamllint pre-commit pytest coverage mypy
+pip install black isort ruff yamllint pre-commit pytest coverage pytest-cov mypy
 
 echo "Setup complete for $PLATFORM"
