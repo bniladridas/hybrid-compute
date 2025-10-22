@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import cv2
 
@@ -29,7 +30,7 @@ else:
 
 # Verify C version produced tiles
 if os.path.exists("test_images/tiles_c"):
-    c_tiles = len([f for f in os.listdir("test_images/tiles_c") if f.endswith(".jpg")])
+    c_tiles = len([f for f in Path("test_images/tiles_c").iterdir() if f.suffix == ".jpg"])
     if c_tiles != 16:
         sys.exit(1)
 
