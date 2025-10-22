@@ -30,7 +30,6 @@ if [ "$PLATFORM" == "linux" ]; then
             exit 1
         fi
     fi
-    fi
 elif [ "$PLATFORM" == "macos" ]; then
     brew install imagemagick
     # Conda setup assumed handled elsewhere
