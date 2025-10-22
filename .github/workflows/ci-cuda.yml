@@ -19,7 +19,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake libopencv-dev build-essential
         # Install CUDA toolkit
-        if wget -q \
+        if wget --tries=3 -q \
           https://developer.download.nvidia.com/compute/cuda/repos/ \
           ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
           -O /tmp/cuda-keyring.deb; then
@@ -28,7 +28,8 @@ jobs:
             sudo apt-get install -y cuda-toolkit-12-6 || \
               echo "CUDA installation skipped"
         else
-            echo "CUDA keyring download failed, skipping CUDA build"
+            echo "CUDA keyring download failed"
+            exit 1
         fi
 
     - name: Build CUDA upscale
@@ -42,5 +43,6 @@ jobs:
           # Test basic execution (no GPU needed for syntax check)
           ./upscale 2>/dev/null || echo "Execution test skipped (no GPU)"
         else
-          echo "CUDA not available, skipping build"
+          echo "CUDA not available"
+          exit 1
         fi
