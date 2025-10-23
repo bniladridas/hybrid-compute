@@ -1,4 +1,5 @@
 #!/bin/bash
+#!/bin/bash
 CLOUD_IP="YOUR_CLOUD_IP"
 CLOUD_USER="ubuntu"
 CLOUD_PROJECT_PATH="/home/ubuntu/HybridCompute"
