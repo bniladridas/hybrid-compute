@@ -27,12 +27,19 @@ if(CUDAToolkit_FOUND)
         target_link_libraries(upscale OpenMP::OpenMP_CXX)
     endif()
 
-    # Additional CUDA filters
+    # Additional CUDA executables
     add_executable(filters cloud_gpu/filters.cu)
     target_link_libraries(filters CUDA::cudart ${OpenCV_LIBS})
     target_include_directories(filters PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
     if(OpenMP_CXX_FOUND)
         target_link_libraries(filters OpenMP::OpenMP_CXX)
+    endif()
+
+    add_executable(rotation cloud_gpu/rotation.cu)
+    target_link_libraries(rotation CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(rotation PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(rotation OpenMP::OpenMP_CXX)
     endif()
 endif()
 
