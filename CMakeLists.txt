@@ -48,6 +48,39 @@ if(CUDAToolkit_FOUND)
     if(OpenMP_CXX_FOUND)
         target_link_libraries(resize OpenMP::OpenMP_CXX)
     endif()
+
+    # Additional CUDA tools (placeholders)
+    add_executable(colorspace cloud_gpu/colorspace.cu)
+    target_link_libraries(colorspace CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(colorspace PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+    add_executable(histogram cloud_gpu/histogram.cu)
+    target_link_libraries(histogram CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(histogram PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+    add_executable(morphology cloud_gpu/morphology.cu)
+    target_link_libraries(morphology CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(morphology PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+    add_executable(median cloud_gpu/median.cu)
+    target_link_libraries(median CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(median PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+    add_executable(sharpen cloud_gpu/sharpen.cu)
+    target_link_libraries(sharpen CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(sharpen PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+    add_executable(threshold cloud_gpu/threshold.cu)
+    target_link_libraries(threshold CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(threshold PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+    add_executable(canny cloud_gpu/canny.cu)
+    target_link_libraries(canny CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(canny PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+    add_executable(blend cloud_gpu/blend.cu)
+    target_link_libraries(blend CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(blend PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
 endif()
 
 # Unit tests
