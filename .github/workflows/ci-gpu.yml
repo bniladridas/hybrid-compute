@@ -15,9 +15,20 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - cuda-version: "11.8.0"
+            cudnn-version: "8"
+            tag-suffix: ""
+          - cuda-version: ""
+            cudnn-version: ""
+            tag-suffix: "-cpu"
     container:
-      image: nvidia/cuda:11.8.0-base-ubuntu22.04
-      options: --gpus all
+      image: >-
+        ${{ matrix.cuda-version != '' &&
+          format('nvidia/cuda:{0}-base-ubuntu22.04', matrix.cuda-version) ||
+          'ubuntu:22.04' }}
 
     steps:
     - name: Check GPU
@@ -66,27 +77,36 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        file: ./Dockerfile.cuda
+        file: >-
+          ${{ matrix.cuda-version != '' &&
+          'Dockerfile.cuda' || 'Dockerfile' }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
           ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}:${{ env.IMAGE_TAG }}
           ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}:latest
         build-args: |
-          NVIDIA_VISIBLE_DEVICES=all
+          ${{ matrix.cuda-version != '' && 'NVIDIA_VISIBLE_DEVICES=all' || '' }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
     - name: Test Docker image
       if: github.event_name != 'pull_request'
       run: |
-        if command -v nvidia-smi; then
+        IMAGE_TAG="${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}:\
+          ${{ env.IMAGE_TAG }}"
+
+        if [ "${{ matrix.cuda-version }}" != "" ] && command -v nvidia-smi; then
+          echo "Running GPU test..."
           docker run --gpus all \
             -v $(pwd)/test_images:/test_images \
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/$IMAGE_TAG \
             /app/upscale /test_images/input.jpg /test_images/output.jpg
         else
-          echo "Skipping GPU test - no GPU available"
+          echo "Running CPU test..."
+          docker run \
+            -v $(pwd)/test_images:/test_images \
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/$IMAGE_TAG \
+            /app/upscale /test_images/input.jpg /test_images/output.jpg
         fi
