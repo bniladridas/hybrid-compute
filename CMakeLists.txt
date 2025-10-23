@@ -26,6 +26,14 @@ if(CUDAToolkit_FOUND)
     if(OpenMP_CXX_FOUND)
         target_link_libraries(upscale OpenMP::OpenMP_CXX)
     endif()
+
+    # Additional CUDA filters
+    add_executable(filters cloud_gpu/filters.cu)
+    target_link_libraries(filters CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(filters PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(filters OpenMP::OpenMP_CXX)
+    endif()
 endif()
 
 # Unit tests
