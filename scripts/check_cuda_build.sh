@@ -4,9 +4,8 @@
 
 if command -v nvcc &> /dev/null; then
     echo "CUDA found. Attempting to build upscale.cu..."
-    cd cloud_gpu
-    nvcc upscale.cu -o upscaler -lopencv_core -lopencv_imgcodecs
-    if [ $? -eq 0 ]; then
+    cd cloud_gpu || exit
+    if nvcc upscale.cu -o upscaler -lopencv_core -lopencv_imgcodecs; then
         echo "CUDA build successful"
         rm -f upscaler  # Clean up binary
     else

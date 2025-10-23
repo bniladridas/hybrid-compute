@@ -38,6 +38,10 @@ else
 fi
 echo -e "${YELLOW}Compiling with $CPU_COUNT cores...${RESET}"
 make -j"$CPU_COUNT"
+
+# --- Run C++ unit tests ---
+echo -e "${BLUE}Running C++ unit tests...${RESET}"
+ctest
 cd ..
 
 # --- Test cv2 ---
@@ -64,8 +68,8 @@ cp test_images/tiles/* test_images/upscaled/
 
 # Rename tiles consistently
 for i in {0..15}; do
-    if [ -f test_images/upscaled/test_tile_$i.jpg ]; then
-        mv test_images/upscaled/test_tile_$i.jpg test_images/upscaled/tile_$i.jpg
+    if [ -f test_images/upscaled/test_tile_"$i".jpg ]; then
+        mv test_images/upscaled/test_tile_"$i".jpg test_images/upscaled/tile_"$i".jpg
     fi
 done
 

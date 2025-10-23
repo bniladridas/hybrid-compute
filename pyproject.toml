@@ -23,6 +23,9 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 
+[tool.pytest.ini_options]
+pythonpath = "."
+
 [tool.coverage.run]
 omit = ["scripts/e2e.py", "create_test_image.py", "config.py", "config-3.py"]
 
