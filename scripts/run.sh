@@ -84,7 +84,7 @@ else
     exit 1
 fi
 
-# --- Test CUDA filters (if available) ---
+# --- Test CUDA tools (if available) ---
 if [ -f build/filters ]; then
     echo -e "${BLUE}Testing CUDA filters...${RESET}"
     ./build/filters test_images/test.jpg test_images/filtered_blur.jpg blur
@@ -93,6 +93,26 @@ if [ -f build/filters ]; then
         echo -e "${GREEN}CUDA filters test passed.${RESET}"
     else
         echo -e "${YELLOW}CUDA filters test skipped or failed.${RESET}"
+    fi
+fi
+
+if [ -f build/rotation ]; then
+    echo -e "${BLUE}Testing CUDA rotation...${RESET}"
+    ./build/rotation test_images/test.jpg test_images/rotated.jpg 45
+    if [ -f test_images/rotated.jpg ]; then
+        echo -e "${GREEN}CUDA rotation test passed.${RESET}"
+    else
+        echo -e "${YELLOW}CUDA rotation test skipped or failed.${RESET}"
+    fi
+fi
+
+if [ -f build/resize ]; then
+    echo -e "${BLUE}Testing CUDA resize...${RESET}"
+    ./build/resize test_images/test.jpg test_images/resized.jpg 128 128
+    if [ -f test_images/resized.jpg ]; then
+        echo -e "${GREEN}CUDA resize test passed.${RESET}"
+    else
+        echo -e "${YELLOW}CUDA resize test skipped or failed.${RESET}"
     fi
 fi
 

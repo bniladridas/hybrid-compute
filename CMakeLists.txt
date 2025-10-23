@@ -41,6 +41,13 @@ if(CUDAToolkit_FOUND)
     if(OpenMP_CXX_FOUND)
         target_link_libraries(rotation OpenMP::OpenMP_CXX)
     endif()
+
+    add_executable(resize cloud_gpu/resize.cu)
+    target_link_libraries(resize CUDA::cudart ${OpenCV_LIBS})
+    target_include_directories(resize PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(resize OpenMP::OpenMP_CXX)
+    endif()
 endif()
 
 # Unit tests
