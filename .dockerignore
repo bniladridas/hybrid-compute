@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+build/
+__pycache__/
+*.pyc
+*.o
+*.log
+*.dmg
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test and coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# System files
+.DS_Store
+
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local development
+.env
+*.local
+
+# CUDA and large files
+*.dmg
+*.tar.gz
+*.zip
