@@ -2,8 +2,12 @@
  * CUDA Morphological Operations
  */
 
+#include <cuda_runtime.h>
+#include <opencv2/opencv.hpp>
+#include <iostream>
+
 // Dilation kernel
-__global__ void morphologyKernel(uchar *input, uchar *output, int width,
+__global__ void morphologyKernel(unsigned char *input, unsigned char *output, int width,
                                  int height) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -11,7 +15,7 @@ __global__ void morphologyKernel(uchar *input, uchar *output, int width,
   if (x >= width || y >= height) return;
 
   for (int c = 0; c < 3; c++) {
-    uchar max_val = 0;
+    unsigned char max_val = 0;
     for (int ky = -1; ky <= 1; ky++) {
       for (int kx = -1; kx <= 1; kx++) {
         int px = min(max(x + kx, 0), width - 1);
