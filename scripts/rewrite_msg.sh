@@ -11,7 +11,7 @@ message=$(cat)
 first_line=$(echo "$message" | head -n1)
 
 # Convert to lowercase
-first_line=$(echo "$first_line" | tr 'A-Z' 'a-z')
+first_line=$(echo "$first_line" | tr '[:upper:]' '[:lower:]')
 
 # Truncate to 60 characters if longer
 if [ ${#first_line} -gt 60 ]; then
