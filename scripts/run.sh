@@ -84,6 +84,18 @@ else
     exit 1
 fi
 
+# --- Test CUDA filters (if available) ---
+if [ -f build/filters ]; then
+    echo -e "${BLUE}Testing CUDA filters...${RESET}"
+    ./build/filters test_images/test.jpg test_images/filtered_blur.jpg blur
+    ./build/filters test_images/test.jpg test_images/filtered_sobel.jpg sobel
+    if [ -f test_images/filtered_blur.jpg ] && [ -f test_images/filtered_sobel.jpg ]; then
+        echo -e "${GREEN}CUDA filters test passed.${RESET}"
+    else
+        echo -e "${YELLOW}CUDA filters test skipped or failed.${RESET}"
+    fi
+fi
+
 # --- Cleanup ---
 echo -e "${BLUE}Cleaning up...${RESET}"
 rm -rf build test_images

@@ -108,3 +108,44 @@ int applySobelEdge(const cv::Mat& input, cv::Mat& output) {
 
     return 0;
 }
+
+// Main function for testing filters
+int main(int argc, char** argv) {
+    if (argc < 4) {
+        std::cerr << "Usage: ./filters <input_file> <output_file> <filter_type>\n";
+        std::cerr << "Filter types: blur, sobel\n";
+        return -1;
+    }
+
+    std::string input_file = argv[1];
+    std::string output_file = argv[2];
+    std::string filter_type = argv[3];
+
+    cv::Mat input = cv::imread(input_file);
+    if (input.empty()) {
+        std::cerr << "Error: Could not load image " << input_file << std::endl;
+        return -1;
+    }
+
+    cv::Mat output;
+    int result = -1;
+
+    if (filter_type == "blur") {
+        result = applyGaussianBlur(input, output);
+    } else if (filter_type == "sobel") {
+        result = applySobelEdge(input, output);
+    } else {
+        std::cerr << "Error: Unknown filter type " << filter_type << std::endl;
+        return -1;
+    }
+
+    if (result == 0) {
+        cv::imwrite(output_file, output);
+        std::cout << "Filter applied successfully. Output saved to " << output_file << std::endl;
+    } else {
+        std::cerr << "Error applying filter" << std::endl;
+        return -1;
+    }
+
+    return 0;
+}
