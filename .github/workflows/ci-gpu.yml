@@ -12,6 +12,9 @@ env:
   REGISTRY: ghcr.io
   IMAGE_TAG: ${{ github.sha }}
 
+# ────────────────────────────────────────────────
+# GLOBAL MATRIX (visible to all jobs)
+# ────────────────────────────────────────────────
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -20,11 +23,10 @@ jobs:
       matrix:
         include:
           - cuda-version: "11.8.0"
-            cudnn-version: "8"
             tag-suffix: ""
           - cuda-version: ""
-            cudnn-version: ""
             tag-suffix: "-cpu"
+
     container:
       image: >-
         ${{ matrix.cuda-version != '' &&
@@ -32,22 +34,18 @@ jobs:
           'ubuntu:22.04' }}
 
     steps:
-    - name: Check GPU
+    - name: Check GPU availability
       timeout-minutes: 2
       run: |
         set -e
-        echo "Checking GPU availability..."
-        nvidia-smi || echo "No GPU detected, continuing with CPU-only build"
+        echo "Checking GPU..."
+        nvidia-smi || echo "No GPU detected — CPU fallback active"
 
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
-      timeout-minutes: 5
 
     - name: Install dependencies
-      timeout-minutes: 15
       run: |
-        set -e
-        echo "Installing dependencies..."
         apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
           cmake \
           build-essential \
@@ -58,21 +56,17 @@ jobs:
           && rm -rf /var/lib/apt/lists/*
         pip3 install -r requirements.txt
 
-    - name: Build and Test
-      timeout-minutes: 20
+    - name: Build & test
       run: |
-        set -e
-        echo "Building project..."
         mkdir -p build && cd build
         USE_CUDA_FLAG=${{ matrix.cuda-version != '' && 'ON' || 'OFF' }}
         cmake .. \
           -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_VERBOSE_MAKEFILE=ON \
           -DUSE_CUDA=$USE_CUDA_FLAG
-        make -j$(nproc) VERBOSE=1
-        echo "Running tests..."
+        make -j$(nproc)
         ctest --output-on-failure --timeout 300 --parallel $(nproc)
 
+  # ────────────────────────────────────────────────
   docker:
     needs: test
     runs-on: ubuntu-latest
@@ -81,18 +75,22 @@ jobs:
       contents: read
       packages: write
 
+    strategy:
+      matrix:
+        include:
+          - cuda-version: "11.8.0"
+            tag-suffix: ""
+          - cuda-version: ""
+            tag-suffix: "-cpu"
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      timeout-minutes: 5
+    - uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      timeout-minutes: 5
 
-    - name: Log in to GitHub Container Registry
+    - name: Log in to GHCR
       uses: docker/login-action@v3
-      timeout-minutes: 5
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -107,8 +105,7 @@ jobs:
         echo "IMAGE_TAG1=$TAG_BASE:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
         echo "IMAGE_TAG2=$TAG_BASE:latest" >> $GITHUB_ENV
 
-    - name: Build and push Docker image
-      timeout-minutes: 30
+    - name: Build & push image
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -120,32 +117,28 @@ jobs:
           ${{ env.IMAGE_TAG1 }}
           ${{ env.IMAGE_TAG2 }}
         build-args: |
-          ${{ matrix.cuda-version != '' && 'NVIDIA_VISIBLE_DEVICES=all' || '' }}
           BUILDKIT_INLINE_CACHE=1
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Test Docker image
+    - name: Test container execution
       if: github.event_name != 'pull_request'
-      timeout-minutes: 15
       run: |
-         set -e
-         TAG_SUFFIX="${{ matrix.tag-suffix }}"
-         IMAGE_TAG="${{ env.IMAGE_NAME }}${TAG_SUFFIX}:${{ env.IMAGE_TAG }}"
+        echo "Preparing CPU/GPU runtime test..."
+        mkdir -p test_images
+        cp tests/test.jpg test_images/input.jpg
 
-          if [ "${{ matrix.cuda-version }}" != "" ] \
-            && command -v nvidia-smi >/dev/null 2>&1; then
-           echo "Running GPU test..."
-            timeout 600 docker run --gpus all \
-              -e DEBIAN_FRONTEND=noninteractive \
-              -v $(pwd)/test_images:/test_images \
-              ${{ env.IMAGE_TAG1 }} \
-              /app/upscale /test_images/input.jpg /test_images/output.jpg
-           else
-             echo "Running CPU test..."
-            timeout 300 docker run \
-              -e DEBIAN_FRONTEND=noninteractive \
-              -v $(pwd)/test_images:/test_images \
-              ${{ env.IMAGE_TAG1 }} \
-              /app/upscale /test_images/input.jpg /test_images/output.jpg
-           fi
+        if nvidia-smi >/dev/null 2>&1 \
+          && [ "${{ matrix.cuda-version }}" != "" ]; then
+          echo "Running GPU mode..."
+          timeout 120 docker run --gpus all \
+            -v $(pwd)/test_images:/test_images \
+            ${{ env.IMAGE_TAG1 }} \
+            /app/upscale /test_images/input.jpg /test_images/output.jpg
+        else
+          echo "Running CPU mode..."
+          timeout 120 docker run \
+            -v $(pwd)/test_images:/test_images \
+            ${{ env.IMAGE_TAG1 }} \
+            /app/upscale /test_images/input.jpg /test_images/output.jpg
+        fi
