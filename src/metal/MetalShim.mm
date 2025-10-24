@@ -215,7 +215,7 @@ namespace {
 
                 // Store the buffer in our map and return the pointer
                 std::lock_guard<std::mutex> lock(m_mutex);
-                *devPtr = (__bridge_retained void*)buffer;
+                *devPtr = (__bridge void*)[buffer retain];
                 m_buffers[*devPtr] = buffer;
 
                 return cudaSuccess;
@@ -233,9 +233,6 @@ namespace {
                     id<MTLBuffer> buffer = it->second;
                     [buffer release];
                     m_buffers.erase(it);
-
-                    // Release the bridged reference
-                    CFRelease(devPtr);
 
                     return cudaSuccess;
                 }
