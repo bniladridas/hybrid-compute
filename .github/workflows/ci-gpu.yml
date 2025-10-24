@@ -86,6 +86,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install test dependencies
+      run: pip3 install opencv-python numpy
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
