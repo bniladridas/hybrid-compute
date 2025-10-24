@@ -31,53 +31,57 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-find_library(METAL_LIBRARY Metal REQUIRED)
-find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
-find_library(METALKIT_LIBRARY MetalKit REQUIRED)
-find_library(QUARTZCORE_LIBRARY QuartzCore REQUIRED)
-find_library(IOKIT_LIBRARY IOKit REQUIRED)
-find_library(CORE_GRAPHICS_LIBRARY CoreGraphics REQUIRED)
+if(APPLE)
+    find_library(METAL_LIBRARY Metal REQUIRED)
+    find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
+    find_library(METALKIT_LIBRARY MetalKit REQUIRED)
+    find_library(QUARTZCORE_LIBRARY QuartzCore REQUIRED)
+    find_library(IOKIT_LIBRARY IOKit REQUIRED)
+    find_library(CORE_GRAPHICS_LIBRARY CoreGraphics REQUIRED)
 
-# Set Metal framework paths
-set(METAL_FRAMEWORKS
-    ${METAL_LIBRARY}
-    ${FOUNDATION_LIBRARY}
-    ${METALKIT_LIBRARY}
-    ${QUARTZCORE_LIBRARY}
-    ${IOKIT_LIBRARY}
-    ${CORE_GRAPHICS_LIBRARY}
-)
+    # Set Metal framework paths
+    set(METAL_FRAMEWORKS
+        ${METAL_LIBRARY}
+        ${FOUNDATION_LIBRARY}
+        ${METALKIT_LIBRARY}
+        ${QUARTZCORE_LIBRARY}
+        ${IOKIT_LIBRARY}
+        ${CORE_GRAPHICS_LIBRARY}
+    )
 
-# Set include directories
-include_directories(
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers
-    ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Foundation.framework/Headers
-)
+    # Set include directories
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers
+        ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Foundation.framework/Headers
+    )
 
-# Set framework search paths
-set(CMAKE_FRAMEWORK_PATH ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks)
+    # Set framework search paths
+    set(CMAKE_FRAMEWORK_PATH ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks)
 
-# Set compiler and linker flags for Metal
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules -fcxx-modules -mmacosx-version-min=11.0")
-set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -fmodules -fcxx-modules -mmacosx-version-min=11.0")
+    # Set compiler and linker flags for Metal
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules -fcxx-modules -mmacosx-version-min=11.0")
+    set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -fmodules -fcxx-modules -mmacosx-version-min=11.0")
 
-# Enable Objective-C and Objective-C++ for Metal shim
-enable_language(OBJC)
-enable_language(OBJCXX)
+    # Enable Objective-C and Objective-C++ for Metal shim
+    enable_language(OBJC)
+    enable_language(OBJCXX)
 
-# Set Objective-C/Objective-C++ standard and properties
-set(CMAKE_OBJC_STANDARD 17)
-set(CMAKE_OBJC_STANDARD_REQUIRED ON)
-set(CMAKE_OBJCXX_STANDARD 17)
-set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
+    # Set Objective-C/Objective-C++ standard and properties
+    set(CMAKE_OBJC_STANDARD 17)
+    set(CMAKE_OBJC_STANDARD_REQUIRED ON)
+    set(CMAKE_OBJCXX_STANDARD 17)
+    set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
 
-# Set deployment target
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum OS X deployment version")
+    # Set deployment target
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum OS X deployment version")
 
-# Set framework search path
-set(CMAKE_FIND_FRAMEWORK LAST)
-set(CMAKE_FIND_APPBUNDLE LAST)
+    # Set framework search path
+    set(CMAKE_FIND_FRAMEWORK LAST)
+    set(CMAKE_FIND_APPBUNDLE LAST)
+else()
+    set(METAL_FRAMEWORKS "")
+endif()
 
 # ARC is enabled per-target as needed
 
