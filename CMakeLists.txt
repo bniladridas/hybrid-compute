@@ -37,8 +37,9 @@ endif()
 set(CMAKE_OBJCXX_STANDARD 17)
 set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
 
-# Include benchmark control
+# Include benchmark and CUDA control
 include(benchmark.cmake)
+include(cuda.cmake)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -120,9 +121,8 @@ if(APPLE)
     )
 endif()
 
-# Make CUDA optional
-option(WITH_CUDA "Build with CUDA support" OFF)
-if(WITH_CUDA)
+# CUDA support controlled by cuda.cmake
+if(USE_CUDA)
     find_package(CUDA QUIET)
     if(CUDA_FOUND)
         message(STATUS "CUDA found, building with CUDA support")
@@ -484,7 +484,6 @@ endif()
 find_package(CUDAToolkit)
 find_package(OpenMP)
 
-option(CUDA_ARCH "CUDA architecture to target" "75")
 if(CUDAToolkit_FOUND)
   enable_language(CUDA)
   set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
