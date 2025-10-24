@@ -7,7 +7,8 @@ __global__ void thresholdKernel(uchar *input, uchar *output, int width,
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (x >= width || y >= height) return;
+  if (x >= width || y >= height)
+    return;
 
   int idx = (y * width + x) * 3;
   for (int c = 0; c < 3; c++) {

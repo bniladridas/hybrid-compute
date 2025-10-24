@@ -3,16 +3,17 @@
  */
 
 #include <cuda_runtime.h>
-#include <opencv2/opencv.hpp>
 #include <iostream>
+#include <opencv2/opencv.hpp>
 
 // Dilation kernel
-__global__ void morphologyKernel(unsigned char *input, unsigned char *output, int width,
-                                 int height) {
+__global__ void morphologyKernel(unsigned char *input, unsigned char *output,
+                                 int width, int height) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (x >= width || y >= height) return;
+  if (x >= width || y >= height)
+    return;
 
   for (int c = 0; c < 3; c++) {
     unsigned char max_val = 0;

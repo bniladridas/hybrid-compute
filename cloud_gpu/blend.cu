@@ -7,7 +7,8 @@ __global__ void blendKernel(uchar *input1, uchar *input2, uchar *output,
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (x >= width || y >= height) return;
+  if (x >= width || y >= height)
+    return;
 
   int idx = (y * width + x) * 3;
   for (int c = 0; c < 3; c++) {
@@ -33,7 +34,8 @@ int applyBlending(const cv::Mat &input1, const cv::Mat &input2, cv::Mat &output,
 
   dim3 block(16, 16);
   dim3 grid((width + block.x - 1) / block.x, (height + block.y - 1) / block.y);
-  blendKernel<<<grid, block>>>(d_input1, d_input2, d_output, width, height, alpha);
+  blendKernel<<<grid, block>>>(d_input1, d_input2, d_output, width, height,
+                               alpha);
 
   cudaMemcpy(output.data, d_output, size, cudaMemcpyDeviceToHost);
   cudaFree(d_input1);
