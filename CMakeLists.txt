@@ -86,24 +86,26 @@ endif()
 # ARC is enabled per-target as needed
 
 # Find and link required frameworks
-find_library(COCOA_LIBRARY Cocoa REQUIRED)
-find_library(METAL_LIBRARY Metal REQUIRED)
-find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
-find_library(METALKIT_LIBRARY MetalKit REQUIRED)
-find_library(QUARTZCORE_LIBRARY QuartzCore REQUIRED)
-find_library(IOKIT_LIBRARY IOKit REQUIRED)
-find_library(COREGRAPHICS_LIBRARY CoreGraphics REQUIRED)
+if(APPLE)
+    find_library(COCOA_LIBRARY Cocoa REQUIRED)
+    find_library(METAL_LIBRARY Metal REQUIRED)
+    find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
+    find_library(METALKIT_LIBRARY MetalKit REQUIRED)
+    find_library(QUARTZCORE_LIBRARY QuartzCore REQUIRED)
+    find_library(IOKIT_LIBRARY IOKit REQUIRED)
+    find_library(COREGRAPHICS_LIBRARY CoreGraphics REQUIRED)
 
-# Set Metal framework paths
-set(METAL_FRAMEWORKS
-    ${COCOA_LIBRARY}
-    ${METAL_LIBRARY}
-    ${FOUNDATION_LIBRARY}
-    ${METALKIT_LIBRARY}
-    ${QUARTZCORE_LIBRARY}
-    ${IOKIT_LIBRARY}
-    ${COREGRAPHICS_LIBRARY}
-)
+    # Set Metal framework paths
+    set(METAL_FRAMEWORKS
+        ${COCOA_LIBRARY}
+        ${METAL_LIBRARY}
+        ${FOUNDATION_LIBRARY}
+        ${METALKIT_LIBRARY}
+        ${QUARTZCORE_LIBRARY}
+        ${IOKIT_LIBRARY}
+        ${COREGRAPHICS_LIBRARY}
+    )
+endif()
 
 # Make CUDA optional
 option(WITH_CUDA "Build with CUDA support" OFF)
