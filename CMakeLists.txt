@@ -126,7 +126,7 @@ if(USE_CUDA)
     enable_language(CUDA)
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    set(CMAKE_CUDA_ARCHITECTURES "native")
+    set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
 
     include_directories(${CUDA_INCLUDE_DIRS})
     link_directories(${CUDA_LIBRARY_DIRS})
@@ -140,6 +140,9 @@ if(USE_CUDA)
 
     add_library(cuda_objects OBJECT ${CUDA_SOURCES})
     target_include_directories(cuda_objects PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    if(WITH_OPENCV)
+      target_include_directories(cuda_objects PRIVATE ${OpenCV_INCLUDE_DIRS})
+    endif()
 
     set_target_properties(
       cuda_objects PROPERTIES CUDA_SEPARABLE_COMPILATION ON
