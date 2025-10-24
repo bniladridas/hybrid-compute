@@ -14,6 +14,9 @@ else()
         DESCRIPTION "Hybrid Compute - CUDA to Metal Shim"
         LANGUAGES CXX C
     )
+    # Disable ObjC compilers on non-Apple platforms
+    set(CMAKE_OBJC_COMPILER NOTFOUND)
+    set(CMAKE_OBJCXX_COMPILER NOTFOUND)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
