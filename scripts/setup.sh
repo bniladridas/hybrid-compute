@@ -116,6 +116,10 @@ install_dependencies() {
                 sudo -v || { log_error "Need sudo access to install packages"; exit 1; }
             fi
 
+            # Avoid interactive prompts
+            export DEBIAN_FRONTEND=noninteractive
+            export TZ=UTC
+
             # Update package lists
             sudo apt-get update -y
 
