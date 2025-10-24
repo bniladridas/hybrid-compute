@@ -6,8 +6,9 @@ from pathlib import Path
 
 import cv2
 
-# Set timeout for the script (900 seconds)
-signal.alarm(900)
+# Set timeout for the script (900 seconds) - only on Unix
+if hasattr(signal, "alarm"):
+    signal.alarm(900)
 
 runner_os = os.environ.get("RUNNER_OS", "")
 
