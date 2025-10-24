@@ -2,11 +2,19 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0104 NEW)
 
 # Set project name and version
-project(hybrid-compute
-    VERSION 0.1.0
-    DESCRIPTION "Hybrid Compute - CUDA to Metal Shim"
-    LANGUAGES CXX C OBJC OBJCXX
-)
+if(APPLE)
+    project(hybrid-compute
+        VERSION 0.1.0
+        DESCRIPTION "Hybrid Compute - CUDA to Metal Shim"
+        LANGUAGES CXX C OBJC OBJCXX
+    )
+else()
+    project(hybrid-compute
+        VERSION 0.1.0
+        DESCRIPTION "Hybrid Compute - CUDA to Metal Shim"
+        LANGUAGES CXX C
+    )
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
