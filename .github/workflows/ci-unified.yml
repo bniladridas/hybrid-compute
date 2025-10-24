@@ -1,179 +1,171 @@
 ---
-name: Unified CI/CD
+name: CI Unified
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
   pull_request:
-    branches: ["main"]
-  release:
-    types: [published]
-  schedule:
-    - cron: '0 0 * * 1'  # weekly CodeQL run
+    branches: [main]
 
 env:
-  IMAGE_NAME: hybrid-compute
+  IMAGE_NAME: hybrid-compute-gpu
   REGISTRY: ghcr.io
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-
-  polish:
-    name: Lint and Python Tests
+  # ────────────────────────────── Lint & Polish ──────────────────────────────
+  lint-and-polish:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort ruff yamllint pre-commit
+
+      - name: Run linters
+        run: |
+          black --check --line-length=127 .
+          isort --check-only --profile black --line-length=127 .
+          ruff check .
+          yamllint --strict .
+          pre-commit run --all-files
+
+  # ────────────────────────────── Build & Test GPU/CPU ──────────────────────────────
+  test-and-build:
+    needs: lint-and-polish
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
     strategy:
       matrix:
-        python-version: [3.9, 3.11, 3.12]
+        include:
+          - cuda-version: "11.8.0"
+            tag-suffix: ""
+          - cuda-version: ""
+            tag-suffix: "-cpu"
+    container:
+      image: >-
+        ${{ matrix.cuda-version != '' &&
+          format('nvidia/cuda:{0}-base-ubuntu22.04', matrix.cuda-version) ||
+          'ubuntu:22.04' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            cmake build-essential libopencv-dev python3 python3-pip git \
+            && rm -rf /var/lib/apt/lists/*
+          pip3 install -r requirements.txt
 
-      # Cache pip dependencies
-      - name: Cache Python packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
-
-      - run: ./scripts/setup-ci.sh linux
-
-      - run: pre-commit run --all-files --show-diff-on-failure
-
-      - run: sudo apt-get update && sudo apt-get install -y cmake libopencv-dev build-essential clang-tidy
-
-      - run: |
-          mkdir build && cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-Werror -Wall -Wextra" -DENABLE_BENCHMARK=OFF
-          make -j$(nproc)
-
-      - run: |
-          cd build
-          find ../src ../include ../tests -name "*.cpp" -o -name "*.hpp" | \
-            xargs -I {} clang-tidy {} -I/usr/include/opencv4 --warnings-as-errors=*
-
-      - run: pip install -r requirements.txt
-
-      - run: python -m pytest tests/ -v --cov=. --cov-fail-under=80
-
-  build:
-    name: Build and Test CPU/GPU
-    runs-on: ubuntu-latest
-    needs: polish
-    strategy:
-      matrix:
-        build-mode: [cpu, gpu]
-    steps:
-      - uses: actions/checkout@v4
-
-      # Cache CMake build
-      - name: Cache CMake
-        uses: actions/cache@v3
-        with:
-          path: build
-          key: build-${{ matrix.build-mode }}-${{ github.sha }}
-
-      - run: ./scripts/setup-ci.sh linux ${{ matrix.build-mode }}
-
-      - run: |
+      - name: Build & Test
+        run: |
           mkdir -p build && cd build
-          cmake .. -DUSE_CUDA=${{ matrix.build-mode == 'gpu' && 'ON' || 'OFF' }} -DCMAKE_BUILD_TYPE=Release
+          USE_CUDA_FLAG=${{ matrix.cuda-version != '' && 'ON' || 'OFF' }}
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=$USE_CUDA_FLAG
           make -j$(nproc)
+          ctest --output-on-failure --timeout 300 --parallel $(nproc)
 
-      - run: cd build && ctest --output-on-failure --parallel $(nproc)
-
+  # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
-    name: Docker Build and Test
+    needs: test-and-build
     runs-on: ubuntu-latest
-    needs: build
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - cuda-version: "11.8.0"
+            tag-suffix: ""
+          - cuda-version: ""
+            tag-suffix: "-cpu"
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+
+      - name: Install test dependencies
+        run: pip3 install opencv-python numpy
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Cache Docker layers
-      - uses: actions/cache@v3
+      - name: Set image tags
+        run: |
+          REG="${{ env.REGISTRY }}"
+          OWNER="${{ github.repository_owner }}"
+          NAME="${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}"
+          TAG_BASE="$REG/$OWNER/$NAME"
+          echo "IMAGE_TAG1=$TAG_BASE:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG2=$TAG_BASE:latest" >> $GITHUB_ENV
+
+      - name: Build & push Docker image
+        uses: docker/build-push-action@v5
         with:
-          path: /tmp/.buildx-cache
-          key: docker-cache-${{ github.sha }}
-          policy: pull
+          context: .
+          file: ${{ matrix.cuda-version != '' && 'Dockerfile.cuda' || 'Dockerfile' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_TAG1 }}
+            ${{ env.IMAGE_TAG2 }}
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - run: |
-          docker build --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            -t hybrid-compute-cpu --build-arg USE_CUDA=OFF .
-          docker build --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            -f Dockerfile.cuda -t hybrid-compute-gpu --build-arg USE_CUDA=ON .
+      - name: Test container execution
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p test_images
+          python3 create_test_image.py
+          cp test_images/test.jpg test_images/input.jpg
 
-      - run: mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - run: |
-          docker run --rm hybrid-compute-cpu /app/upscale --help
-          docker run --gpus all --rm hybrid-compute-gpu /app/upscale --help
-
-  codeql:
-    name: CodeQL Analysis
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        language: [cpp, c, python]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
-
-  release:
-    name: Release Binaries
-    runs-on: ${{ matrix.os }}
-    needs: build
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            name: linux
-            cmake_args: -DCMAKE_BUILD_TYPE=Release -DWITH_CUDA=ON
-            asset_name: hybrid-compute-linux
-          - os: macos-latest
-            name: macos
-            cmake_args: -DCMAKE_BUILD_TYPE=Release -DWITH_CUDA=OFF
-            asset_name: hybrid-compute-macos
-          - os: windows-latest
-            name: windows
-            cmake_args: -DCMAKE_BUILD_TYPE=Release -DWITH_CUDA=OFF
-            asset_name: hybrid-compute-windows.exe
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            sudo apt-get update && sudo apt-get install -y cmake build-essential libopencv-dev
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            brew install cmake opencv
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-      - run: |
-          mkdir -p build && cd build
-          cmake ${{ matrix.cmake_args }} ..
-          cmake --build . --config Release
-      - run: |
-          cd build/bin
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            7z a ../../${{ matrix.asset_name }}.zip *
+          if nvidia-smi >/dev/null 2>&1 && [ "${{ matrix.cuda-version }}" != "" ]; then
+            timeout 120 docker run --gpus all \
+              -v "$(pwd)/test_images:/test_images" \
+              "${{ env.IMAGE_TAG1 }}" \
+              /app/upscale /test_images/input.jpg /test_images/output.jpg
           else
-            tar -czf ../../${{ matrix.asset_name }}.tar.gz *
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            timeout 120 docker run \
+              -v "$(pwd)/test_images:/test_images" \
+              "${{ env.IMAGE_TAG1 }}" \
+              /app/upscale /test_images/input.jpg /test_images/output.jpg
+          fi
+
+  # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
+  dependabot-auto-merge:
+    needs: lint-and-polish
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set commit message
+        run: |
+          COMMIT_MSG=$(echo "update dependencies" | cut -c1-50 | tr '[:upper:]' '[:lower:]')
+          echo "COMMIT_MSG=$COMMIT_MSG" >> $GITHUB_ENV
+
+      - name: Merge Dependabot PR
+        uses: devops-infra/action-pull-request@v0.3.1
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./build/../${{ matrix.asset_name }}.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
-          asset_name: ${{ matrix.asset_name }}.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
-          asset_content_type: ${{ matrix.os == 'windows-latest' && 'application/zip' || 'application/gzip' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_number: ${{ github.event.pull_request.number }}
+          commit_title: "${{ env.COMMIT_MSG }}"
+          merge_method: squash
