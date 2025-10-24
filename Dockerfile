@@ -28,7 +28,7 @@ COPY . .
 RUN pip3 install -r requirements.txt
 
 # Build the project
-RUN mkdir build && cd build && cmake .. && make
+RUN mkdir build && cd build && cmake .. -DWITH_OPENCV=ON && make
 
 # Default command
 CMD ["python3", "scripts/e2e.py"]
