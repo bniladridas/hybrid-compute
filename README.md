@@ -9,6 +9,7 @@
 - **GPU Upscaling**: Performs 2x bicubic interpolation on tiles using optimized GPU backends.
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
 - **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests[^1].
+- **Development Documentation**: Detailed setup and architecture guides[^2].
 **Workflow**
 1. **Split**: Process input images locally to create tiles.
 2. Transfer and upscale tiles in the cloud.
@@ -92,7 +93,7 @@ To build, test, and run e2e locally:
 ./scripts/run.sh
 ```
 **Testing**
-For detailed testing instructions, see [TESTING.md](docs/TESTING.md).
+For detailed testing instructions, see TESTING.md[^1].
 
 To run unit tests:
 ```bash
@@ -146,9 +147,10 @@ To clean up existing commit messages in history:
 git filter-branch --msg-filter 'bash scripts/rewrite_msg.sh' -- --all
 git push --force origin main  # if needed
 ```
-**Documentation**
-- [Testing Guide](docs/TESTING.md) - Comprehensive testing procedures and guidelines.
-- [Development Guide](DEVELOPMENT.md) - Development setup, architecture, and contribution guidelines.
-
 **License**
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+[^1]: [TESTING.md](docs/TESTING.md) - Comprehensive testing procedures and guidelines.
+[^2]: [DEVELOPMENT.md](DEVELOPMENT.md) - Development setup, architecture, and contribution guidelines.
