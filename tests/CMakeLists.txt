@@ -30,7 +30,6 @@ add_executable(benchmark_metal_shim
 # Link against the Metal shim library and Google Test
 target_link_libraries(test_metal_shim PRIVATE
     cudart_shim
-    gtest
     gtest_main
     ${METAL_FRAMEWORKS}
     ${OpenCV_LIBS}

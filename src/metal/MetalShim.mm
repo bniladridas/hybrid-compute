@@ -511,7 +511,7 @@ namespace {
                 if (@available(macOS 10.14, *)) {
                     id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
                     if ([computeEncoder respondsToSelector:@selector(signalEvent:value:)]) {
-                        [computeEncoder signalEvent:event->event value:event->signalValue];
+                        [(id)computeEncoder signalEvent:event->event value:event->signalValue];
                     }
                     [computeEncoder endEncoding];
                 } else {
@@ -520,10 +520,13 @@ namespace {
                     [computeEncoder endEncoding];
 
                     // Just signal the event directly since we can't use signalEvent:value:
-                    [event->event notifyListener:nil atValue:event->signalValue
-                                      block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
-                                          // No-op
-                                      }];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
+                    [(id)event->event notifyListener:nil atValue:event->signalValue
+                                       block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
+                                           // No-op
+                                       }];
+#pragma clang diagnostic pop
                 }
 
                 // Commit the command buffer
@@ -549,11 +552,14 @@ namespace {
             }
 
             // Wait for the event to be signaled
-            [event->event notifyListener:nil atValue:event->signalValue block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
+            [(id)event->event notifyListener:nil atValue:event->signalValue block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
                 std::lock_guard<std::mutex> lock(event->mutex);
                 event->isCompleted = true;
                 event->isRecording = false;
             }];
+#pragma clang diagnostic pop
 
             return cudaSuccess;
         }
