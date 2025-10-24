@@ -15,7 +15,7 @@ first_line=$(echo "$first_line" | tr '[:upper:]' '[:lower:]')
 
 # Truncate to 60 characters if longer
 if [ ${#first_line} -gt 60 ]; then
-    first_line=${first_line:0:60}
+	first_line=${first_line:0:60}
 fi
 
 # Output the rewritten message
