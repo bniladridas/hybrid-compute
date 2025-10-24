@@ -30,6 +30,40 @@ if(TARGET cudart_shim)
         ${METAL_FRAMEWORKS}
         ${OpenCV_LIBS}
     )
+
+    # Set C++ standard
+    target_compile_features(test_metal_shim PRIVATE cxx_std_17)
+
+    # Set include directories
+    target_include_directories(test_metal_shim PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers
+        ${gtest_SOURCE_DIR}/googletest/include
+        ${gtest_SOURCE_DIR}/googlemock/include
+    )
+
+    # Set compiler flags
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        target_compile_options(test_metal_shim PRIVATE
+            -fobjc-arc
+            -fmodules
+            -fcxx-modules
+        )
+    endif()
+
+    # Add test
+    add_test(NAME test_metal_shim COMMAND test_metal_shim)
+
+    # Add test data
+    set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test_data)
+    file(MAKE_DIRECTORY ${TEST_DATA_DIR})
+
+    # Add a custom command to generate test data
+    add_custom_command(
+        TARGET test_metal_shim POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_DATA_DIR}
+        COMMENT "Creating test data directory"
+    )
 endif()
 
 # Add benchmark executable (only if shim is available)
@@ -44,51 +78,16 @@ if(TARGET cudart_shim)
         benchmark::benchmark
         ${METAL_FRAMEWORKS}
     )
-endif()
 
+    # Set C++ standard
+    target_compile_features(benchmark_metal_shim PRIVATE cxx_std_17)
 
-
-# Set C++ standard
-target_compile_features(test_metal_shim PRIVATE cxx_std_17)
-target_compile_features(benchmark_metal_shim PRIVATE cxx_std_17)
-
-# Set include directories
-target_include_directories(test_metal_shim PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers
-    ${gtest_SOURCE_DIR}/googletest/include
-    ${gtest_SOURCE_DIR}/googlemock/include
-)
-
-target_include_directories(benchmark_metal_shim PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers
-)
-
-# Set compiler flags
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(test_metal_shim PRIVATE
-        -fobjc-arc
-        -fmodules
-        -fcxx-modules
+    # Set include directories
+    target_include_directories(benchmark_metal_shim PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers
     )
 endif()
-
-# Add test
-if(TARGET test_metal_shim)
-    add_test(NAME test_metal_shim COMMAND test_metal_shim)
-endif()
-
-# Add test data
-set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test_data)
-file(MAKE_DIRECTORY ${TEST_DATA_DIR})
-
-# Add a custom command to generate test data
-add_custom_command(
-    TARGET test_metal_shim POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_DATA_DIR}
-    COMMENT "Creating test data directory"
-)
 
 # Enable testing
 enable_testing()
