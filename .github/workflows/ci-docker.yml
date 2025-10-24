@@ -28,7 +28,9 @@ jobs:
       run: |
         set -e
         echo "Testing local Docker image..."
-        timeout 300 docker run --rm hybrid-compute
+        timeout 300 docker run --rm \
+          -e DEBIAN_FRONTEND=noninteractive \
+          hybrid-compute
 
     - name: Build CUDA Docker image
       timeout-minutes: 20
