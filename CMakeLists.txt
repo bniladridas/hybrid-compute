@@ -628,6 +628,4 @@ option(BUILD_TESTING "Build the testing tree." ON)
 if(BUILD_TESTING)
     enable_testing()
     add_subdirectory(tests)
-    # Increase timeout for flaky benchmark test
-    set_tests_properties(user_counters_tabular_test PROPERTIES TIMEOUT 120)
 endif()
