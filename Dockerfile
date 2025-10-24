@@ -1,5 +1,5 @@
 # Dockerfile for hybrid-compute (local CPU components)
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
