@@ -10,6 +10,7 @@
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
  - **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
  - **CI/CD**: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.
+ - **Notes**: Benchmark tests are disabled on Windows due to MSVC runtime library conflicts.
 - **Development Documentation**: Detailed setup and architecture guides[^2].
 **Workflow**
 1. **Split**: Process input images locally to create tiles.
