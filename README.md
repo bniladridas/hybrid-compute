@@ -2,11 +2,13 @@
   <h1>🧸</h1>
 </div>
 
-**`Hybrid-compute`** is an image upscaling tool that works around macOS CUDA limits. It does the tiling on your local CPU, then sends the tiles to cloud GPUs for the heavy lifting. The tiles get upscaled with CUDA-powered bicubic interpolation on NVIDIA GPUs and are stitched back together into a clean, high-res image.
+**`Hybrid-compute`** is a cross-platform image upscaling tool that leverages GPU acceleration for high-performance image processing. It supports Metal on macOS and CUDA on Linux/Windows, providing efficient 2x bicubic upscaling with local CPU tiling and stitching.
 **Features**
+- **Cross-Platform GPU Support**: Uses Metal shaders on macOS and CUDA kernels on Linux/Windows for hardware-accelerated upscaling.
 - **Local Tile Splitting**: Efficiently divides images into 64x64 pixel tiles using OpenCV (C++) or stb_image (C) on macOS/Linux/Windows.
-- **Cloud GPU Upscaling**: Performs 2x bicubic upscaling on tiles using CUDA kernels optimized for NVIDIA GPUs.
+- **GPU Upscaling**: Performs 2x bicubic interpolation on tiles using optimized GPU backends.
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
+- **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests[^1].
 **Workflow**
 1. **Split**: Process input images locally to create tiles.
 2. Transfer and upscale tiles in the cloud.
@@ -90,12 +92,16 @@ To build, test, and run e2e locally:
 ./scripts/run.sh
 ```
 **Testing**
+For detailed testing instructions, see [TESTING.md](docs/TESTING.md).
+
 To run unit tests:
 ```bash
 # Python tests
 python3 -m pytest tests/
 # C/C++ tests (after building)
 cd build && ctest
+# End-to-end tests
+python3 scripts/e2e.py
 ```
 **Manual Usage**
 1. **Split images into tiles** (C++ version with OpenCV):
@@ -142,3 +148,7 @@ git push --force origin main  # if needed
 ```
 **License**
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+[^1]: See [TESTING.md](docs/TESTING.md) for comprehensive testing procedures.
