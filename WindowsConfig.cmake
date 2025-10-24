@@ -1,2 +1,2 @@
 # Windows-specific configuration
-set(ENABLE_BENCHMARK_TESTS OFF)
+set(ENABLE_BENCHMARK_TESTS ON)
