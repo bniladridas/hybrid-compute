@@ -10,12 +10,21 @@ FetchContent_Declare(
 )
 
 # Add Google Benchmark
-FetchContent_Declare(
-    benchmark
-    GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG v1.8.3
-    CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY}
-)
+if(WIN32)
+    FetchContent_Declare(
+        benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG v1.8.3
+        CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY} -DBENCHMARK_ENABLE_TESTING=OFF
+    )
+else()
+    FetchContent_Declare(
+        benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG v1.8.3
+        CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY}
+    )
+endif()
 
 FetchContent_MakeAvailable(googletest benchmark)
 
