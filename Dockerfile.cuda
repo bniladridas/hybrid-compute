@@ -53,7 +53,7 @@ RUN apt-get update && apt-get install -y \
 # Copy only necessary files from builder
 WORKDIR /app
 RUN mkdir -p bin
-COPY --from=builder /app/build/bin/upscale /app/bin/upscale
+ COPY --from=builder /app/build/bin/upscale /app/upscale
 COPY --from=builder /usr/local/lib/python3.*/dist-packages/ /usr/local/lib/python3.*/dist-packages/
 
 # Set environment variables
@@ -62,7 +62,7 @@ ENV PYTHONUNBUFFERED=1 \
     NVIDIA_VISIBLE_DEVICES=all
 
 # Set the entrypoint
-ENTRYPOINT ["/app/bin/upscale"]
+ENTRYPOINT ["/app/upscale"]
 
 # Default command (can be overridden)
 CMD ["--help"]
