@@ -1,6 +1,4 @@
-import glob
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -36,28 +34,25 @@ if os.path.exists("test_images/tiles_c"):
 
 print("Preprocess done")
 
-# Copy tiles
-for tile in glob.glob("test_images/tiles/*.jpg"):
-    shutil.copy(tile, "test_images/upscaled/")
-print("Cp done")
+# Tiles are already in test_images/tiles/
 
-# Rename tiles
+# Upscale tiles using the hybrid backend (Metal on macOS, CUDA on Linux)
 for i in range(16):
-    src = f"test_images/upscaled/test_tile_{i}.jpg"
-    dst = f"test_images/upscaled/tile_{i}.jpg"
-    if os.path.exists(src):
-        os.replace(src, dst)
-print("Mv done")
+    input_tile = f"test_images/tiles/test_tile_{i}.jpg"
+    output_tile = f"test_images/upscaled/tile_{i}.jpg"
+    if os.path.exists(input_tile):
+        if runner_os == "Windows":
+            subprocess.run(["./build/Release/upscaler.exe", input_tile, output_tile], check=False)
+        else:
+            subprocess.run(["./build/upscaler", input_tile, output_tile], check=False)
 
-# Mock upscale tiles (simulate 2x CUDA upscale using CPU)
-for i in range(16):
-    tile_path = f"test_images/upscaled/tile_{i}.jpg"
-    if os.path.exists(tile_path):
-        img = cv2.imread(tile_path)
-        if img is not None:
-            upscaled = cv2.resize(img, (img.shape[1] * 2, img.shape[0] * 2), interpolation=cv2.INTER_CUBIC)
-            cv2.imwrite(tile_path, upscaled)
-print("Mock upscale done")
+        # Verify upscale
+        if os.path.exists(output_tile):
+            img = cv2.imread(output_tile)
+            if img is not None and img.shape[1] == 128 and img.shape[0] == 128:  # 64x64 * 2
+                continue
+        sys.exit(1)
+print("Upscale done")
 
 # Stitch
 if runner_os == "Windows":
@@ -81,6 +76,10 @@ print("Stitch done")
 
 # Verify
 if os.path.exists("test_images/final_output.jpg"):
-    print("E2E test passed")
+    img = cv2.imread("test_images/final_output.jpg")
+    if img is not None and img.shape[1] == 512 and img.shape[0] == 512:
+        print("E2E test passed")
+    else:
+        sys.exit(1)
 else:
     sys.exit(1)
