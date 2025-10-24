@@ -34,17 +34,17 @@ jobs:
         chmod +x ./scripts/setup-ci.sh
         ./scripts/setup-ci.sh linux cuda
 
-    - name: Build and Test
+    - name: Build and test
       timeout-minutes: 20
       run: |
         set -e
         echo "Building project..."
         mkdir -p build && cd build
-         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON \
-           -DENABLE_BENCHMARK_TESTS=OFF
-        make -j$(nproc) VERBOSE=1
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DENABLE_BENCHMARK_TESTS=OFF
+        make -j"$(nproc)" VERBOSE=1
         echo "Running tests..."
-        ctest --output-on-failure --timeout 300 --parallel $(nproc)
+        ctest --output-on-failure --timeout 300 --parallel "$(nproc)"
 
   docker:
     needs: test
@@ -77,8 +77,8 @@ jobs:
         OWNER="${{ github.repository_owner }}"
         NAME="${{ env.IMAGE_NAME }}"
         TAG_BASE="$REG/$OWNER/$NAME"
-        echo "IMAGE_TAG1=$TAG_BASE:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
-        echo "IMAGE_TAG2=$TAG_BASE:latest" >> $GITHUB_ENV
+        echo "IMAGE_TAG1=$TAG_BASE:${{ env.IMAGE_TAG }}" >> "$GITHUB_ENV"
+        echo "IMAGE_TAG2=$TAG_BASE:latest" >> "$GITHUB_ENV"
 
     - name: Build and push Docker image
       timeout-minutes: 30
@@ -105,14 +105,14 @@ jobs:
           echo "GPU detected, running GPU test..."
           timeout 600 docker run --gpus all \
             -e DEBIAN_FRONTEND=noninteractive \
-            -v $(pwd)/test_images:/test_images \
-            ${{ env.IMAGE_TAG1 }} \
+            -v "$(pwd)/test_images:/test_images" \
+            "${{ env.IMAGE_TAG1 }}" \
             /app/bin/upscale /test_images/input.jpg /test_images/output.jpg
         else
-          echo "No GPU detected, running CPU test..."
+          echo "No GPU detected, running CPU fallback test..."
           timeout 300 docker run \
             -e DEBIAN_FRONTEND=noninteractive \
-            -v $(pwd)/test_images:/test_images \
-            ${{ env.IMAGE_TAG1 }} \
+            -v "$(pwd)/test_images:/test_images" \
+            "${{ env.IMAGE_TAG1 }}" \
             /app/bin/upscale /test_images/input.jpg /test_images/output.jpg
         fi
