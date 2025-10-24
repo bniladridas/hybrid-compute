@@ -22,6 +22,8 @@ WORKDIR /app
 
 # Copy only necessary files for building
 COPY CMakeLists.txt ./
+COPY benchmark.cmake ./
+COPY cmake/ ./cmake/
 COPY src/ ./src/
 COPY include/ ./include/
 COPY requirements.txt ./
@@ -45,7 +47,8 @@ RUN apt-get update && apt-get install -y \
 
 # Copy only necessary files from builder
 WORKDIR /app
-COPY --from=builder /app/build/upscale /app/upscale
+RUN mkdir -p bin
+COPY --from=builder /app/build/bin/upscale /app/bin/upscale
 COPY --from=builder /usr/local/lib/python3.*/dist-packages/ /usr/local/lib/python3.*/dist-packages/
 
 # Set environment variables

@@ -41,7 +41,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y cmake \
             libopencv-dev build-essential imagemagick
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          brew install imagemagick
+          brew install imagemagick coreutils
           conda install opencv cmake
         elif [ "$RUNNER_OS" == "Windows" ]; then
           C:/Miniconda/Scripts/conda install opencv cmake
@@ -113,7 +113,7 @@ jobs:
           eval "$(conda shell.bash hook)"
           conda activate base
         fi
-        timeout 900 python3 scripts/e2e.py
+        gtimeout 900 python3 scripts/e2e.py
 
     - name: Run e2e test (Windows)
       if: runner.os == 'Windows'
