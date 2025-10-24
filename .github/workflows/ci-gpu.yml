@@ -94,6 +94,13 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Set image tags
+      run: |
+        TAG_BASE="${{ env.REGISTRY }}/${{ github.repository_owner }}/\
+          ${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}"
+        echo "IMAGE_TAG1=$TAG_BASE:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
+        echo "IMAGE_TAG2=$TAG_BASE:latest" >> $GITHUB_ENV
+
     - name: Build and push Docker image
       timeout-minutes: 30
       uses: docker/build-push-action@v5
@@ -104,10 +111,8 @@ jobs:
           'Dockerfile.cuda' || 'Dockerfile' }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
-            ${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}:${{ env.IMAGE_TAG }}
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
-            ${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}:latest
+          ${{ env.IMAGE_TAG1 }}
+          ${{ env.IMAGE_TAG2 }}
         build-args: |
           ${{ matrix.cuda-version != '' && 'NVIDIA_VISIBLE_DEVICES=all' || '' }}
           BUILDKIT_INLINE_CACHE=1
