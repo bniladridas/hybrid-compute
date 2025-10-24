@@ -138,7 +138,7 @@ jobs:
 
           GPU="${{ matrix.cuda-version != '' && 'true' || 'false' }}"
           if [ "$GPU" = "true" ]; then
-            timeout 120 docker run "${{ env.IMAGE_TAG1 }}" bash -c "test -x /app/upscale && echo OK"
+            timeout 120 docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" -c "test -x /app/upscale && echo OK"
           else
             echo "Running CPU mode..."
             timeout 120 docker run "${{ env.IMAGE_TAG1 }}" bash -c "test -x /app/build/bin/preprocess_c && echo OK"
