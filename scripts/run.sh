@@ -41,7 +41,7 @@ make -j"$CPU_COUNT"
 
 # --- Run C++ unit tests ---
 echo -e "${BLUE}Running C++ unit tests...${RESET}"
-ctest
+ctest -j"$CPU_COUNT"
 cd ..
 
 # --- Test cv2 ---
