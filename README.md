@@ -8,7 +8,8 @@
 - **Local Tile Splitting**: Efficiently divides images into 64x64 pixel tiles using OpenCV (C++) or stb_image (C) on macOS/Linux/Windows.
 - **GPU Upscaling**: Performs 2x bicubic interpolation on tiles using optimized GPU backends.
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
-- **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
+ - **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
+ - **CI/CD**: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.
 - **Development Documentation**: Detailed setup and architecture guides[^2].
 **Workflow**
 1. **Split**: Process input images locally to create tiles.
