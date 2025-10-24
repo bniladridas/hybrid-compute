@@ -38,7 +38,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Build with CUDA support
 RUN mkdir -p build && cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON .. && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc .. && \
     make -j$(nproc)
 
 # Stage 2: Runtime stage
