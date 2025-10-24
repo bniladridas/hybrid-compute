@@ -25,7 +25,7 @@ WORKDIR /app
 COPY . .
 
 # Install Python dependencies
-RUN pip3 install -r requirements.txt
+RUN pip3 install --break-system-packages -r requirements.txt
 
 # Build the project
 RUN mkdir build && cd build && cmake .. -DWITH_OPENCV=ON && make
