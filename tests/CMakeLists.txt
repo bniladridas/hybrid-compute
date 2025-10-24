@@ -21,7 +21,7 @@ FetchContent_Declare(
     benchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git
     GIT_TAG v1.8.3
-    CMAKE_ARGS ${MSVC_ARGS} -DBENCHMARK_ENABLE_TESTING=OFF
+    CMAKE_ARGS ${MSVC_ARGS} -DBENCHMARK_ENABLE_TESTING=OFF -DBENCHMARK_ENABLE_GTEST_TESTS=OFF
 )
 
 FetchContent_MakeAvailable(googletest benchmark)
