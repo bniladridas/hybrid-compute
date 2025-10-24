@@ -14,3 +14,5 @@ __pycache__/
 coverage.xml
 test_images/
 Miniconda3-latest-MacOSX-arm64.sh
+.cache/
+lint_env/
