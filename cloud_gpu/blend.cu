@@ -2,6 +2,9 @@
  * CUDA Image Blending
  */
 
+#include <cuda_runtime.h>
+#include <opencv2/opencv.hpp>
+
 __global__ void blendKernel(uchar *input1, uchar *input2, uchar *output,
                             int width, int height, float alpha) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
