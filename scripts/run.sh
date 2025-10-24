@@ -15,6 +15,7 @@ echo -e "${BLUE}Building preprocess...${RESET}"
 
 # macOS conda activation
 if [[ "$OSTYPE" == "darwin"* ]]; then
+    export TZ=UTC
     CONDA_PATH=$(find /usr/local /opt/homebrew -type f -name conda 2>/dev/null | head -n1)
     if [[ -f "$CONDA_PATH" ]]; then
         eval "$($CONDA_PATH shell.bash hook)"
