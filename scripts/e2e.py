@@ -18,11 +18,11 @@ os.makedirs("test_images/upscaled", exist_ok=True)
 # Create test image
 subprocess.run([sys.executable, "create_test_image.py"], check=False)
 
-# Preprocess with C++ version
+# Preprocess with C version (always available, no OpenCV dependency)
 if runner_os == "Windows":
-    subprocess.run(["./build/Release/preprocess.exe", "test_images", "test_images/tiles"], check=False)
+    subprocess.run(["./build/Release/preprocess_c.exe", "test_images", "test_images/tiles"], check=False)
 else:
-    subprocess.run(["./build/preprocess", "test_images", "test_images/tiles"], check=False)
+    subprocess.run(["./build/preprocess_c", "test_images", "test_images/tiles"], check=False)
 
 # Also test C version
 if runner_os == "Windows":
