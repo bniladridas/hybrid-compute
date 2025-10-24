@@ -15,16 +15,16 @@ echo -e "${BLUE}Building preprocess...${RESET}"
 
 # macOS conda activation
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    export TZ=UTC
-    CONDA_PATH=$(find /usr/local /opt/homebrew -type f -name conda 2>/dev/null | head -n1)
-    if [[ -f "$CONDA_PATH" ]]; then
-        eval "$($CONDA_PATH shell.bash hook)"
-        conda activate base
-        echo -e "${GREEN}Conda activated.${RESET}"
-    else
-        echo -e "${RED}Conda not found. Please install miniconda.${RESET}"
-        exit 1
-    fi
+	export TZ=UTC
+	CONDA_PATH=$(find /usr/local /opt/homebrew -type f -name conda 2>/dev/null | head -n1)
+	if [[ -f "$CONDA_PATH" ]]; then
+		eval "$($CONDA_PATH shell.bash hook)"
+		conda activate base
+		echo -e "${GREEN}Conda activated.${RESET}"
+	else
+		echo -e "${RED}Conda not found. Please install miniconda.${RESET}"
+		exit 1
+	fi
 fi
 
 # --- Build ---
@@ -33,9 +33,9 @@ cd build
 cmake ..
 CPU_COUNT=1
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    CPU_COUNT=$(sysctl -n hw.logicalcpu)
+	CPU_COUNT=$(sysctl -n hw.logicalcpu)
 else
-    CPU_COUNT=$(nproc)
+	CPU_COUNT=$(nproc)
 fi
 echo -e "${YELLOW}Compiling with $CPU_COUNT cores...${RESET}"
 make -j"$CPU_COUNT"
@@ -69,9 +69,9 @@ cp test_images/tiles/* test_images/upscaled/
 
 # Rename tiles consistently
 for i in {0..15}; do
-    if [ -f test_images/upscaled/test_tile_"$i".jpg ]; then
-        mv test_images/upscaled/test_tile_"$i".jpg test_images/upscaled/tile_"$i".jpg
-    fi
+	if [ -f test_images/upscaled/test_tile_"$i".jpg ]; then
+		mv test_images/upscaled/test_tile_"$i".jpg test_images/upscaled/tile_"$i".jpg
+	fi
 done
 
 # Stitch tiles
@@ -79,42 +79,42 @@ python3 scripts/stitch.py test_images/upscaled test_images/final_output.jpg
 
 # Verify output
 if [ -f test_images/final_output.jpg ]; then
-    echo -e "${GREEN}E2E test passed.${RESET}"
+	echo -e "${GREEN}E2E test passed.${RESET}"
 else
-    echo -e "${RED}E2E test failed.${RESET}"
-    exit 1
+	echo -e "${RED}E2E test failed.${RESET}"
+	exit 1
 fi
 
 # --- Test CUDA tools (if available) ---
 if [ -f build/filters ]; then
-    echo -e "${BLUE}Testing CUDA filters...${RESET}"
-    ./build/filters test_images/test.jpg test_images/filtered_blur.jpg blur
-    ./build/filters test_images/test.jpg test_images/filtered_sobel.jpg sobel
-    if [ -f test_images/filtered_blur.jpg ] && [ -f test_images/filtered_sobel.jpg ]; then
-        echo -e "${GREEN}CUDA filters test passed.${RESET}"
-    else
-        echo -e "${YELLOW}CUDA filters test skipped or failed.${RESET}"
-    fi
+	echo -e "${BLUE}Testing CUDA filters...${RESET}"
+	./build/filters test_images/test.jpg test_images/filtered_blur.jpg blur
+	./build/filters test_images/test.jpg test_images/filtered_sobel.jpg sobel
+	if [ -f test_images/filtered_blur.jpg ] && [ -f test_images/filtered_sobel.jpg ]; then
+		echo -e "${GREEN}CUDA filters test passed.${RESET}"
+	else
+		echo -e "${YELLOW}CUDA filters test skipped or failed.${RESET}"
+	fi
 fi
 
 if [ -f build/rotation ]; then
-    echo -e "${BLUE}Testing CUDA rotation...${RESET}"
-    ./build/rotation test_images/test.jpg test_images/rotated.jpg 45
-    if [ -f test_images/rotated.jpg ]; then
-        echo -e "${GREEN}CUDA rotation test passed.${RESET}"
-    else
-        echo -e "${YELLOW}CUDA rotation test skipped or failed.${RESET}"
-    fi
+	echo -e "${BLUE}Testing CUDA rotation...${RESET}"
+	./build/rotation test_images/test.jpg test_images/rotated.jpg 45
+	if [ -f test_images/rotated.jpg ]; then
+		echo -e "${GREEN}CUDA rotation test passed.${RESET}"
+	else
+		echo -e "${YELLOW}CUDA rotation test skipped or failed.${RESET}"
+	fi
 fi
 
 if [ -f build/resize ]; then
-    echo -e "${BLUE}Testing CUDA resize...${RESET}"
-    ./build/resize test_images/test.jpg test_images/resized.jpg 128 128
-    if [ -f test_images/resized.jpg ]; then
-        echo -e "${GREEN}CUDA resize test passed.${RESET}"
-    else
-        echo -e "${YELLOW}CUDA resize test skipped or failed.${RESET}"
-    fi
+	echo -e "${BLUE}Testing CUDA resize...${RESET}"
+	./build/resize test_images/test.jpg test_images/resized.jpg 128 128
+	if [ -f test_images/resized.jpg ]; then
+		echo -e "${GREEN}CUDA resize test passed.${RESET}"
+	else
+		echo -e "${YELLOW}CUDA resize test skipped or failed.${RESET}"
+	fi
 fi
 
 # --- Cleanup ---
