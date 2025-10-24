@@ -43,19 +43,25 @@ int count_files_in_dir(const char* dir_path) {
 
 int main() {
     // Create test image directory and image
-    system("mkdir -p test_images");
-    system("python3 ../create_test_image.py");
+    int ret;
+    ret = system("mkdir -p test_images");
+    (void)ret;
+    ret = system("python3 ../create_test_image.py");
+    (void)ret;
 
     // Run preprocess_c (in same directory)
-    system("./preprocess_c test_images test_output_tiles");
+    ret = system("./preprocess_c test_images test_output_tiles");
+    (void)ret;
 
     // Check if output directory exists
     struct stat st;
     assert(stat("test_output_tiles", &st) == 0 && S_ISDIR(st.st_mode));
+    (void)st;
 
     // Check number of tiles: 256x256 / 64x64 = 4x4 = 16
     int file_count = count_files_in_dir("test_output_tiles");
     assert(file_count == 16);
+    (void)file_count;
 
     // Load one tile and check dimensions
     int width, height, channels;
@@ -67,7 +73,8 @@ int main() {
     stbi_image_free(tile);
 
     // Clean up
-    system("rm -rf test_images test_output_tiles");
+    ret = system("rm -rf test_images test_output_tiles");
+    (void)ret;
 
     printf("All preprocess_c tests passed!\n");
     return 0;
