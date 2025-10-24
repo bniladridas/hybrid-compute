@@ -22,13 +22,13 @@ subprocess.run([sys.executable, "create_test_image.py"], check=False)
 if runner_os == "Windows":
     subprocess.run(["./build/Release/preprocess_c.exe", "test_images", "test_images/tiles"], check=False)
 else:
-    subprocess.run(["./build/preprocess_c", "test_images", "test_images/tiles"], check=False)
+    subprocess.run(["./build/bin/preprocess_c", "test_images", "test_images/tiles"], check=False)
 
 # Also test C version
 if runner_os == "Windows":
     subprocess.run(["./build/Release/preprocess_c.exe", "test_images", "test_images/tiles_c"], check=False)
 else:
-    subprocess.run(["./build/preprocess_c", "test_images", "test_images/tiles_c"], check=False)
+    subprocess.run(["./build/bin/preprocess_c", "test_images", "test_images/tiles_c"], check=False)
 
 # Verify C version produced tiles
 if os.path.exists("test_images/tiles_c"):
@@ -46,9 +46,11 @@ for i in range(16):
     output_tile = f"test_images/upscaled/tile_{i}.jpg"
     if os.path.exists(input_tile):
         if runner_os == "Windows":
-            subprocess.run(["./build/Release/upscaler.exe", input_tile, output_tile], check=False)
+            exe = "./build/Release/upscaler.exe"
         else:
-            subprocess.run(["./build/upscaler", input_tile, output_tile], check=False)
+            exe = "./build/bin/upscaler"
+        if os.path.exists(exe):
+            subprocess.run([exe, input_tile, output_tile], check=False)
 
         # Verify upscale
         if os.path.exists(output_tile):
