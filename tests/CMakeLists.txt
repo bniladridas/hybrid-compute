@@ -1,12 +1,19 @@
 # Add Google Test
 include(FetchContent)
 
+# Set platform-specific args
+if(WIN32)
+    set(MSVC_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL -DCMAKE_CXX_FLAGS_RELEASE="/MD")
+else()
+    set(MSVC_ARGS "")
+endif()
+
 # Add Google Test (using a more recent version)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG v1.14.0
-    CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL -DCMAKE_CXX_FLAGS_RELEASE="/MD"
+    CMAKE_ARGS ${MSVC_ARGS}
 )
 
 # Add Google Benchmark
@@ -14,7 +21,7 @@ FetchContent_Declare(
     benchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git
     GIT_TAG v1.8.3
-    CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL -DBENCHMARK_ENABLE_TESTING=${ENABLE_BENCHMARK_TESTS} -DCMAKE_CXX_FLAGS_RELEASE="/MD"
+    CMAKE_ARGS ${MSVC_ARGS} -DBENCHMARK_ENABLE_TESTING=${ENABLE_BENCHMARK_TESTS}
 )
 
 FetchContent_MakeAvailable(googletest benchmark)
