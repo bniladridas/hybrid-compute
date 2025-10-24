@@ -54,8 +54,8 @@ jobs:
     container:
       image: >-
         ${{ matrix.cuda-version != '' &&
-          format('nvidia/cuda:{0}-base-ubuntu22.04', matrix.cuda-version) ||
-          'ubuntu:22.04' }}
+          format('nvidia/cuda:{0}-base-ubuntu24.04', matrix.cuda-version) ||
+          'ubuntu:24.04' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
