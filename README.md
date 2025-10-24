@@ -105,7 +105,7 @@ cd build && ctest -j$(nproc)
 python3 scripts/e2e.py
 ```
 
-*Note: Google Benchmark tests are enabled by default, including on Windows via `WindowsConfig.cmake`. Modify `ENABLE_BENCHMARK_TESTS` option to disable if needed.*
+*Note: Google Benchmark tests are enabled by default, including on Windows via `WindowsConfig.cmake`. Modify `ENABLE_BENCHMARK_TESTS` option to disable if needed. CI runs with parallel testing and non-interactive prompts.*
 **Manual Usage**
 1. **Split images into tiles** (C++ version with OpenCV):
    ```bash
