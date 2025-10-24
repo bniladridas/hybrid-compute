@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 // Forward declarations for Metal types
 #ifdef __OBJC__
@@ -13,21 +13,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    // Forward declarations for Objective-C types
-    typedef struct objc_object* id;
-    typedef struct objc_selector* SEL;
+// Forward declarations for Objective-C types
+typedef struct objc_object *id;
+typedef struct objc_selector *SEL;
 
-    // Forward declarations for Metal types
-    typedef id MTLDevice;
-    typedef id MTLCommandQueue;
+// Forward declarations for Metal types
+typedef id MTLDevice;
+typedef id MTLCommandQueue;
 
-    // Objective-C runtime functions
-    void* objc_msgSend(void* self, const char* op, ...);
-    void* objc_getClass(const char* name);
-    SEL sel_registerName(const char* str);
+// Objective-C runtime functions
+void *objc_msgSend(void *self, const char *op, ...);
+void *objc_getClass(const char *name);
+SEL sel_registerName(const char *str);
 
-    // Metal framework functions
-    void* MTLCreateSystemDefaultDevice();
+// Metal framework functions
+void *MTLCreateSystemDefaultDevice();
 
 #ifdef __cplusplus
 }
@@ -36,19 +36,18 @@ extern "C" {
 
 class MetalUpscaler {
 public:
-    MetalUpscaler();
-    ~MetalUpscaler();
+  MetalUpscaler();
+  ~MetalUpscaler();
 
-    // Simple bilinear upscale for now
-    void upscale(
-        const uint8_t* input, uint32_t inWidth, uint32_t inHeight,
-        uint8_t* output, uint32_t outWidth, uint32_t outHeight);
+  // Simple bilinear upscale for now
+  void upscale(const uint8_t *input, uint32_t inWidth, uint32_t inHeight,
+               uint8_t *output, uint32_t outWidth, uint32_t outHeight);
 
 private:
-    void* m_device;        // MTLDevice*
-    void* m_commandQueue;  // MTLCommandQueue*
+  void *m_device;       // MTLDevice*
+  void *m_commandQueue; // MTLCommandQueue*
 
-    // Prevent copying
-    MetalUpscaler(const MetalUpscaler&) = delete;
-    MetalUpscaler& operator=(const MetalUpscaler&) = delete;
+  // Prevent copying
+  MetalUpscaler(const MetalUpscaler &) = delete;
+  MetalUpscaler &operator=(const MetalUpscaler &) = delete;
 };
