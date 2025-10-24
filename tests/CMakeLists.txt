@@ -46,20 +46,7 @@ if(TARGET cudart_shim)
     )
 endif()
 
-# Link against the Metal shim library and Google Test
-target_link_libraries(test_metal_shim PRIVATE
-    cudart_shim
-    gtest_main
-    ${METAL_FRAMEWORKS}
-    ${OpenCV_LIBS}
-)
 
-# Link benchmark executable
-target_link_libraries(benchmark_metal_shim PRIVATE
-    cudart_shim
-    benchmark::benchmark
-    ${METAL_FRAMEWORKS}
-)
 
 # Set C++ standard
 target_compile_features(test_metal_shim PRIVATE cxx_std_17)
