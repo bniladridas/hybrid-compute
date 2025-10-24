@@ -156,15 +156,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set commit message
-        run: |
-          COMMIT_MSG=$(echo "update dependencies" | cut -c1-50 | tr '[:upper:]' '[:lower:]')
-          echo "COMMIT_MSG=$COMMIT_MSG" >> $GITHUB_ENV
-
       - name: Merge Dependabot PR
-        uses: devops-infra/action-pull-request@v1.0.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pr_number: ${{ github.event.pull_request.number }}
-          commit_title: "${{ env.COMMIT_MSG }}"
-          merge_method: squash
+        run: gh pr merge ${{ github.event.pull_request.number }} --squash --delete-branch=false
