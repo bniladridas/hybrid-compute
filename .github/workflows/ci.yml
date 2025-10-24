@@ -1,16 +1,11 @@
 ---
-name: CI Unified
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
-env:
-  IMAGE_NAME: hybrid-compute-gpu
-  REGISTRY: ghcr.io
-  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   # ────────────────────────────── Lint & Polish ──────────────────────────────
@@ -39,41 +34,69 @@ jobs:
           yamllint --strict .
           pre-commit run --all-files
 
-  # ────────────────────────────── Build & Test GPU/CPU ──────────────────────────────
+  # ────────────────────────────── Build & Test ──────────────────────────────
   test-and-build:
     needs: lint-and-polish
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     strategy:
       matrix:
         include:
-          - cuda-version: "13.0.1"
-            tag-suffix: ""
-          - cuda-version: ""
-            tag-suffix: "-cpu"
-    container:
-      image: >-
-        ${{ matrix.cuda-version != '' &&
-          format('nvidia/cuda:{0}-base-ubuntu24.04', matrix.cuda-version) ||
-          'ubuntu:24.04' }}
+          - os: ubuntu-latest
+            cuda: "13.0.1"
+            tag: ""
+          - os: ubuntu-latest
+            cuda: ""
+            tag: "-cpu"
+          - os: macos-latest
+            cuda: ""
+            tag: "-macos"
+          - os: windows-latest
+            cuda: ""
+            tag: "-windows"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
-          apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+          sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
             cmake build-essential libopencv-dev python3 python3-pip git \
-            && rm -rf /var/lib/apt/lists/*
-           pip3 install --break-system-packages -r requirements.txt
+            && sudo rm -rf /var/lib/apt/lists/*
+          pip3 install --break-system-packages -r requirements.txt
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install cmake opencv python3
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install cmake opencv python3
 
       - name: Build & Test
+        shell: bash
         run: |
-          mkdir -p build && cd build
-          USE_CUDA_FLAG=${{ matrix.cuda-version != '' && 'ON' || 'OFF' }}
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=$USE_CUDA_FLAG
-          make -j$(nproc)
-          ctest --output-on-failure --timeout 300 --parallel $(nproc)
+          mkdir build
+          cd build
+          if [ "${{ matrix.cuda }}" != "" ]; then
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
+          else
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
+          fi
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
+          else
+            make -j$(nproc)
+          fi
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
+          else
+            ctest --output-on-failure --timeout 300 --parallel $(nproc)
+          fi
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
@@ -102,17 +125,17 @@ jobs:
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set image tags
         run: |
-          REG="${{ env.REGISTRY }}"
+          REG="ghcr.io"
           OWNER="${{ github.repository_owner }}"
-          NAME="${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}"
+          NAME="hybrid-compute-gpu"
           TAG_BASE="$REG/$OWNER/$NAME"
-          echo "IMAGE_TAG1=$TAG_BASE:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG1=$TAG_BASE:${{ github.sha }}" >> $GITHUB_ENV
           echo "IMAGE_TAG2=$TAG_BASE:latest" >> $GITHUB_ENV
 
       - name: Build & push Docker image
