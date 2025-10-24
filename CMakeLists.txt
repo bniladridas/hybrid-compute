@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0104 NEW)
+cmake_policy(SET CMP0077 NEW)
 
 # Set project name and version
 if(APPLE)
