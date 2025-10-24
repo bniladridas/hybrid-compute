@@ -9,6 +9,7 @@ ENV TZ=UTC
 RUN apt-get update && apt-get install -y \
     cmake \
     build-essential \
+    clang \
     libopencv-dev \
     python3 \
     python3-pip \
