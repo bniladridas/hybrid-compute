@@ -5,11 +5,13 @@ This guide provides instructions for setting up the development environment for 
 ## Prerequisites
 
 ### macOS Requirements
+
 1. **Xcode** (Latest version from Mac App Store)
    - Install from [Mac App Store](https://apps.apple.com/us/app/xcode/id497799835)
    - Or download from [Apple Developer](https://developer.apple.com/download/)
 
 2. **Command Line Tools**
+
    ```bash
    xcode-select --install
    ```
@@ -62,6 +64,7 @@ make -j$(sysctl -n hw.logicalcpu)
 **Error**: `error: cannot execute tool 'metal' due to missing Metal Toolchain`
 
 **Solution**:
+
 1. Ensure Xcode is properly installed and opened at least once
 2. Run:
    ```bash
@@ -79,6 +82,7 @@ make -j$(sysctl -n hw.logicalcpu)
 **Error**: `CMake Error at CMakeLists.txt`
 
 **Solution**:
+
 1. Ensure you have the required CMake version (3.10+)
    ```bash
    brew upgrade cmake
@@ -95,6 +99,7 @@ make -j$(sysctl -n hw.logicalcpu)
 **Error**: Build fails with linker errors
 
 **Solution**:
+
 1. Clean the build directory:
    ```bash
    rm -rf build/*
@@ -139,6 +144,7 @@ find src include tests -name "*.h" -o -name "*.cpp" -o -name "*.hpp" | xargs cla
 ### Visual Studio Code
 
 Recommended extensions:
+
 - C/C++
 - CMake
 - CMake Tools
@@ -147,6 +153,7 @@ Recommended extensions:
 ### Xcode
 
 You can generate an Xcode project with:
+
 ```bash
 mkdir -p build-xcode && cd build-xcode
 cmake -G Xcode ..
