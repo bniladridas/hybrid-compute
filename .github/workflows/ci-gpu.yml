@@ -126,7 +126,8 @@ jobs:
       run: |
         echo "Preparing CPU/GPU runtime test..."
         mkdir -p test_images
-        cp tests/test.jpg test_images/input.jpg
+        python3 create_test_image.py
+        cp test_images/test.jpg test_images/input.jpg
 
         if nvidia-smi >/dev/null 2>&1 \
           && [ "${{ matrix.cuda-version }}" != "" ]; then
