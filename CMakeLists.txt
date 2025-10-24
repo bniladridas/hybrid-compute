@@ -595,26 +595,26 @@ if(CUDAToolkit_FOUND)
   endif()
 endif()
 
+# Add preprocess_c executable (always available, no OpenCV dependency)
+add_executable(preprocess_c src/preprocess.c)
+target_include_directories(preprocess_c PRIVATE ${CMAKE_SOURCE_DIR}/include)
+if(NOT MSVC)
+    target_link_libraries(preprocess_c m)
+endif()
+
+# Add test_preprocess executable
+add_executable(test_preprocess tests/test_preprocess.c)
+target_include_directories(test_preprocess PRIVATE ${CMAKE_SOURCE_DIR}/include)
+if(NOT MSVC)
+    target_link_libraries(test_preprocess m)
+endif()
+
 # Add preprocess library and tests (OpenCV dependent)
 if(WITH_OPENCV AND OpenCV_FOUND)
     # Add the preprocess library
     add_library(preprocess src/preprocess.cpp)
     target_link_libraries(preprocess ${OpenCV_LIBS})
     target_include_directories(preprocess PRIVATE ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
-
-    # Add the preprocess_c executable
-    add_executable(preprocess_c src/preprocess.c)
-    target_include_directories(preprocess_c PRIVATE ${CMAKE_SOURCE_DIR}/include)
-    if(NOT MSVC)
-        target_link_libraries(preprocess_c m)
-    endif()
-
-    # Add test_preprocess executable
-    add_executable(test_preprocess tests/test_preprocess.c)
-    target_include_directories(test_preprocess PRIVATE ${CMAKE_SOURCE_DIR}/include)
-    if(NOT MSVC)
-        target_link_libraries(test_preprocess m)
-    endif()
 
     # Add test_utils if it exists
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utils.cpp")
