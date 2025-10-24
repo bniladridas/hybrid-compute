@@ -17,7 +17,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     build-essential \
-    libopencv-core-dev \
+    libopencv-dev \
     python3 \
     python3-pip \
     git \
@@ -50,7 +50,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libopencv-core-dev \
+    libopencv-dev \
     python3 \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
