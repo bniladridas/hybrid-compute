@@ -1,9 +1,14 @@
 #!/bin/bash
 
 # Hybrid Compute Setup Script
-# Cross-platform dependency installation with colorized logs.
+# Cross-platform dependency installation with colorized logs and error handling
 
-set -e
+set -euo pipefail
+
+# --- Constants ---
+VERSION="1.0.0"
+MIN_PYTHON_VERSION="3.9"
+MIN_CMAKE_VERSION="3.10"
 
 # --- Colors ---
 GREEN="\033[1;32m"
@@ -12,85 +17,217 @@ YELLOW="\033[1;33m"
 RED="\033[1;31m"
 RESET="\033[0m"
 
-echo -e "${BLUE}Starting setup for Hybrid Compute...${RESET}"
-echo -e "${YELLOW}Installing system dependencies...${RESET}"
+# --- Helper Functions ---
+log_info() { echo -e "${BLUE}[INFO]${RESET} $1"; }
+log_warn() { echo -e "${YELLOW}[WARN]${RESET} $1"; }
+log_error() { echo -e "${RED}[ERROR]${RESET} $1" >&2; }
+log_success() { echo -e "${GREEN}[SUCCESS]${RESET} $1"; }
 
-# --- macOS setup ---
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo -e "${BLUE}Detected macOS.${RESET}"
+check_command() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        log_error "Command not found: $1"
+        return 1
+    fi
+}
 
-    # Check Homebrew
-    if ! command -v brew >/dev/null 2>&1; then
-        echo -e "${RED}Homebrew not found. Please install Homebrew first.${RESET}"
+version_compare() {
+    local version=$1
+    local min_version=$2
+    [ "$(printf '%s\n' "$min_version" "$version" | sort -V | head -n1)" = "$min_version" ]
+}
+
+# --- Main Setup ---
+log_info "Starting Hybrid Compute Setup v$VERSION"
+
+# --- Platform Detection ---
+case "$(uname -s)" in
+    Darwin*)    PLATFORM="macos"
+                PACKAGE_MANAGER="brew"
+                ;;
+    Linux*)     if [ -f /etc/os-release ]; then
+                    . /etc/os-release
+                    if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
+                        PLATFORM="linux"
+                        PACKAGE_MANAGER="apt"
+                    else
+                        log_error "Unsupported Linux distribution: $ID"
+                        exit 1
+                    fi
+                else
+                    log_error "Could not determine Linux distribution"
+                    exit 1
+                fi
+                ;;
+    CYGWIN*|MINGW*|MSYS*)
+                PLATFORM="windows"
+                PACKAGE_MANAGER="choco"
+                ;;
+    *)          log_error "Unsupported platform: $(uname -s)"
+                exit 1
+                ;;
+esac
+
+log_info "Detected platform: $PLATFORM ($(uname -s))"
+
+# --- Dependency Installation ---
+install_dependencies() {
+    log_info "Installing system dependencies..."
+
+    case "$PLATFORM" in
+        "macos")
+            # Check for Homebrew
+            if ! check_command brew; then
+                log_error "Homebrew is required. Please install from https://brew.sh"
+                exit 1
+            fi
+
+            # Install build tools
+            brew install cmake ninja llvm
+
+            # Xcode command line tools
+            if ! xcode-select -p &>/dev/null; then
+                log_info "Installing Xcode Command Line Tools..."
+                xcode-select --install
+                log_warn "Please complete Xcode installation and run this script again"
+                exit 0
+            fi
+
+            # Accept Xcode license
+            sudo xcodebuild -license accept
+
+            # Install conda if not present
+            if ! check_command conda; then
+                log_info "Installing Miniconda..."
+                brew install --cask miniconda
+                eval "$(/opt/homebrew/Caskroom/miniconda/base/bin/conda shell.bash hook)"
+                conda init
+            fi
+
+            # Install conda packages
+            conda install -c conda-forge -y \
+                opencv \
+                cmake \
+                imagemagick \
+                python="$MIN_PYTHON_VERSION"
+            ;;
+
+        "linux")
+            if [ "$(id -u)" -ne 0 ]; then
+                sudo -v || { log_error "Need sudo access to install packages"; exit 1; }
+            fi
+
+            # Update package lists
+            sudo apt-get update -y
+
+            # Install base dependencies
+            sudo apt-get install -y --no-install-recommends \
+                build-essential \
+                cmake \
+                ninja-build \
+                wget \
+                git \
+                python3 \
+                python3-pip \
+                python3-venv \
+                libopencv-dev \
+                libtbb2 \
+                libtbb-dev \
+                libjpeg-dev \
+                libpng-dev \
+                libtiff-dev \
+                libavformat-dev \
+                libpq-dev \
+                imagemagick
+
+            # Install CUDA if requested
+            if [ "${INSTALL_CUDA:-false}" = true ]; then
+                log_info "Installing CUDA toolkit..."
+                TMP_CUDA="/tmp/cuda-keyring.deb"
+                wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O "$TMP_CUDA"
+                sudo dpkg -i "$TMP_CUDA"
+                sudo apt-get update -y
+                sudo apt-get install -y cuda-toolkit-12-6 || \
+                    log_warn "CUDA installation failed. Continuing without CUDA support."
+                rm -f "$TMP_CUDA"
+            fi
+            ;;
+
+        "windows")
+            if ! check_command choco; then
+                log_error "Chocolatey is required. Please install from https://chocolatey.org"
+                exit 1
+            fi
+
+            # Install build tools
+            choco install -y \
+                cmake \
+                ninja \
+                python3 \
+                git \
+                vcpkg
+
+            # Add vcpkg to PATH
+            VCPKG_ROOT="C:\\vcpkg"
+            export PATH="$VCPKG_ROOT:$PATH"
+
+            # Install vcpkg dependencies
+            vcpkg install \
+                opencv[core,contrib,jpeg,png,tiff,webp]:x64-windows \
+                tbb:x64-windows
+            ;;
+    esac
+}
+
+# --- Python Setup ---
+setup_python() {
+    log_info "Setting up Python environment..."
+
+    # Check Python version
+    if ! python3 -c "import sys; exit(0 if sys.version_info >= (3, 9) else 1)"; then
+        log_error "Python $MIN_PYTHON_VERSION or higher is required"
         exit 1
     fi
 
-    brew uninstall opencv 2>/dev/null || true
-    brew install --cask miniconda || true
+    # Create and activate virtual environment
+    if [ ! -d "venv" ]; then
+        python3 -m venv venv
+    fi
 
-    # Dynamic conda detection
-    CONDA_PATH=$(find /usr/local /opt/homebrew -type f -name conda 2>/dev/null | head -n1)
-    if [[ -f "$CONDA_PATH" ]]; then
-        eval "$($CONDA_PATH shell.bash hook)"
-        conda init bash
-        conda install -c conda-forge opencv cmake imagemagick -y
+    # Activate virtual environment
+    if [ -f "venv/bin/activate" ]; then
+        source venv/bin/activate
+    elif [ -f "venv/Scripts/activate" ]; then
+        source venv/Scripts/activate
     else
-        echo -e "${RED}Conda not found on this system.${RESET}"
-        exit 1
+        log_warn "Could not activate virtual environment. Using system Python."
     fi
 
-# --- Linux setup ---
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo -e "${BLUE}Detected Linux (Ubuntu).${RESET}"
-    sudo apt-get update -y
-    sudo apt-get install -y cmake libopencv-dev build-essential imagemagick wget
+    # Upgrade pip and install requirements
+    pip install --upgrade pip
+    pip install -r requirements.txt
 
-    echo -e "${YELLOW}Installing CUDA toolkit (optional for GPU acceleration)...${RESET}"
-    TMP_CUDA="/tmp/cuda-keyring.deb"
-    wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O "$TMP_CUDA"
-    sudo dpkg -i "$TMP_CUDA"
-    sudo apt-get update -y
-    sudo apt-get install -y cuda-toolkit-11-8 || echo -e "${RED}CUDA installation skipped or failed.${RESET}"
-    rm -f "$TMP_CUDA"
+    # Install development tools
+    pip install \
+        pytest \
+        pytest-cov \
+        black \
+        mypy \
+        pylint \
+        pre-commit
 
-# --- Windows setup ---
-elif [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "cygwin"* ]]; then
-    echo -e "${BLUE}Detected Windows environment.${RESET}"
-    if ! command -v choco >/dev/null 2>&1; then
-        echo -e "${RED}Chocolatey not found. Please install Chocolatey first.${RESET}"
-        exit 1
-    fi
-    choco install cmake opencv imagemagick -y || echo -e "${RED}Some packages may not have installed.${RESET}"
+    # Setup pre-commit hooks
+    pre-commit install
+}
 
-# --- Unsupported OS ---
-else
-    echo -e "${RED}Unsupported OS: $OSTYPE${RESET}"
-    exit 1
-fi
+# --- Main Execution ---
+main() {
+    install_dependencies
+    setup_python
 
-# --- Python setup ---
-echo -e "${YELLOW}Installing Python dependencies...${RESET}"
+    log_success "Setup completed successfully!"
+    log_info "To activate the virtual environment, run:"
+    echo "  source venv/bin/activate  # On Unix/macOS"
+    echo "  .\\venv\\Scripts\\activate  # On Windows"
+}
 
-# Check Python >= 3.9
-if command -v python3 >/dev/null 2>&1; then
-    PY_OK=$(python3 -c "import sys; print(int((sys.version_info.major, sys.version_info.minor) >= (3,9)))")
-    if [ "$PY_OK" -eq 0 ]; then
-        PY_VER=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-        echo -e "${RED}Python 3.9 or higher is required. Found: $PY_VER${RESET}"
-        exit 1
-    fi
-else
-    echo -e "${RED}Python3 not found. Please install Python 3.9+${RESET}"
-    exit 1
-fi
-
-# Install pip dependencies
-if command -v pip3 >/dev/null 2>&1; then
-    pip3 install --upgrade pip
-    pip3 install --upgrade -r requirements.txt --user --no-warn-script-location
-else
-    echo -e "${RED}pip not found. Please install pip.${RESET}"
-    exit 1
-fi
-
-echo -e "${GREEN}Setup complete.${RESET}"
+main "$@"
