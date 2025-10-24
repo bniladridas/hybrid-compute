@@ -3,11 +3,13 @@
  */
 
 // Simplified Canny: Sobel edge detection on grayscale
-__global__ void sobelKernel(uchar *input, uchar *output, int width, int height) {
+__global__ void sobelKernel(uchar *input, uchar *output, int width,
+                            int height) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (x >= width || y >= height) return;
+  if (x >= width || y >= height)
+    return;
 
   int Gx[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
   int Gy[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
