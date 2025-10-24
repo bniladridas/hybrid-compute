@@ -40,6 +40,6 @@ fi
 # Python dependencies (common)
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-pip install black isort ruff yamllint pre-commit pytest coverage pytest-cov mypy
+pip install black isort ruff yamllint pre-commit pytest coverage pytest-cov pytest-timeout mypy
 
 echo -e "\033[32mSetup complete for $PLATFORM\033[0m"
