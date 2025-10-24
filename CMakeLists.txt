@@ -37,7 +37,8 @@ endif()
 set(CMAKE_OBJCXX_STANDARD 17)
 set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
 
-option(ENABLE_BENCHMARK_TESTS "Enable Google Benchmark tests" ON)
+# Include benchmark control
+include(benchmark.cmake)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

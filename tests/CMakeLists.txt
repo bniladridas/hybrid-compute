@@ -16,15 +16,30 @@ FetchContent_Declare(
     CMAKE_ARGS ${MSVC_ARGS}
 )
 
-# Add Google Benchmark
-FetchContent_Declare(
-    benchmark
-    GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG v1.8.3
-    CMAKE_ARGS ${MSVC_ARGS} -DBENCHMARK_ENABLE_TESTING=OFF -DBENCHMARK_ENABLE_GTEST_TESTS=OFF
-)
+# Add Google Benchmark (conditionally)
+if(ENABLE_BENCHMARK)
+    # Set benchmark testing flags based on options
+    if(ENABLE_BENCHMARK_TESTING)
+        set(BENCHMARK_TESTING_FLAG -DBENCHMARK_ENABLE_TESTING=ON)
+    else()
+        set(BENCHMARK_TESTING_FLAG -DBENCHMARK_ENABLE_TESTING=OFF)
+    endif()
 
-FetchContent_MakeAvailable(googletest benchmark)
+    if(ENABLE_BENCHMARK_GTEST_TESTS)
+        set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=ON)
+    else()
+        set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=OFF)
+    endif()
+
+    FetchContent_Declare(
+        benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG v1.8.3
+        CMAKE_ARGS ${MSVC_ARGS} ${BENCHMARK_TESTING_FLAG} ${BENCHMARK_GTEST_FLAG}
+    )
+
+    FetchContent_MakeAvailable(googletest benchmark)
+endif()
 
 # Add test for Metal shim (only if shim is available)
 if(TARGET cudart_shim)
@@ -75,8 +90,8 @@ if(TARGET cudart_shim)
     )
 endif()
 
-# Add benchmark executable (only if shim is available)
-if(TARGET cudart_shim)
+# Add benchmark executable (only if shim and benchmarks are enabled)
+if(ENABLE_BENCHMARK AND TARGET cudart_shim)
     add_executable(benchmark_metal_shim
         performance/benchmark_metal_shim.cpp
     )
@@ -97,6 +112,3 @@ if(TARGET cudart_shim)
         ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers
     )
 endif()
-
-# Enable testing
-enable_testing()

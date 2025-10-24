@@ -1,2 +1,4 @@
 # Windows-specific configuration
-set(ENABLE_BENCHMARK_TESTS OFF CACHE BOOL "Disable benchmark tests on Windows due to MSVC runtime issues" FORCE)
+# To activate benchmarks on Windows, change OFF to ON below.
+# Note: May cause MSVC runtime conflicts; test carefully.
+set(ENABLE_BENCHMARK OFF CACHE BOOL "Disable benchmarks on Windows due to MSVC runtime issues" FORCE)
