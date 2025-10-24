@@ -146,7 +146,7 @@ jobs:
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
   dependabot-auto-merge:
-    needs: lint-and-polish
+    needs: docker
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
