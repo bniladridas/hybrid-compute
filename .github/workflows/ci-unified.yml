@@ -47,7 +47,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - cuda-version: "11.8.0"
+          - cuda-version: "13.0.1"
             tag-suffix: ""
           - cuda-version: ""
             tag-suffix: "-cpu"
@@ -86,7 +86,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - cuda-version: "11.8.0"
+          - cuda-version: "13.0.1"
             tag-suffix: ""
           - cuda-version: ""
             tag-suffix: "-cpu"
