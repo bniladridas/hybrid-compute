@@ -23,6 +23,7 @@ WORKDIR /app
 # Copy only necessary files for building
 COPY CMakeLists.txt ./
 COPY benchmark.cmake ./
+COPY cuda.cmake ./
 COPY cmake/ ./cmake/
 COPY src/ ./src/
 COPY include/ ./include/
