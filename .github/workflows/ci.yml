@@ -33,8 +33,9 @@ jobs:
       run: |
         set -e
         echo "Configuring CMake..."
-        cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-          -DWITH_CUDA=OFF -DCMAKE_VERBOSE_MAKEFILE=ON
+         cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+           -DWITH_CUDA=OFF -DCMAKE_VERBOSE_MAKEFILE=ON \
+           -DENABLE_BENCHMARK_TESTS=OFF
 
     - name: Build
       timeout-minutes: 15
