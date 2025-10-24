@@ -82,11 +82,11 @@ jobs:
         run: |
           mkdir build
           cd build
-          if [ "${{ matrix.cuda }}" != "" ]; then
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
-          else
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
-          fi
+           if [ "${{ matrix.cuda }}" != "" ]; then
+             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON -DENABLE_BENCHMARK_TESTING=OFF
+           else
+             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON -DENABLE_BENCHMARK_TESTING=OFF
+           fi
           if [ "$RUNNER_OS" == "Windows" ]; then
             cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
           else
