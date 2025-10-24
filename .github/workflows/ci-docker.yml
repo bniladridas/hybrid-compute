@@ -10,16 +10,32 @@ on:
 jobs:
   docker-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      timeout-minutes: 5
 
     - name: Build local Docker image
-      run: docker build -t hybrid-compute .
+      timeout-minutes: 20
+      run: |
+        set -e
+        echo "Building local Docker image..."
+        docker build -t hybrid-compute . --progress=plain
 
     - name: Test local Docker image
-      run: docker run --rm hybrid-compute
+      timeout-minutes: 10
+      run: |
+        set -e
+        echo "Testing local Docker image..."
+        timeout 300 docker run --rm hybrid-compute
 
     - name: Build CUDA Docker image
-      run: docker build -f Dockerfile.cuda -t hybrid-compute-cuda .
+      timeout-minutes: 20
+      run: |
+        set -e
+        echo "Building CUDA Docker image..."
+        docker build -f Dockerfile.cuda -t hybrid-compute-cuda \
+          . --progress=plain
 
       # Note: CUDA testing requires GPU runners, so only build is tested here
