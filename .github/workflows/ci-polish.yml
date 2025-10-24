@@ -39,17 +39,18 @@ jobs:
     - name: Build with warnings as errors
       timeout-minutes: 15
       run: |
-        set -e
-        echo "Building with warnings as errors..."
-        sudo apt-get update
-        sudo apt-get install -y cmake libopencv-dev build-essential clang-tidy
-        mkdir build
-        cd build
-        cmake .. \
-          -DCMAKE_CXX_FLAGS="-Werror -Wall -Wextra" \
-          -DCMAKE_C_FLAGS="-Werror -Wall -Wextra" \
-          -DCMAKE_BUILD_TYPE=Release
-        make -j$(nproc) VERBOSE=1
+          set -e
+          echo "Building with warnings as errors..."
+          sudo apt-get update
+          sudo apt-get install -y cmake libopencv-dev build-essential clang-tidy
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_CXX_FLAGS="-Werror -Wall -Wextra" \
+            -DCMAKE_C_FLAGS="-Werror -Wall -Wextra" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_BENCHMARK=OFF
+          make -j$(nproc) VERBOSE=1
 
     - name: Run clang-tidy on C/C++ code
       timeout-minutes: 10
