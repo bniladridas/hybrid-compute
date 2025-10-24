@@ -19,7 +19,7 @@ if [ "$PLATFORM" == "linux" ]; then
         SUDO="sudo"
     fi
     $SUDO DEBIAN_FRONTEND=noninteractive apt-get update
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick git
     # CUDA for linux CI
     if [ "$CUDA" == "cuda" ]; then
         if wget --tries=3 -q \
