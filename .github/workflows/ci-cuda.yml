@@ -78,9 +78,9 @@ jobs:
         file: ./Dockerfile.cuda
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/
+          ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/
+          ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
             ${{ env.IMAGE_NAME }}:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
