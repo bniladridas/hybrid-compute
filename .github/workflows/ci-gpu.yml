@@ -64,7 +64,11 @@ jobs:
         set -e
         echo "Building project..."
         mkdir -p build && cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_CUDA=${{ matrix.cuda-version != '' && 'ON' || 'OFF' }}
+        USE_CUDA_FLAG=${{ matrix.cuda-version != '' && 'ON' || 'OFF' }}
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DUSE_CUDA=$USE_CUDA_FLAG
         make -j$(nproc) VERBOSE=1
         echo "Running tests..."
         ctest --output-on-failure --timeout 300 --parallel $(nproc)
