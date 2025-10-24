@@ -15,46 +15,63 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     container:
       image: nvidia/cuda:11.8.0-base-ubuntu22.04
       options: --gpus all
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      timeout-minutes: 5
 
     - name: Install dependencies
+      timeout-minutes: 15
       run: |
+        set -e
+        echo "Installing dependencies..."
         chmod +x ./scripts/setup-ci.sh
         ./scripts/setup-ci.sh linux cuda
 
     - name: Build and Test
+      timeout-minutes: 20
       run: |
+        set -e
+        echo "Building project..."
         mkdir -p build && cd build
-        cmake .. && make
-        ctest --output-on-failure
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON
+        make -j$(nproc) VERBOSE=1
+        echo "Running tests..."
+        ctest --output-on-failure --timeout 300 --parallel $(nproc)
 
   docker:
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      timeout-minutes: 5
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
+      timeout-minutes: 5
 
     - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
+      timeout-minutes: 5
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v4
+      timeout-minutes: 30
+      uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile.cuda
@@ -66,15 +83,27 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
 
     - name: Test Docker image
       if: github.event_name != 'pull_request'
+      timeout-minutes: 15
       run: |
-        docker run --gpus all \
-          -v $(pwd)/test_images:/test_images \
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
-          /app/upscale /test_images/input.jpg /test_images/output.jpg
+        set -e
+        echo "Testing Docker image..."
+        if command -v nvidia-smi >/dev/null 2>&1; then
+          echo "GPU detected, running GPU test..."
+          timeout 600 docker run --gpus all \
+            -v $(pwd)/test_images:/test_images \
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
+              ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            /app/upscale /test_images/input.jpg /test_images/output.jpg
         else
-          echo "CUDA not available, skipping build"
+          echo "No GPU detected, running CPU test..."
+          timeout 300 docker run \
+            -v $(pwd)/test_images:/test_images \
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/\
+              ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            /app/upscale /test_images/input.jpg /test_images/output.jpg
         fi
