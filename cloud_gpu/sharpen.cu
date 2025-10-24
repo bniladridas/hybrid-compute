@@ -2,6 +2,9 @@
  * CUDA Image Sharpening
  */
 
+#include <cuda_runtime.h>
+#include <opencv2/opencv.hpp>
+
 __global__ void sharpenKernel(uchar *input, uchar *output, int width,
                               int height) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;

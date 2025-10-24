@@ -2,6 +2,9 @@
  * CUDA Canny Edge Detection
  */
 
+#include <cuda_runtime.h>
+#include <opencv2/opencv.hpp>
+
 // Simplified Canny: Sobel edge detection on grayscale
 __global__ void sobelKernel(uchar *input, uchar *output, int width,
                             int height) {

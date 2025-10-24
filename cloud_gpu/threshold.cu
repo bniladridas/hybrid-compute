@@ -2,6 +2,9 @@
  * CUDA Thresholding
  */
 
+#include <cuda_runtime.h>
+#include <opencv2/opencv.hpp>
+
 __global__ void thresholdKernel(uchar *input, uchar *output, int width,
                                 int height, int thresh) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
