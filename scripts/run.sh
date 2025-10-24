@@ -32,7 +32,7 @@ cd build
 cmake ..
 CPU_COUNT=1
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    CPU_COUNT=$(sysctl -n hw.ncpu)
+    CPU_COUNT=$(sysctl -n hw.logicalcpu)
 else
     CPU_COUNT=$(nproc)
 fi
