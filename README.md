@@ -53,7 +53,7 @@ python3 -c "import cv2; print('cv2 works:', cv2.__version__)"
 # Build local tools
 mkdir build && cd build
 cmake ..
-make -j$(sysctl -n hw.ncpu)
+make -j$(sysctl -n hw.logicalcpu)
 ```
 **Ubuntu**
 ```bash

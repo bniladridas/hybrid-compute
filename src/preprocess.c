@@ -101,7 +101,8 @@ int main(int argc, char** argv) {
 
             // Extract base name without extension
             char base_name[256];
-            strcpy(base_name, find_data.cFileName);
+            strncpy(base_name, find_data.cFileName, sizeof(base_name) - 1);
+            base_name[sizeof(base_name) - 1] = '\0';
             char* dot = strrchr(base_name, '.');
             if (dot) *dot = '\0';
 
@@ -136,7 +137,8 @@ int main(int argc, char** argv) {
 
             // Extract base name without extension
             char base_name[256];
-            strcpy(base_name, entry->d_name);
+            strncpy(base_name, entry->d_name, sizeof(base_name) - 1);
+            base_name[sizeof(base_name) - 1] = '\0';
             char* dot = strrchr(base_name, '.');
             if (dot) *dot = '\0';
 
