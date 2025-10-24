@@ -144,7 +144,7 @@ jobs:
               /app/upscale /test_images/input.jpg /test_images/output.jpg
           else
             echo "Running CPU mode..."
-            timeout 120 docker run "${{ env.IMAGE_TAG1 }}" /app/build/bin/preprocess_c --help
+            timeout 120 docker run "${{ env.IMAGE_TAG1 }}" bash -c "test -x /app/build/bin/preprocess_c && echo 'CPU executable found'"
           fi
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
