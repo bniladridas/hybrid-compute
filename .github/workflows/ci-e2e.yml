@@ -87,21 +87,21 @@ jobs:
       timeout-minutes: 10
       shell: bash
       run: |
-        set -e
-        echo "Running unit tests..."
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          eval "$(C:/Miniconda/Scripts/conda shell.bash hook)"
-          conda activate base
-          python -m pytest tests/ --timeout=300
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          eval "$(conda shell.bash hook)"
-          conda activate base
-          python -m pytest tests/ --timeout=300
-        else
-          python3 -m pytest tests/ --timeout=300
-        fi
-        cd build && ctest -E "user_counters_tabular_test" -C Release \
-          --timeout 300 --parallel $(nproc 2>/dev/null || echo 2)
+         set -e
+         echo "Running unit tests..."
+         if [ "$RUNNER_OS" == "Windows" ]; then
+           eval "$(C:/Miniconda/Scripts/conda shell.bash hook)"
+           conda activate base
+           python -m pytest tests/
+         elif [ "$RUNNER_OS" == "macOS" ]; then
+           eval "$(conda shell.bash hook)"
+           conda activate base
+           python -m pytest tests/
+         else
+           python3 -m pytest tests/
+         fi
+         cd build && ctest -E "user_counters_tabular_test" -C Release \
+           --timeout 300 --parallel $(nproc 2>/dev/null || echo 2)
 
     - name: Run e2e test (Linux/macOS)
       if: runner.os != 'Windows'
