@@ -13,8 +13,8 @@ CUDA=${2:-false}
 echo -e "\033[32mSetting up dependencies for $PLATFORM...\033[0m"
 
 if [ "$PLATFORM" == "linux" ]; then
-    sudo apt-get update
-    sudo apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick
+    sudo DEBIAN_FRONTEND=noninteractive apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick
     # CUDA for linux CI
     if [ "$CUDA" == "cuda" ]; then
         if wget --tries=3 -q \
@@ -22,8 +22,8 @@ if [ "$PLATFORM" == "linux" ]; then
           ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
           -O /tmp/cuda-keyring.deb; then
             sudo dpkg -i /tmp/cuda-keyring.deb
-            sudo apt-get update
-            sudo apt-get install -y cuda-toolkit-12-6 || \
+            sudo DEBIAN_FRONTEND=noninteractive apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y cuda-toolkit-12-6 || \
               echo -e "\033[33mCUDA installation skipped\033[0m"
         else
             echo -e "\033[31mCUDA keyring download failed, skipping CUDA setup\033[0m"
