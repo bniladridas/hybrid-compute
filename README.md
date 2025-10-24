@@ -146,9 +146,9 @@ To clean up existing commit messages in history:
 git filter-branch --msg-filter 'bash scripts/rewrite_msg.sh' -- --all
 git push --force origin main  # if needed
 ```
+**Documentation**
+- [Testing Guide](docs/TESTING.md) - Comprehensive testing procedures and guidelines.
+- [Development Guide](DEVELOPMENT.md) - Development setup, architecture, and contribution guidelines.
+
 **License**
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
----
-
-[^1]: See [TESTING.md](docs/TESTING.md) for comprehensive testing procedures.
