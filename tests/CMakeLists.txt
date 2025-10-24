@@ -17,15 +17,34 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest benchmark)
 
-# Add test for Metal shim
-add_executable(test_metal_shim
-    unit/test_metal_shim.cpp
-)
+# Add test for Metal shim (only if shim is available)
+if(TARGET cudart_shim)
+    add_executable(test_metal_shim
+        unit/test_metal_shim.cpp
+    )
 
-# Add benchmark executable
-add_executable(benchmark_metal_shim
-    performance/benchmark_metal_shim.cpp
-)
+    # Link against the Metal shim library and Google Test
+    target_link_libraries(test_metal_shim PRIVATE
+        cudart_shim
+        gtest_main
+        ${METAL_FRAMEWORKS}
+        ${OpenCV_LIBS}
+    )
+endif()
+
+# Add benchmark executable (only if shim is available)
+if(TARGET cudart_shim)
+    add_executable(benchmark_metal_shim
+        performance/benchmark_metal_shim.cpp
+    )
+
+    # Link benchmark executable
+    target_link_libraries(benchmark_metal_shim PRIVATE
+        cudart_shim
+        benchmark::benchmark
+        ${METAL_FRAMEWORKS}
+    )
+endif()
 
 # Link against the Metal shim library and Google Test
 target_link_libraries(test_metal_shim PRIVATE
@@ -69,7 +88,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # Add test
-add_test(NAME test_metal_shim COMMAND test_metal_shim)
+if(TARGET test_metal_shim)
+    add_test(NAME test_metal_shim COMMAND test_metal_shim)
+endif()
 
 # Add test data
 set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test_data)
