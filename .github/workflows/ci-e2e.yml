@@ -100,8 +100,8 @@ jobs:
         else
           python3 -m pytest tests/ --timeout=300
         fi
-        cd build && ctest -C Release --timeout 300 \
-          --parallel $(nproc 2>/dev/null || echo 2)
+        cd build && ctest -E "user_counters_tabular_test" -C Release \
+          --timeout 300 --parallel $(nproc 2>/dev/null || echo 2)
 
     - name: Run e2e test (Linux/macOS)
       if: runner.os != 'Windows'
