@@ -8,7 +8,7 @@
 - **Local Tile Splitting**: Efficiently divides images into 64x64 pixel tiles using OpenCV (C++) or stb_image (C) on macOS/Linux/Windows.
 - **GPU Upscaling**: Performs 2x bicubic interpolation on tiles using optimized GPU backends.
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
-- **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests[^1].
+- **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
 - **Development Documentation**: Detailed setup and architecture guides[^2].
 **Workflow**
 1. **Split**: Process input images locally to create tiles.
@@ -95,12 +95,12 @@ To build, test, and run e2e locally:
 **Testing**
 For detailed testing instructions, see TESTING.md[^1].
 
-To run unit tests:
+To run unit tests (parallel execution enabled for faster runs):
 ```bash
-# Python tests
+# Python tests (parallel with pytest-xdist)
 python3 -m pytest tests/
-# C/C++ tests (after building)
-cd build && ctest
+# C/C++ tests (parallel with ctest)
+cd build && ctest -j$(nproc)
 # End-to-end tests
 python3 scripts/e2e.py
 ```
