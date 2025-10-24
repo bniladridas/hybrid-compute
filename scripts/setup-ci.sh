@@ -19,7 +19,7 @@ if [ "$PLATFORM" == "linux" ]; then
         SUDO="sudo"
     fi
     env DEBIAN_FRONTEND=noninteractive $SUDO apt-get update
-    env DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick git
+    env DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick git wget python3 python3-pip
     # CUDA for linux CI
     if [ "$CUDA" == "cuda" ]; then
         if wget --tries=3 -q \
