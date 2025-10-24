@@ -2,29 +2,34 @@
  * CUDA Histogram Equalization
  */
 
+#include <climits>
 #include <cuda_runtime.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <climits>
 
 __global__ void histKernel(uchar *input, int *hist, int width, int height) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (x >= width || y >= height) return;
+  if (x >= width || y >= height)
+    return;
 
   int idx = y * width + x;
   atomicAdd(&hist[input[idx]], 1);
 }
 
-__global__ void equalizeKernel(uchar *input, uchar *output, int *cdf, int min_cdf, int total_pixels, int width, int height) {
+__global__ void equalizeKernel(uchar *input, uchar *output, int *cdf,
+                               int min_cdf, int total_pixels, int width,
+                               int height) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (x >= width || y >= height) return;
+  if (x >= width || y >= height)
+    return;
 
   int idx = y * width + x;
-  float val = (float)(cdf[input[idx]] - min_cdf) / (total_pixels - min_cdf) * 255.0f;
+  float val =
+      (float)(cdf[input[idx]] - min_cdf) / (total_pixels - min_cdf) * 255.0f;
   output[idx] = (uchar)roundf(val);
 }
 
@@ -72,7 +77,8 @@ int applyHistogramEqualization(const cv::Mat &input, cv::Mat &output) {
   cudaMalloc(&d_output, size);
   cudaMemcpy(d_input, gray.data, size, cudaMemcpyHostToDevice);
 
-  equalizeKernel<<<grid, block>>>(d_input, d_output, d_cdf, min_cdf, total_pixels, width, height);
+  equalizeKernel<<<grid, block>>>(d_input, d_output, d_cdf, min_cdf,
+                                  total_pixels, width, height);
 
   output = cv::Mat(height, width, CV_8UC1);
   cudaMemcpy(output.data, d_output, size, cudaMemcpyDeviceToHost);
