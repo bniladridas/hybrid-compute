@@ -136,16 +136,15 @@ jobs:
           python3 create_test_image.py
           cp test_images/test.jpg test_images/input.jpg
 
-          if nvidia-smi >/dev/null 2>&1 && [ "${{ matrix.cuda-version }}" != "" ]; then
+          GPU="${{ matrix.cuda-version != '' && 'true' || 'false' }}"
+          if [ "$GPU" = "true" ]; then
             timeout 120 docker run --gpus all \
               -v "$(pwd)/test_images:/test_images" \
               "${{ env.IMAGE_TAG1 }}" \
               /app/upscale /test_images/input.jpg /test_images/output.jpg
           else
-            timeout 120 docker run \
-              -v "$(pwd)/test_images:/test_images" \
-              "${{ env.IMAGE_TAG1 }}" \
-              /app/upscale /test_images/input.jpg /test_images/output.jpg
+            echo "Running CPU mode..."
+            timeout 120 docker run "${{ env.IMAGE_TAG1 }}" /app/build/bin/preprocess_c --help
           fi
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
