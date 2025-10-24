@@ -62,7 +62,7 @@ WORKDIR /app
 COPY --from=builder /app/build/bin/upscale /app/upscale
 
 # Copy Python packages
-COPY --from=builder /usr/local/lib/python3.10/dist-packages/ /usr/local/lib/python3.10/dist-packages/
+COPY --from=builder /usr/local/lib/python3.12/dist-packages/ /usr/local/lib/python3.12/dist-packages/
 
 # Entrypoint
 ENTRYPOINT ["/app/upscale"]
