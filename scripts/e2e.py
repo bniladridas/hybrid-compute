@@ -45,10 +45,7 @@ for i in range(16):
     input_tile = f"test_images/tiles/test_tile_{i}.jpg"
     output_tile = f"test_images/upscaled/tile_{i}.jpg"
     if os.path.exists(input_tile):
-        if runner_os == "Windows":
-            exe = "./build/Release/upscaler.exe"
-        else:
-            exe = "./build/bin/upscaler"
+        exe = "./build/Release/upscaler.exe" if runner_os == "Windows" else "./build/bin/upscaler"
         if os.path.exists(exe):
             subprocess.run([exe, input_tile, output_tile], check=False)
 
