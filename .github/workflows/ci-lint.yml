@@ -10,30 +10,57 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      timeout-minutes: 5
 
     - name: Set up Python
+      timeout-minutes: 5
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
     - name: Install dependencies
+      timeout-minutes: 10
       run: |
+        set -e
+        echo "Installing linting dependencies..."
         python -m pip install --upgrade pip
         pip install black isort ruff yamllint pre-commit
 
     - name: Run black
-      run: black --check --line-length=127 .
+      timeout-minutes: 5
+      run: |
+        set -e
+        echo "Running black..."
+        black --check --line-length=127 .
 
     - name: Run isort
-      run: isort --check-only --profile black --line-length=127 .
+      timeout-minutes: 5
+      run: |
+        set -e
+        echo "Running isort..."
+        isort --check-only --profile black --line-length=127 .
 
     - name: Run ruff
-      run: ruff check .
+      timeout-minutes: 5
+      run: |
+        set -e
+        echo "Running ruff..."
+        ruff check .
 
     - name: Run yamllint
-      run: yamllint --strict .
+      timeout-minutes: 5
+      run: |
+        set -e
+        echo "Running yamllint..."
+        yamllint --strict .
 
     - name: Run pre-commit
-      run: pre-commit run --all-files
+      timeout-minutes: 10
+      run: |
+        set -e
+        echo "Running pre-commit..."
+        pre-commit run --all-files

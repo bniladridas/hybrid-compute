@@ -15,6 +15,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       matrix:
         include:
@@ -32,12 +33,21 @@ jobs:
 
     steps:
     - name: Check GPU
+      timeout-minutes: 2
       run: |
+        set -e
+        echo "Checking GPU availability..."
         nvidia-smi || echo "No GPU detected, continuing with CPU-only build"
-    - uses: actions/checkout@v4
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+      timeout-minutes: 5
 
     - name: Install dependencies
+      timeout-minutes: 15
       run: |
+        set -e
+        echo "Installing dependencies..."
         apt-get update && apt-get install -y \
           cmake \
           build-essential \
@@ -48,33 +58,44 @@ jobs:
         pip3 install -r requirements.txt
 
     - name: Build and Test
+      timeout-minutes: 20
       run: |
+        set -e
+        echo "Building project..."
         mkdir -p build && cd build
-        cmake .. && make
-        ctest --output-on-failure
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON
+        make -j$(nproc) VERBOSE=1
+        echo "Running tests..."
+        ctest --output-on-failure --timeout 300 --parallel $(nproc)
 
   docker:
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      timeout-minutes: 5
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
+      timeout-minutes: 5
 
     - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
+      timeout-minutes: 5
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v4
+      timeout-minutes: 30
+      uses: docker/build-push-action@v5
       with:
         context: .
         file: >-
@@ -88,25 +109,29 @@ jobs:
             ${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}:latest
         build-args: |
           ${{ matrix.cuda-version != '' && 'NVIDIA_VISIBLE_DEVICES=all' || '' }}
+          BUILDKIT_INLINE_CACHE=1
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
     - name: Test Docker image
       if: github.event_name != 'pull_request'
+      timeout-minutes: 15
       run: |
-        IMAGE_TAG="${{ env.IMAGE_NAME }}${{ matrix.tag-suffix }}:\
-          ${{ env.IMAGE_TAG }}"
+         set -e
+         TAG_SUFFIX="${{ matrix.tag-suffix }}"
+         IMAGE_TAG="${{ env.IMAGE_NAME }}${TAG_SUFFIX}:${{ env.IMAGE_TAG }}"
 
-        if [ "${{ matrix.cuda-version }}" != "" ] && command -v nvidia-smi; then
+         if [ "${{ matrix.cuda-version }}" != "" ] \
+           && command -v nvidia-smi >/dev/null 2>&1; then
           echo "Running GPU test..."
-          docker run --gpus all \
+          timeout 600 docker run --gpus all \
             -v $(pwd)/test_images:/test_images \
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/$IMAGE_TAG \
             /app/upscale /test_images/input.jpg /test_images/output.jpg
-        else
-          echo "Running CPU test..."
-          docker run \
+          else
+            echo "Running CPU test..."
+          timeout 300 docker run \
             -v $(pwd)/test_images:/test_images \
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/$IMAGE_TAG \
-            /app/upscale /test_images/input.jpg /test_images/output.jpg
-        fi
+             /app/upscale /test_images/input.jpg /test_images/output.jpg
+          fi
