@@ -140,12 +140,12 @@ jobs:
               -e DEBIAN_FRONTEND=noninteractive \
               -v $(pwd)/test_images:/test_images \
               ${{ env.IMAGE_TAG1 }} \
-              /app/bin/upscale /test_images/input.jpg /test_images/output.jpg
+              /app/upscale /test_images/input.jpg /test_images/output.jpg
            else
              echo "Running CPU test..."
             timeout 300 docker run \
               -e DEBIAN_FRONTEND=noninteractive \
               -v $(pwd)/test_images:/test_images \
               ${{ env.IMAGE_TAG1 }} \
-              /app/bin/upscale /test_images/input.jpg /test_images/output.jpg
+              /app/upscale /test_images/input.jpg /test_images/output.jpg
            fi
