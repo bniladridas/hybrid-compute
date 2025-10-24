@@ -24,7 +24,7 @@ if [ "$PLATFORM" == "linux" ]; then
     if [ "$CUDA" == "cuda" ]; then
         if wget --tries=3 -q \
           https://developer.download.nvidia.com/compute/cuda/repos/ \
-          ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
+          ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
           -O /tmp/cuda-keyring.deb; then
             $SUDO dpkg -i /tmp/cuda-keyring.deb
             env DEBIAN_FRONTEND=noninteractive $SUDO apt-get update
@@ -43,8 +43,8 @@ elif [ "$PLATFORM" == "windows" ]; then
 fi
 
 # Python dependencies (common)
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-pip install black isort ruff yamllint pre-commit pytest coverage pytest-cov pytest-timeout mypy
+python3 -m pip install --upgrade pip
+pip3 install -r requirements.txt
+pip3 install black isort ruff yamllint pre-commit pytest coverage pytest-cov pytest-timeout mypy
 
 echo -e "\033[32mSetup complete for $PLATFORM\033[0m"
