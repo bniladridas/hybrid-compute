@@ -132,16 +132,16 @@ jobs:
           if [ "${{ matrix.cuda-version }}" != "" ] \
             && command -v nvidia-smi >/dev/null 2>&1; then
            echo "Running GPU test..."
-           timeout 600 docker run --gpus all \
-             -e DEBIAN_FRONTEND=noninteractive \
-             -v $(pwd)/test_images:/test_images \
-             ${{ env.REGISTRY }}/${{ github.repository_owner }}/$IMAGE_TAG \
-             /app/upscale /test_images/input.jpg /test_images/output.jpg
+            timeout 600 docker run --gpus all \
+              -e DEBIAN_FRONTEND=noninteractive \
+              -v $(pwd)/test_images:/test_images \
+              ${{ env.IMAGE_TAG1 }} \
+              /app/bin/upscale /test_images/input.jpg /test_images/output.jpg
            else
              echo "Running CPU test..."
-           timeout 300 docker run \
-             -e DEBIAN_FRONTEND=noninteractive \
-             -v $(pwd)/test_images:/test_images \
-             ${{ env.REGISTRY }}/${{ github.repository_owner }}/$IMAGE_TAG \
-              /app/upscale /test_images/input.jpg /test_images/output.jpg
+            timeout 300 docker run \
+              -e DEBIAN_FRONTEND=noninteractive \
+              -v $(pwd)/test_images:/test_images \
+              ${{ env.IMAGE_TAG1 }} \
+              /app/bin/upscale /test_images/input.jpg /test_images/output.jpg
            fi

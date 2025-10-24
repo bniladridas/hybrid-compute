@@ -632,7 +632,7 @@ endif()
 
 # Add tests subdirectory if testing is enabled
 option(BUILD_TESTING "Build the testing tree." ON)
-if(BUILD_TESTING)
+if(BUILD_TESTING AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests")
     enable_testing()
     add_subdirectory(tests)
 endif()
