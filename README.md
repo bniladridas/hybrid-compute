@@ -150,7 +150,5 @@ git push --force origin main  # if needed
 **License**
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
----
-
 [^1]: [TESTING.md](docs/TESTING.md) - Comprehensive testing procedures and guidelines.
 [^2]: [DEVELOPMENT.md](DEVELOPMENT.md) - Development setup, architecture, and contribution guidelines.
