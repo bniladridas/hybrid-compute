@@ -15,6 +15,7 @@ FetchContent_Declare(
     GIT_TAG v1.8.3
 )
 
+set(BENCHMARK_ENABLE_TESTING OFF)
 FetchContent_MakeAvailable(googletest benchmark)
 
 # Add test for Metal shim
