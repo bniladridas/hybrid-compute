@@ -104,6 +104,8 @@ cd build && ctest -j$(nproc)
 # End-to-end tests
 python3 scripts/e2e.py
 ```
+
+*Note: Google Benchmark tests are enabled by default but disabled on Windows via `WindowsConfig.cmake` to avoid MSVC build issues. Modify `ENABLE_BENCHMARK_TESTS` option to re-enable if needed.*
 **Manual Usage**
 1. **Split images into tiles** (C++ version with OpenCV):
    ```bash
