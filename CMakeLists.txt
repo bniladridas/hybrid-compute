@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0104 NEW)
 cmake_policy(SET CMP0077 NEW)
 
+# Set MSVC runtime library to avoid conflicts
+if(WIN32)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+endif()
+
 # Set project name and version
 if(APPLE)
     project(hybrid-compute
@@ -26,9 +31,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Set MSVC runtime library to avoid conflicts
 if(WIN32)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
     include(WindowsConfig.cmake)
 endif()
 set(CMAKE_OBJCXX_STANDARD 17)
