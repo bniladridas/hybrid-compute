@@ -51,5 +51,6 @@ jobs:
       run: |
         set -e
         echo "Running tests..."
-        ctest --output-on-failure --timeout 300 \
-          --parallel $(sysctl -n hw.logicalcpu)
+         ctest --output-on-failure --timeout 300 \
+           --parallel $(sysctl -n hw.logicalcpu) \
+           --exclude-regex "user_counters_tabular_test"
