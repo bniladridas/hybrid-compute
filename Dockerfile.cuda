@@ -25,8 +25,11 @@ COPY CMakeLists.txt ./
 COPY benchmark.cmake ./
 COPY cuda.cmake ./
 COPY cmake/ ./cmake/
+COPY cloud_gpu/ ./cloud_gpu/
 COPY src/ ./src/
 COPY include/ ./include/
+COPY tests/ ./tests/
+COPY create_test_image.py ./
 COPY requirements.txt ./
 
 # Install Python dependencies
