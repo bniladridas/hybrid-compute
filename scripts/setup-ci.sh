@@ -13,17 +13,22 @@ CUDA=${2:-false}
 echo -e "\033[32mSetting up dependencies for $PLATFORM...\033[0m"
 
 if [ "$PLATFORM" == "linux" ]; then
-    sudo DEBIAN_FRONTEND=noninteractive apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick
+    if [ "$(id -u)" -eq 0 ]; then
+        SUDO=""
+    else
+        SUDO="sudo"
+    fi
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get update
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake libopencv-dev build-essential imagemagick
     # CUDA for linux CI
     if [ "$CUDA" == "cuda" ]; then
         if wget --tries=3 -q \
           https://developer.download.nvidia.com/compute/cuda/repos/ \
           ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
           -O /tmp/cuda-keyring.deb; then
-            sudo dpkg -i /tmp/cuda-keyring.deb
-            sudo DEBIAN_FRONTEND=noninteractive apt-get update
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y cuda-toolkit-12-6 || \
+            $SUDO dpkg -i /tmp/cuda-keyring.deb
+            $SUDO DEBIAN_FRONTEND=noninteractive apt-get update
+            $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y cuda-toolkit-12-6 || \
               echo -e "\033[33mCUDA installation skipped\033[0m"
         else
             echo -e "\033[31mCUDA keyring download failed, skipping CUDA setup\033[0m"
