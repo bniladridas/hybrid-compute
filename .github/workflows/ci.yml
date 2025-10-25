@@ -95,7 +95,11 @@ jobs:
            if [ "$RUNNER_OS" == "Windows" ]; then
              ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS --no-tests=ignore
            else
-             ctest --output-on-failure --timeout 300 --parallel $(nproc) --no-tests=ignore
+             if [ "${{ matrix.cuda }}" != "" ]; then
+               ctest --output-on-failure --timeout 300 --parallel $(nproc)
+             else
+               ctest --output-on-failure --timeout 300 --parallel $(nproc) --exclude-regex "user_counters"
+             fi
            fi
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
