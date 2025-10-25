@@ -119,7 +119,7 @@ To run unit tests (parallel execution enabled for faster runs):
 python3 -m pytest tests/
 # C/C++ tests (parallel with ctest)
 cd build && ctest -j$(nproc)
-# Run benchmark test specifically (verbose output)
+# Run benchmark test specifically (verbose output, tests Metal shim performance)
 cd build && ctest -R user_counters_tabular_test -V
 # End-to-end tests
 python3 scripts/e2e.py
