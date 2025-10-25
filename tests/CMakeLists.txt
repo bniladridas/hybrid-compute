@@ -35,7 +35,7 @@ if(ENABLE_BENCHMARK)
     benchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git
     GIT_TAG v1.8.3
-    PATCH_COMMAND sed -i 's|^Benchmark[ ]+Time[ ]+CPU[ ]+Iterations[ ]+Bar[ ]+Bat[ ]+Baz[ ]+Foo[ ]+Frob[ ]+Lob$|^Benchmark[ ]+Time[ ]+CPU[ ]+Iterations[ ]+UserCounters.*$|' test/output_test_helper.cc
+    PATCH_COMMAND "sed" "-i" "s|^Benchmark[ ]+Time[ ]+CPU[ ]+Iterations[ ]+Bar[ ]+Bat[ ]+Baz[ ]+Foo[ ]+Frob[ ]+Lob$|^Benchmark[ ]+Time[ ]+CPU[ ]+Iterations[ ]+UserCounters.*$|" "test/output_test_helper.cc"
     CMAKE_ARGS ${MSVC_ARGS} ${BENCHMARK_TESTING_FLAG} ${BENCHMARK_GTEST_FLAG})
 
   FetchContent_MakeAvailable(googletest benchmark)
