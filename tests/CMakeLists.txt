@@ -3,8 +3,8 @@ include(FetchContent)
 
 # Set platform-specific args
 if(WIN32)
-  set(MSVC_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL
-                -DCMAKE_CXX_FLAGS_RELEASE="/MD")
+  set(MSVC_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+                -DCMAKE_CXX_FLAGS_RELEASE="/MT")
 else()
   set(MSVC_ARGS "")
 endif()
@@ -25,14 +25,14 @@ if(ENABLE_BENCHMARK)
     set(BENCHMARK_TESTING_FLAG -DBENCHMARK_ENABLE_TESTING=OFF)
   endif()
 
-  if(ENABLE_BENCHMARK_GTEST_TESTS AND NOT WIN32)
+  if(ENABLE_BENCHMARK_GTEST_TESTS)
     set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=ON)
   else()
     set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=OFF)
   endif()
 
   if(WIN32)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   endif()
 
   FetchContent_Declare(
