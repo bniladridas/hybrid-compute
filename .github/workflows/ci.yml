@@ -171,8 +171,8 @@ jobs:
               -c "test -x /app/upscale && echo OK"
           else
             echo "Running CPU mode..."
-            docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
-              -c "test -x /app/build/bin/preprocess_c && echo OK"
+                docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
+                  -c "ls -la /app/build/bin/ | head -10 && test -x /app/build/bin/preprocess_c && echo OK"
           fi
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
