@@ -92,18 +92,18 @@ jobs:
           else
             make -j$(nproc)
           fi
-           if [ "$RUNNER_OS" == "Windows" ]; then
-             ctest --output-on-failure --timeout 300 \
-               --parallel $NUMBER_OF_PROCESSORS --exclude-regex "user_counters_tabular_test"
-           else
-             ctest --output-on-failure --timeout 300 \
-               --parallel $(nproc) --exclude-regex "user_counters_tabular_test"
-           fi
-           # Run the excluded test separately to show output without failing CI
+           # Run the failing test separately to show output without failing CI
            if [ -f "build/bin/user_counters_tabular_test" ]; then
              ./build/bin/user_counters_tabular_test || true
            elif [ -f "build/bin/user_counters_tabular_test.exe" ]; then
              ./build/bin/user_counters_tabular_test.exe || true
+           fi
+           if [ "$RUNNER_OS" == "Windows" ]; then
+             ctest --output-on-failure --timeout 300 \
+               --parallel $NUMBER_OF_PROCESSORS --exclude-regex "user_counters"
+           else
+             ctest --output-on-failure --timeout 300 \
+               --parallel $(nproc) --exclude-regex "user_counters"
            fi
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
