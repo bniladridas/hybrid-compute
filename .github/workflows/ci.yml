@@ -88,9 +88,9 @@ jobs:
              cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
            fi
            if [ "$RUNNER_OS" == "Windows" ]; then
-             ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
+             ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS --no-tests=ignore
            else
-             ctest --output-on-failure --timeout 300 --parallel $(nproc)
+             ctest --output-on-failure --timeout 300 --parallel $(nproc) --no-tests=ignore
            fi
           if [ "$RUNNER_OS" == "Windows" ]; then
             cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
