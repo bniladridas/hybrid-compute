@@ -77,26 +77,39 @@ jobs:
         run: |
           choco install cmake opencv python3
 
-      - name: Build & Test
-        shell: bash
-        run: |
-          mkdir build
-          cd build
-           if [ "${{ matrix.cuda }}" != "" ]; then
-             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
-           else
-             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
-           fi
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
-          else
-            make -j$(nproc)
-          fi
+       - name: Cache build dependencies
+         uses: actions/cache@v4
+         with:
+           path: |
+             ~/.cache/pip
+             ~/Library/Caches/pip
+             %USERPROFILE%\AppData\Local\pip\Cache
+             build/_deps
+           key: ${{ runner.os }}-build-${{ matrix.cuda }}-${{ hashFiles('**/CMakeLists.txt', '**/requirements.txt') }}
+           restore-keys: |
+             ${{ runner.os }}-build-${{ matrix.cuda }}-
+             ${{ runner.os }}-build-
+
+       - name: Build & Test
+         shell: bash
+         run: |
+           mkdir build
+           cd build
+            if [ "${{ matrix.cuda }}" != "" ]; then
+              cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
+            else
+              cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
+            fi
            if [ "$RUNNER_OS" == "Windows" ]; then
-             ctest -C Release --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
+             cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
            else
-             ctest --output-on-failure --timeout 300 --parallel $(nproc)
+             make -j$(nproc)
            fi
+            if [ "$RUNNER_OS" == "Windows" ]; then
+              ctest -C Release --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
+            else
+              ctest --output-on-failure --timeout 300 --parallel $(nproc)
+            fi
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
