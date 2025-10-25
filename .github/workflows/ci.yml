@@ -83,7 +83,7 @@ jobs:
           mkdir build
           cd build
            if [ "${{ matrix.cuda }}" != "" ]; then
-             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON -DENABLE_BENCHMARK_TESTING=ON
+             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
            else
              cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
            fi
@@ -93,13 +93,10 @@ jobs:
             make -j$(nproc)
           fi
            if [ "$RUNNER_OS" == "Windows" ]; then
-             ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS --no-tests=ignore
+             ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
            else
-             if [ "${{ matrix.cuda }}" != "" ]; then
-               ctest --output-on-failure --timeout 300 --parallel $(nproc)
-             else
-               ctest --output-on-failure --timeout 300 --parallel $(nproc) --exclude-regex "user_counters"
-             fi
+             ctest --output-on-failure --timeout 300 --parallel $(nproc)
+           fi
            fi
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
