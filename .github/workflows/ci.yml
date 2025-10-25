@@ -93,7 +93,7 @@ jobs:
             make -j$(nproc)
           fi
            if [ "$RUNNER_OS" == "Windows" ]; then
-             ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
+             ctest -C Release --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
            else
              ctest --output-on-failure --timeout 300 --parallel $(nproc)
            fi
