@@ -83,7 +83,7 @@ jobs:
           mkdir build
           cd build
            if [ "${{ matrix.cuda }}" != "" ]; then
-             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
+             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON -DENABLE_BENCHMARK_TESTING=ON
            else
              cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
            fi
