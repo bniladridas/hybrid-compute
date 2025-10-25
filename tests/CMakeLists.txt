@@ -31,6 +31,10 @@ if(ENABLE_BENCHMARK)
     set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=OFF)
   endif()
 
+  if(WIN32)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+  endif()
+
   FetchContent_Declare(
     benchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git
