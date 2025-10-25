@@ -168,7 +168,7 @@ jobs:
           else
             echo "Running CPU mode..."
              timeout 60 docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
-               -c "ls -la /app/build/ | head -10 && test -x /app/build/preprocess_c && echo OK"
+               -c "test -x /app/build/bin/preprocess_c && echo OK"
           fi
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
