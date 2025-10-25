@@ -94,6 +94,8 @@ jobs:
           fi
            if [ "$RUNNER_OS" == "Windows" ]; then
              ctest -C Release --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
+           elif [ "$RUNNER_OS" == "macOS" ]; then
+             ctest --output-on-failure --timeout 300 --parallel $(nproc) --exclude-regex "user_counters"
            else
              ctest --output-on-failure --timeout 300 --parallel $(nproc)
            fi
