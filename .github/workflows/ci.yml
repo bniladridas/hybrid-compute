@@ -83,9 +83,14 @@ jobs:
           mkdir build
           cd build
            if [ "${{ matrix.cuda }}" != "" ]; then
-             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON -DENABLE_BENCHMARK_TESTING=ON
+             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
            else
-             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON -DENABLE_BENCHMARK_TESTING=ON
+             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
+           fi
+           if [ "$RUNNER_OS" == "Windows" ]; then
+             ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
+           else
+             ctest --output-on-failure --timeout 300 --parallel $(nproc)
            fi
           if [ "$RUNNER_OS" == "Windows" ]; then
             cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
