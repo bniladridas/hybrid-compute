@@ -17,3 +17,4 @@ Miniconda3-latest-MacOSX-arm64.sh
 .cache/
 lint_env/
 test_build/
+Testing/
