@@ -99,6 +99,12 @@ jobs:
              ctest --output-on-failure --timeout 300 \
                --parallel $(nproc) --exclude-regex "user_counters_tabular_test"
            fi
+           # Run the excluded test separately to show output without failing CI
+           if [ -f "build/bin/user_counters_tabular_test" ]; then
+             ./build/bin/user_counters_tabular_test || true
+           elif [ -f "build/bin/user_counters_tabular_test.exe" ]; then
+             ./build/bin/user_counters_tabular_test.exe || true
+           fi
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
