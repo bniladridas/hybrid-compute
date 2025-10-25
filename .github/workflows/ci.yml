@@ -87,28 +87,15 @@ jobs:
            else
              cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
            fi
-           if [ "$RUNNER_OS" == "Windows" ]; then
-             ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS --no-tests=ignore
-           else
-             ctest --output-on-failure --timeout 300 --parallel $(nproc) --no-tests=ignore
-           fi
           if [ "$RUNNER_OS" == "Windows" ]; then
             cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
           else
             make -j$(nproc)
           fi
-           # Run the failing test separately to show output without failing CI
-           if [ -f "build/bin/user_counters_tabular_test" ]; then
-             ./build/bin/user_counters_tabular_test || true
-           elif [ -f "build/bin/user_counters_tabular_test.exe" ]; then
-             ./build/bin/user_counters_tabular_test.exe || true
-           fi
            if [ "$RUNNER_OS" == "Windows" ]; then
-             ctest --output-on-failure --timeout 300 \
-               --parallel $NUMBER_OF_PROCESSORS --exclude-regex "user_counters"
+             ctest --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS --no-tests=ignore
            else
-             ctest --output-on-failure --timeout 300 \
-               --parallel $(nproc) --exclude-regex "user_counters"
+             ctest --output-on-failure --timeout 300 --parallel $(nproc) --no-tests=ignore
            fi
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
