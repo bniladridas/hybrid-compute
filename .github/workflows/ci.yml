@@ -93,7 +93,7 @@ jobs:
       - name: Build & Test
         shell: bash
         run: |
-          mkdir build
+          mkdir -p build
           cd build
           if [ "${{ matrix.cuda }}" != "" ]; then
             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
