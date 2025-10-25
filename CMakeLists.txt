@@ -612,8 +612,9 @@ if(WITH_OPENCV AND OpenCV_FOUND)
     add_test(NAME test_utils COMMAND $<TARGET_FILE:test_utils>)
   endif()
 
-  add_test(NAME test_preprocess COMMAND $<TARGET_FILE:test_preprocess>)
 endif()
+
+add_test(NAME test_preprocess COMMAND $<TARGET_FILE:test_preprocess>)
 
 # Add tests subdirectory if testing is enabled
 option(BUILD_TESTING "Build the testing tree." ON)
