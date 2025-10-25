@@ -68,7 +68,7 @@ if(TARGET cudart_shim)
   endif()
 
   # Add test
-  add_test(NAME test_metal_shim COMMAND test_metal_shim)
+  add_test(NAME test_metal_shim COMMAND $<TARGET_FILE:test_metal_shim>)
 
   # Add test data
   set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test_data)

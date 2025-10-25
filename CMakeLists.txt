@@ -609,10 +609,10 @@ if(WITH_OPENCV AND OpenCV_FOUND)
     target_link_libraries(test_utils ${OpenCV_LIBS})
     target_include_directories(test_utils PRIVATE ${OpenCV_INCLUDE_DIRS}
                                                   ${CMAKE_SOURCE_DIR}/include)
-    add_test(NAME test_utils COMMAND test_utils)
+    add_test(NAME test_utils COMMAND $<TARGET_FILE:test_utils>)
   endif()
 
-  add_test(NAME test_preprocess COMMAND test_preprocess)
+  add_test(NAME test_preprocess COMMAND $<TARGET_FILE:test_preprocess>)
 endif()
 
 # Add tests subdirectory if testing is enabled
