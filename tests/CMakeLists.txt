@@ -18,6 +18,11 @@ FetchContent_Declare(
 
 # Add Google Benchmark (conditionally)
 if(ENABLE_BENCHMARK)
+  # Disable benchmark testing on MSVC to avoid runtime linking issues
+  if(MSVC)
+    set(ENABLE_BENCHMARK_TESTING OFF)
+  endif()
+
   # Set benchmark testing flags based on options
   if(ENABLE_BENCHMARK_TESTING)
     set(BENCHMARK_TESTING_FLAG -DBENCHMARK_ENABLE_TESTING=ON)
@@ -25,11 +30,11 @@ if(ENABLE_BENCHMARK)
     set(BENCHMARK_TESTING_FLAG -DBENCHMARK_ENABLE_TESTING=OFF)
   endif()
 
-  if(ENABLE_BENCHMARK_GTEST_TESTS)
-    set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=ON)
-  else()
-    set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=OFF)
-  endif()
+   if(ENABLE_BENCHMARK_GTEST_TESTS AND NOT MSVC)
+     set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=ON)
+   else()
+     set(BENCHMARK_GTEST_FLAG -DBENCHMARK_ENABLE_GTEST_TESTS=OFF)
+   endif()
 
   if(WIN32)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
