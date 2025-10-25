@@ -1,0 +1,32 @@
+---
+name: Benchmark Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  benchmark-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up dependencies
+      run: |
+        sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
+          cmake build-essential python3 python3-pip git \
+          && sudo rm -rf /var/lib/apt/lists/*
+        pip3 install --break-system-packages opencv-python numpy
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_BENCHMARK_TESTING=ON -DWITH_OPENCV=ON
+        make -j$(nproc)
+
+    - name: Run user_counters_tabular_test
+      run: ./build/bin/user_counters_tabular_test
