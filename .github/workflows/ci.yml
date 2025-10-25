@@ -97,7 +97,6 @@ jobs:
            else
              ctest --output-on-failure --timeout 300 --parallel $(nproc)
            fi
-           fi
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
