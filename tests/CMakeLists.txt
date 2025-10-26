@@ -9,12 +9,14 @@ else()
   set(MSVC_ARGS "")
 endif()
 
-# Add Google Test (using a more recent version)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG v1.14.0
-  CMAKE_ARGS ${MSVC_ARGS} -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded)
+# Add Google Test (using a more recent version) - skip on MSVC to avoid runtime issues
+if(NOT MSVC)
+  FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.14.0
+    CMAKE_ARGS ${MSVC_ARGS} -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded)
+endif()
 
 # Add Google Benchmark (conditionally)
 if(ENABLE_BENCHMARK)
@@ -47,7 +49,10 @@ if(ENABLE_BENCHMARK)
      GIT_TAG v1.8.3
      CMAKE_ARGS ${MSVC_ARGS} ${BENCHMARK_TESTING_FLAG} ${BENCHMARK_GTEST_FLAG} -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded)
 
-  FetchContent_MakeAvailable(googletest benchmark)
+  if(NOT MSVC)
+    FetchContent_MakeAvailable(googletest)
+  endif()
+  FetchContent_MakeAvailable(benchmark)
 endif()
 
 # Add test for Metal shim (only if shim is available)
