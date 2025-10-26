@@ -25,6 +25,9 @@ if(ENABLE_BENCHMARK)
   if(MSVC)
     set(ENABLE_BENCHMARK_TESTING OFF)
     set(BENCHMARK_USE_BUNDLED_GTEST OFF)
+    set(BENCHMARK_CACHE_ARGS BENCHMARK_ENABLE_TESTING=OFF BENCHMARK_ENABLE_GTEST_TESTS=OFF BENCHMARK_USE_BUNDLED_GTEST=OFF CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded)
+  else()
+    set(BENCHMARK_CACHE_ARGS BENCHMARK_ENABLE_GTEST_TESTS=OFF CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded)
   endif()
 
   # Set benchmark testing flags based on options
@@ -50,11 +53,12 @@ if(ENABLE_BENCHMARK)
      set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
    endif()
 
-   FetchContent_Declare(
-     benchmark
-     GIT_REPOSITORY https://github.com/google/benchmark.git
-     GIT_TAG v1.8.3
-      CMAKE_ARGS ${MSVC_ARGS} ${BENCHMARK_TESTING_FLAG} ${BENCHMARK_GTEST_FLAG} ${BENCHMARK_BUNDLED_GTEST_FLAG} -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded)
+    FetchContent_Declare(
+      benchmark
+      GIT_REPOSITORY https://github.com/google/benchmark.git
+      GIT_TAG v1.8.3
+      CMAKE_ARGS ${MSVC_ARGS}
+      CMAKE_CACHE_ARGS ${BENCHMARK_CACHE_ARGS})
 
   if(NOT MSVC)
     FetchContent_MakeAvailable(googletest)
