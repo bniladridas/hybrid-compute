@@ -149,10 +149,10 @@ jobs:
         run: |
           REG="ghcr.io"
           OWNER="${{ github.repository_owner }}"
-          NAME="hybrid-compute-gpu"
+          NAME="hybrid-compute-gpu${{ matrix.tag }}"
           TAG_BASE="$REG/$OWNER/$NAME"
           echo "IMAGE_TAG1=$TAG_BASE:${{ github.sha }}" >> $GITHUB_ENV
-          echo "IMAGE_TAG2=$TAG_BASE:latest" >> $GITHUB_ENV
+          echo "IMAGE_TAG2=$TAG_BASE:latest${{ matrix.tag }}" >> $GITHUB_ENV
 
       - name: Build & push Docker image
         uses: docker/build-push-action@v5
