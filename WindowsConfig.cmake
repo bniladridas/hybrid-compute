@@ -1,4 +1,4 @@
-# Windows-specific configuration Benchmarks are enabled on Windows with dynamic MSVC runtime to avoid conflicts.
+# Windows-specific configuration Benchmarks are enabled on Windows with static MSVC runtime to avoid conflicts.
 set(ENABLE_BENCHMARK
     ON
     CACHE BOOL "Enable benchmarks on Windows" FORCE)
