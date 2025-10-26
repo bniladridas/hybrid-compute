@@ -11,7 +11,7 @@
 - **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
 - **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
 - **CI/CD**: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.
-- **Notes**: Google Benchmark is enabled by default on macOS/Linux, but disabled on Windows due to linking issues with MSVC runtime. Modify ENABLE_BENCHMARK option in benchmark.cmake to adjust. CI runs with parallel testing, non-interactive prompts, and containerized builds.
+- **Notes**: Google Benchmark is enabled by default on macOS/Linux, but disabled on Windows due to linking issues (set in WindowsConfig.cmake). Modify ENABLE_BENCHMARK option in benchmark.cmake to adjust on other platforms. CI runs with parallel testing, non-interactive prompts, and containerized builds.
 - **Development Documentation**: Detailed setup and architecture guides[^2].
   **Workflow**
 
