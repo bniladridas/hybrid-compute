@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0104 NEW)
 cmake_policy(SET CMP0077 NEW)
 
-# Set MSVC runtime library to dynamic to avoid conflicts
+# Set MSVC runtime library to static to avoid conflicts
 if(WIN32)
-  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
 # Set project name and version

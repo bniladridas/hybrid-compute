@@ -3,8 +3,8 @@ include(FetchContent)
 
 # Set platform-specific args
 if(WIN32)
-  set(MSVC_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL
-                -DCMAKE_CXX_FLAGS_RELEASE="/MD")
+  set(MSVC_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+                -DCMAKE_CXX_FLAGS_RELEASE="/MT")
 else()
   set(MSVC_ARGS "")
 endif()
@@ -18,7 +18,7 @@ FetchContent_Declare(
 
 # Add Google Benchmark (conditionally)
 if(ENABLE_BENCHMARK)
-  # Enable benchmark testing on MSVC with dynamic runtime
+  # Enable benchmark testing on MSVC with static runtime
   if(MSVC)
     set(ENABLE_BENCHMARK_TESTING ON)
   endif()
@@ -37,7 +37,7 @@ if(ENABLE_BENCHMARK)
    endif()
 
    if(WIN32)
-     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
    endif()
 
   FetchContent_Declare(
