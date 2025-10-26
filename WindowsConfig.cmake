@@ -1,5 +1,4 @@
-# Windows-specific configuration To activate benchmarks on Windows, change OFF
-# to ON below. Note: May cause MSVC runtime conflicts; test carefully.
+# Windows-specific configuration Benchmarks are enabled on Windows with dynamic MSVC runtime to avoid conflicts.
 set(ENABLE_BENCHMARK
     ON
     CACHE BOOL "Enable benchmarks on Windows" FORCE)

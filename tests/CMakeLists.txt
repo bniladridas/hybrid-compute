@@ -18,9 +18,9 @@ FetchContent_Declare(
 
 # Add Google Benchmark (conditionally)
 if(ENABLE_BENCHMARK)
-  # Enable benchmark testing on MSVC with dynamic runtime
+  # Disable benchmark testing on MSVC to avoid linking issues with gtest tests
   if(MSVC)
-    set(ENABLE_BENCHMARK_TESTING ON)
+    set(ENABLE_BENCHMARK_TESTING OFF)
   endif()
 
   # Set benchmark testing flags based on options
