@@ -47,6 +47,7 @@ WORKDIR /app
 
 # Copy built binaries from builder
 COPY --from=builder /app/build /app/build
+COPY --from=builder /app/build/bin/preprocess_c /app/preprocess_c
 
 # Default command
 CMD ["python3", "scripts/e2e.py"]
