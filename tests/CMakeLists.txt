@@ -20,10 +20,10 @@ endif()
 
 # Add Google Benchmark (conditionally)
 if(ENABLE_BENCHMARK)
-  # Disable benchmark testing on MSVC to avoid linking issues
+  # Disable benchmark gtest tests to avoid issues
+  set(ENABLE_BENCHMARK_GTEST_TESTS OFF)
   if(MSVC)
     set(ENABLE_BENCHMARK_TESTING OFF)
-    set(ENABLE_BENCHMARK_GTEST_TESTS OFF)
     set(BENCHMARK_USE_BUNDLED_GTEST OFF)
   endif()
 
