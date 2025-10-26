@@ -2,7 +2,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "extra-files": ["VERSION"]
+      "extra-files": ["VERSION", "CMakeLists.txt"]
     }
   },
   "changelog-host": "https://github.com",
