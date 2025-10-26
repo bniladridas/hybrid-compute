@@ -201,6 +201,42 @@ jobs:
           GH_TOKEN: ${{ secrets.DEPENDABOT_MERGE_TOKEN }}
         run: gh pr merge ${{ github.event.pull_request.number }} --squash --delete-branch=false
 
+  # ────────────────────────────── Automated Release ──────────────────────────────
+  release:
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install semantic-release
+        run: pip install python-semantic-release
+      - name: Check if major version bump
+        run: |
+          current_version=$(cat VERSION)
+          new_version=$(python -m semantic_release --print-version)
+          current_major=$(echo $current_version | cut -d. -f1)
+          new_major=$(echo $new_version | cut -d. -f1)
+          if [ "$new_major" -gt "$current_major" ]; then
+            echo "DO_RELEASE=true" >> $GITHUB_ENV
+          else
+            echo "DO_RELEASE=false" >> $GITHUB_ENV
+          fi
+      - name: Create release
+        if: env.DO_RELEASE == 'true'
+        uses: python-semantic-release/python-semantic-release@v8
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
   # ────────────────────────────── Code Scanning ──────────────────────────────
   codeql:
     runs-on: ubuntu-latest
