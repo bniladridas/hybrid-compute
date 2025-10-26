@@ -181,11 +181,11 @@ jobs:
            if [ "$GPU" = "true" ]; then
              docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
                -c "test -f /app/upscale && echo OK"
-           else
-             echo "Running CPU mode..."
-                  docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
-                    -c "test -f /app/build/bin/preprocess_c && echo OK"
-           fi
+            else
+              echo "Running CPU mode..."
+                   docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
+                     -c "test -f /app/preprocess_c && echo OK"
+            fi
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
   dependabot-auto-merge:
