@@ -149,7 +149,11 @@ jobs:
         run: |
           REG="ghcr.io"
           OWNER="${{ github.repository_owner }}"
-          NAME="hybrid-compute-gpu${{ matrix.tag }}"
+          if [ "${{ matrix.cuda-version }}" != "" ]; then
+            NAME="hybrid-compute-gpu"
+          else
+            NAME="hybrid-compute-cpu"
+          fi
           TAG_BASE="$REG/$OWNER/$NAME"
           echo "IMAGE_TAG1=$TAG_BASE:${{ github.sha }}" >> $GITHUB_ENV
           echo "IMAGE_TAG2=$TAG_BASE:latest${{ matrix.tag }}" >> $GITHUB_ENV
