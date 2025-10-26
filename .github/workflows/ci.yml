@@ -177,10 +177,10 @@ jobs:
           python3 create_test_image.py
           cp test_images/test.jpg test_images/input.jpg
 
-          GPU="${{ matrix.cuda-version != '' && 'true' || 'false' }}"
-           if [ "$GPU" = "true" ]; then
-             docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
-               -c "test -f /app/upscale && echo OK"
+           GPU="${{ matrix.cuda-version != '' && 'true' || 'false' }}"
+            if [ "$GPU" = "true" ]; then
+              docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
+                -c "test -f /app/upscale && test -f /app/preprocess_c && echo OK"
             else
               echo "Running CPU mode..."
                    docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
