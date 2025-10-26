@@ -12,7 +12,7 @@
 - **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
 - **CI/CD**: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.
 - **Notes**: Google Benchmark is enabled by default on macOS/Linux, but disabled on Windows due to linking issues (set in WindowsConfig.cmake). Modify ENABLE_BENCHMARK option in benchmark.cmake to adjust on other platforms. CI runs with parallel testing, non-interactive prompts, and containerized builds.
-- **Development Documentation**: Detailed setup and architecture guides[^2].
+- **Development Documentation**: Detailed setup, architecture, onboarding, and compatibility guides[^2][^3].
   **Workflow**
 
 1. **Split**: Process input images locally to create tiles.
@@ -180,5 +180,73 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 [^1]: [TESTING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/TESTING.md) - Comprehensive testing procedures and guidelines.
 
 [^2]: [DEVELOPMENT.md](https://github.com/bniladridas/hybrid-compute/blob/main/DEVELOPMENT.md) - Development setup, architecture, and contribution guidelines.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
 
 <!-- CI trigger -->
