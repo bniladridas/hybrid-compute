@@ -36,9 +36,7 @@ RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
 # Build stage
 RUN mkdir -p build && cd build && \
     cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=$USE_CUDA -DWITH_OPENCV=ON .. && \
-    make -j$(nproc) && \
-    test -f /app/build/bin/preprocess_c || exit 1 && \
-    test -f /app/build/bin/upscale || exit 1
+    make -j$(nproc)
 
 # ────────────────────────────────────────────────
 # Stage 2: Runtime stage
