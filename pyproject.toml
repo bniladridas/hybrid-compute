@@ -36,11 +36,3 @@ exclude_lines = [
     "raise AssertionError",
     "raise NotImplementedError",
 ]
-
-[tool.semantic_release]
-version_variables = ["VERSION", "CMakeLists.txt"]
-branch = "main"
-changelog_file = "CHANGELOG.md"
-github_changelog = true
-upload_to_pypi = false
-upload_to_release = true
