@@ -77,6 +77,9 @@ jobs:
         run: |
           choco install cmake opencv python3
 
+      - name: Create build directory
+        run: mkdir -p build
+
       - name: Cache build dependencies
         uses: actions/cache@v4
         with:
