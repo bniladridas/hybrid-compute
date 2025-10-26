@@ -1,0 +1,10 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "extra-files": ["VERSION"]
+    }
+  },
+  "changelog-host": "https://github.com",
+  "changelog-path": "CHANGELOG.md"
+}
