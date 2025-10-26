@@ -58,8 +58,6 @@ All changes must pass:
 * **GPU issues**: Validate CUDA/Metal driver installation
 * **Performance concerns**: Run benchmarks to verify acceleration
 
----
-
 ## Compatibility Policy
 
 ### Supported Platforms
@@ -140,7 +138,5 @@ Contributors must:
 2. Adjust CI matrices
 3. Update dependency constraints
 4. Validate changes across all supported systems
-
----
 
 For questions about onboarding or compatibility, open an issue or discussion on GitHub.
