@@ -110,9 +110,15 @@ jobs:
           fi
           if [ "$RUNNER_OS" == "Windows" ]; then
             ctest -C Release --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
-          else
-            ctest --output-on-failure --timeout 300 --parallel $(nproc)
-          fi
+           else
+             ctest --output-on-failure --timeout 300 --parallel $(nproc)
+           fi
+
+  - name: Run Benchmark Test (macOS)
+    if: runner.os == 'macOS'
+    run: |
+      cd build
+      ctest -R user_counters_tabular_test -V --timeout 300
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
