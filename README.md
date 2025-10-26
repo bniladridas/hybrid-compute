@@ -2,13 +2,13 @@
   <h1>🧸</h1>
 </div>
 
-**`Hybrid-compute`** is a cross-platform image upscaling tool that leverages GPU acceleration for high-performance image processing. It supports Metal on macOS and CUDA on Linux/Windows, providing efficient 2x bicubic upscaling with local CPU tiling and stitching.
+**`Hybrid-compute`** is a cross-platform GPU-accelerated image processing framework with a CUDA-to-Metal compatibility shim. It enables CUDA-based operations on macOS (Apple Silicon) via Metal, supporting various image processing tasks including upscaling, filtering, color space conversion, morphology, thresholding, edge detection, and blending. Includes CPU preprocessing for tiling/stitching and utilities.
 **Features**
 
-- **Cross-Platform GPU Support**: Uses Metal shaders on macOS and CUDA kernels on Linux/Windows for hardware-accelerated upscaling.
-- **Local Tile Splitting**: Efficiently divides images into 64x64 pixel tiles using OpenCV (C++) or stb_image (C) on macOS/Linux/Windows.
-- **GPU Upscaling**: Performs 2x bicubic interpolation on tiles using optimized GPU backends.
-- **Local Stitching**: Recombines upscaled tiles into the final high-resolution image using Python and OpenCV.
+- **Cross-Platform GPU Support**: CUDA-to-Metal shim for macOS, native CUDA on Linux/Windows, enabling GPU-accelerated image processing.
+- **Image Processing Operations**: Supports upscaling, filtering, color space conversion, morphology, thresholding, edge detection, blending, and more.
+- **Local Preprocessing**: CPU-based image tiling and stitching using OpenCV (C++) or stb_image (C) on macOS/Linux/Windows.
+- **GPU Acceleration**: Optimized Metal shaders on macOS and CUDA kernels on Linux/Windows for high-performance processing.
 - **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
 - **CI/CD**: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.
 - **Notes**: Google Benchmark is enabled by default on macOS/Linux, but disabled on Windows due to linking issues (set in WindowsConfig.cmake). Modify ENABLE_BENCHMARK option in benchmark.cmake to adjust on other platforms. CI runs with parallel testing, non-interactive prompts, and containerized builds.
