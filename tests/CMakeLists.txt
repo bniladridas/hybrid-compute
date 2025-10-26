@@ -4,7 +4,8 @@ include(FetchContent)
 # Set platform-specific args
 if(WIN32)
   set(MSVC_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-                -DCMAKE_CXX_FLAGS_RELEASE="/MT")
+                -DCMAKE_CXX_FLAGS="/MT"
+                -DCMAKE_C_FLAGS="/MT")
 else()
   set(MSVC_ARGS "")
 endif()
