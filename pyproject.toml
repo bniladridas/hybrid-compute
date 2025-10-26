@@ -38,7 +38,7 @@ exclude_lines = [
 ]
 
 [tool.semantic_release]
-version_variables = ["VERSION"]
+version_variables = ["VERSION", "CMakeLists.txt"]
 branch = "main"
 changelog_file = "CHANGELOG.md"
 github_changelog = true
