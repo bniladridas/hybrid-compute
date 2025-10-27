@@ -8,16 +8,22 @@ if(WIN32)
 endif()
 
 # Set project name and version
+file(READ VERSION VERSION_CONTENT)
+string(STRIP "${VERSION_CONTENT}" VERSION_CONTENT)
+string(REPLACE "\n" ";" VERSION_LIST ${VERSION_CONTENT})
+list(FILTER VERSION_LIST EXCLUDE REGEX "^#")
+list(GET VERSION_LIST 0 PROJECT_VERSION)
+
 if(APPLE)
   project(
     hybrid-compute
-    VERSION 0.1.0
+    VERSION ${PROJECT_VERSION}
     DESCRIPTION "Hybrid Compute - CUDA to Metal Shim"
     LANGUAGES CXX C OBJC OBJCXX)
 else()
   project(
     hybrid-compute
-    VERSION 0.1.0
+    VERSION ${PROJECT_VERSION}
     DESCRIPTION "Hybrid Compute - CUDA to Metal Shim"
     LANGUAGES CXX C)
   # Disable ObjC compilers on non-Apple platforms
