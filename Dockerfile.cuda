@@ -1,7 +1,6 @@
 # ────────────────────────────────────────────────
 # Stage 1: Build stage
 # ────────────────────────────────────────────────
-# Test commit for auto-merge
 FROM nvidia/cuda:13.0.1-devel-ubuntu24.04 AS builder
 
 # Build argument for CPU/GPU toggle
