@@ -54,7 +54,7 @@ For containerized environments:
 ```bash
 # Install dependencies
 brew install --cask miniforge
-eval "$(/opt/homebrew/Caskroom/miniforge/base/bin/conda shell.bash hook)"
+eval "$(\"$(brew --prefix)/Caskroom/miniforge/base/bin/conda\" shell.bash hook)"
 conda init bash
 mamba install -c conda-forge opencv cmake imagemagick -y
 # Install Python dependencies
