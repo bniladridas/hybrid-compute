@@ -160,8 +160,8 @@ jobs:
            if [ "$RUNNER_OS" == "Windows" ]; then
              ctest -C Release --output-on-failure --timeout 300 --parallel $NUMBER_OF_PROCESSORS
             else
-              # Run benchmark test (output on failure to reduce noise)
-              ctest -R user_counters_tabular_test --output-on-failure --timeout 300
+              # Run benchmark test with verbose output
+              ctest -R user_counters_tabular_test -V --timeout 300
               # Run other tests with output on failure
               ctest -E user_counters_tabular_test \
                 --output-on-failure --timeout 300 --parallel $(nproc)
