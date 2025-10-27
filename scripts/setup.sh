@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # --- Constants ---
-VERSION="1.0.0"
+VERSION=$(cat VERSION)
 MIN_PYTHON_VERSION="3.9"
 MIN_CMAKE_VERSION="3.10"
 
@@ -98,16 +98,16 @@ install_dependencies() {
 		# Accept Xcode license
 		sudo xcodebuild -license accept
 
-		# Install conda if not present
-		if ! check_command conda; then
-			log_info "Installing Miniconda..."
-			brew install --cask miniconda
-			eval "$(/opt/homebrew/Caskroom/miniconda/base/bin/conda shell.bash hook)"
+		# Install miniforge if not present
+		if ! check_command mamba; then
+			log_info "Installing Miniforge..."
+			brew install --cask miniforge
+			eval "$(/opt/homebrew/Caskroom/miniforge/base/bin/conda shell.bash hook)"
 			conda init
 		fi
 
-		# Install conda packages
-		conda install -c conda-forge -y \
+		# Install mamba packages
+		mamba install -c conda-forge -y \
 			opencv \
 			cmake \
 			imagemagick \
