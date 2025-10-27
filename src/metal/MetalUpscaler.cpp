@@ -1,5 +1,4 @@
 #include "MetalUpscaler.hpp"
-#include <cstring>
 #include <iostream>
 
 // Include Metal headers

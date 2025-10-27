@@ -1,8 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
-#include <stdexcept>
 
 // Forward declarations for Metal types
 #ifdef __OBJC__
