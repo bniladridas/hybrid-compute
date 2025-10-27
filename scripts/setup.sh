@@ -102,7 +102,7 @@ install_dependencies() {
 		if ! check_command mamba; then
 			log_info "Installing Miniforge..."
 			brew install --cask miniforge
-			eval "$(/opt/homebrew/Caskroom/miniforge/base/bin/conda shell.bash hook)"
+			eval "$(\"$(brew --prefix)/Caskroom/miniforge/base/bin/conda\" shell.bash hook)"
 			conda init
 		fi
 
