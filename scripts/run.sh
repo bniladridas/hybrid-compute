@@ -62,7 +62,7 @@ cv2.imwrite('test_images/test.jpg', img)
 "
 
 # Run preprocessing
-./build/preprocess test_images test_images/tiles
+./build/bin/preprocess_c test_images test_images/tiles
 
 # Copy tiles to upscaled
 cp test_images/tiles/* test_images/upscaled/
@@ -86,10 +86,10 @@ else
 fi
 
 # --- Test CUDA tools (if available) ---
-if [ -f build/filters ]; then
-	echo -e "${BLUE}Testing CUDA filters...${RESET}"
-	./build/filters test_images/test.jpg test_images/filtered_blur.jpg blur
-	./build/filters test_images/test.jpg test_images/filtered_sobel.jpg sobel
+if [ -f build/bin/filters ]; then
+  echo -e "${BLUE}Testing CUDA filters...${RESET}"
+  ./build/bin/filters test_images/test.jpg test_images/filtered_blur.jpg blur
+  ./build/bin/filters test_images/test.jpg test_images/filtered_sobel.jpg sobel
 	if [ -f test_images/filtered_blur.jpg ] && [ -f test_images/filtered_sobel.jpg ]; then
 		echo -e "${GREEN}CUDA filters test passed.${RESET}"
 	else
@@ -97,9 +97,9 @@ if [ -f build/filters ]; then
 	fi
 fi
 
-if [ -f build/rotation ]; then
-	echo -e "${BLUE}Testing CUDA rotation...${RESET}"
-	./build/rotation test_images/test.jpg test_images/rotated.jpg 45
+if [ -f build/bin/rotation ]; then
+  echo -e "${BLUE}Testing CUDA rotation...${RESET}"
+  ./build/bin/rotation test_images/test.jpg test_images/rotated.jpg 45
 	if [ -f test_images/rotated.jpg ]; then
 		echo -e "${GREEN}CUDA rotation test passed.${RESET}"
 	else
@@ -107,9 +107,9 @@ if [ -f build/rotation ]; then
 	fi
 fi
 
-if [ -f build/resize ]; then
-	echo -e "${BLUE}Testing CUDA resize...${RESET}"
-	./build/resize test_images/test.jpg test_images/resized.jpg 128 128
+if [ -f build/bin/resize ]; then
+  echo -e "${BLUE}Testing CUDA resize...${RESET}"
+  ./build/bin/resize test_images/test.jpg test_images/resized.jpg 128 128
 	if [ -f test_images/resized.jpg ]; then
 		echo -e "${GREEN}CUDA resize test passed.${RESET}"
 	else
