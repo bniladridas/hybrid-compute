@@ -69,6 +69,7 @@ typedef cudaError_t (*cudaLaunchKernel_t)(
     unsigned int gridDimZ, unsigned int blockDimX, unsigned int blockDimY,
     unsigned int blockDimZ, unsigned int sharedMem, cudaStream_t stream,
     void **args, void **extra);
+typedef cudaError_t (*cudaDeviceSynchronize_t)();
 
 typedef cudaError_t (*cudaStreamCreate_t)(cudaStream_t *pStream);
 typedef cudaError_t (*cudaStreamCreateWithFlags_t)(cudaStream_t *pStream,
@@ -104,6 +105,7 @@ extern cudaMemcpyAsync_t cudaMemcpyAsyncPtr;
 extern cudaMemset_t cudaMemsetPtr;
 extern cudaMemsetAsync_t cudaMemsetAsyncPtr;
 extern cudaLaunchKernel_t cudaLaunchKernelPtr;
+extern cudaDeviceSynchronize_t cudaDeviceSynchronizePtr;
 
 // Stream management
 extern cudaStreamCreate_t cudaStreamCreatePtr;
@@ -132,6 +134,7 @@ extern cudaEventQuery_t cudaEventQueryPtr;
 #define cudaMemsetAsync(devPtr, value, count, stream)                          \
   cudaMemsetAsyncPtr(devPtr, value, count, stream)
 #define cudaLaunchKernel(...) cudaLaunchKernelPtr(__VA_ARGS__)
+#define cudaDeviceSynchronize() cudaDeviceSynchronizePtr()
 
 // Stream management macros
 #define cudaStreamCreate(pStream) cudaStreamCreatePtr(pStream)
