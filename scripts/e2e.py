@@ -47,7 +47,7 @@ for i in range(16):
     input_tile = f"test_images/tiles/test_tile_{i}.jpg"
     output_tile = f"test_images/upscaled/tile_{i}.jpg"
     if os.path.exists(input_tile):
-        exe = "./build/bin/Release/upscaler.exe" if runner_os == "Windows" else "./build/bin/upscaler"
+        exe = "./build/bin/Release/upscale.exe" if runner_os == "Windows" else "./build/bin/upscale"
         if os.path.exists(exe):
             result = subprocess.run([exe, input_tile, output_tile], check=False)
             if result.returncode == 0 and os.path.exists(output_tile):
@@ -55,7 +55,7 @@ for i in range(16):
                 if img is not None and img.shape[1] == 128 and img.shape[0] == 128:
                     upscaled_count += 1
                     continue
-        print(f"Skipping upscale for tile {i} (upscaler not available or failed)")
+        print(f"Skipping upscale for tile {i} (upscale not available or failed)")
 print(f"Upscaled {upscaled_count} tiles")
 print("Upscale done")
 
