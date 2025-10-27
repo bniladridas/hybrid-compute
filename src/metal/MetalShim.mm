@@ -25,6 +25,7 @@
 #include <atomic>
 #include <cstring> // for memcpy
 #include <dispatch/dispatch.h>
+#include <functional>
 #include <iostream>
 #include <mutex>
 #include <unordered_map>
@@ -323,6 +324,53 @@ public:
     }
   }
 
+  cudaError_t memcpyAsyncWithEvent(void *dst, const void *src, size_t count,
+                                   std::function<void()> memcpyFunc, MetalStream *stream) {
+    // Create shared event for synchronization
+    id<MTLSharedEvent> sharedEvent = [m_device newSharedEvent];
+    if (!sharedEvent)
+      return cudaErrorInitializationError;
+
+    // Launch asynchronous memcpy and signal event
+    dispatch_async(
+        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+          memcpyFunc();
+          [sharedEvent setSignaledValue:1];
+        });
+
+    // Create command buffer for the stream
+    id<MTLCommandBuffer> commandBuffer = stream
+                                              ? [stream->queue commandBuffer]
+                                              : [m_commandQueue commandBuffer];
+    if (!commandBuffer) {
+      [sharedEvent release];
+      return cudaErrorInitializationError;
+    }
+
+    // Encode wait for the event
+    if (@available(macOS 10.14, *)) {
+      [commandBuffer encodeWaitForEvent:sharedEvent value:1];
+    } else {
+      // MTLSharedEvent synchronization requires macOS 10.14+
+      [sharedEvent release];
+      return cudaErrorNotSupported;
+    }
+
+    [commandBuffer commit];
+
+    if (stream) {
+      std::lock_guard<std::mutex> streamLock(stream->mutex);
+      stream->lastCommandBuffer = commandBuffer;
+    }
+
+    if (!stream || !stream->isNonBlocking) {
+      [commandBuffer waitUntilCompleted];
+    }
+
+    [sharedEvent release];
+    return cudaSuccess;
+  }
+
   cudaError_t memcpyAsync(void *dst, const void *src, size_t count,
                            cudaMemcpyKind kind, MetalStream *stream) {
     if (count == 0)
@@ -367,49 +415,9 @@ public:
          if ([dstBuffer length] < count)
            return cudaErrorInvalidValue;
 
-         // Create shared event for synchronization
-         id<MTLSharedEvent> sharedEvent = [m_device newSharedEvent];
-         if (!sharedEvent)
-           return cudaErrorInitializationError;
-
-          // Launch asynchronous memcpy and signal event
-          dispatch_async(
-              dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                ::memcpy([dstBuffer contents], src, count);
-                [sharedEvent setSignaledValue:1];
-              });
-
-          // Create command buffer for the stream
-          id<MTLCommandBuffer> commandBuffer = stream
-                                                    ? [stream->queue commandBuffer]
-                                                    : [m_commandQueue commandBuffer];
-          if (!commandBuffer) {
-            [sharedEvent release];
-            return cudaErrorInitializationError;
-          }
-
-          // Encode wait for the event
-          if (@available(macOS 10.14, *)) {
-            [commandBuffer encodeWaitForEvent:sharedEvent value:1];
-          } else {
-            // MTLSharedEvent synchronization requires macOS 10.14+
-            [sharedEvent release];
-            return cudaErrorNotSupported;
-          }
-
-         [commandBuffer commit];
-
-         if (stream) {
-           std::lock_guard<std::mutex> streamLock(stream->mutex);
-           stream->lastCommandBuffer = commandBuffer;
-         }
-
-         if (!stream || !stream->isNonBlocking) {
-           [commandBuffer waitUntilCompleted];
-         }
-
-         [sharedEvent release];
-         break;
+         return memcpyAsyncWithEvent(dst, src, count, [=]() {
+           ::memcpy([dstBuffer contents], src, count);
+         }, stream);
        }
 
        case cudaMemcpyDeviceToHost: {
@@ -418,49 +426,9 @@ public:
          if ([srcBuffer length] < count)
            return cudaErrorInvalidValue;
 
-         // Create shared event for synchronization
-         id<MTLSharedEvent> sharedEvent = [m_device newSharedEvent];
-         if (!sharedEvent)
-           return cudaErrorInitializationError;
-
-          // Launch asynchronous memcpy and signal event
-          dispatch_async(
-              dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                ::memcpy(dst, [srcBuffer contents], count);
-                [sharedEvent setSignaledValue:1];
-              });
-
-          // Create command buffer for the stream
-          id<MTLCommandBuffer> commandBuffer = stream
-                                                    ? [stream->queue commandBuffer]
-                                                    : [m_commandQueue commandBuffer];
-          if (!commandBuffer) {
-            [sharedEvent release];
-            return cudaErrorInitializationError;
-          }
-
-          // Encode wait for the event
-          if (@available(macOS 10.14, *)) {
-            [commandBuffer encodeWaitForEvent:sharedEvent value:1];
-          } else {
-            // MTLSharedEvent synchronization requires macOS 10.14+
-            [sharedEvent release];
-            return cudaErrorNotSupported;
-          }
-
-         [commandBuffer commit];
-
-         if (stream) {
-           std::lock_guard<std::mutex> streamLock(stream->mutex);
-           stream->lastCommandBuffer = commandBuffer;
-         }
-
-         if (!stream || !stream->isNonBlocking) {
-           [commandBuffer waitUntilCompleted];
-         }
-
-         [sharedEvent release];
-         break;
+         return memcpyAsyncWithEvent(dst, src, count, [=]() {
+           ::memcpy(dst, [srcBuffer contents], count);
+         }, stream);
        }
 
       case cudaMemcpyDeviceToDevice: {
