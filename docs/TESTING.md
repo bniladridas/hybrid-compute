@@ -87,6 +87,17 @@ Use the following tools to check for memory issues:
 - Address Sanitizer (add `-fsanitize=address` to compiler flags)
 - Leak Sanitizer (add `-fsanitize=leak` to compiler flags)
 
+## Troubleshooting
+
+### Test Executable Not Found
+
+If `ctest` reports "Could not find executable", build first:
+
+```bash
+cmake --build build
+cd build && ctest -R user_counters_tabular_test -V
+```
+
 ## Best Practices
 
 - Write tests for all new features
