@@ -27,6 +27,7 @@
 #include <dispatch/dispatch.h>
 #include <functional>
 #include <mutex>
+#include <string>
 #include <unordered_map>
 
 // Manual memory management for Objective-C objects
