@@ -1,15 +1,18 @@
+import importlib
 import os
 import sys
 from pathlib import Path
 
+import cv2
+import numpy as np
+import pytest
+
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import cv2  # noqa: E402
-import numpy as np  # noqa: E402
-import pytest  # noqa: E402
-
-from scripts.stitch import stitch_tiles  # noqa: E402
+# Import stitch module dynamically
+stitch_module = importlib.import_module("scripts.stitch")
+stitch_tiles = stitch_module.stitch_tiles
 
 
 def create_dummy_tiles(input_dir: str, tile_count: int, tile_size: tuple[int, int] = (10, 10)) -> None:
