@@ -53,10 +53,10 @@ For containerized environments:
 
 ```bash
 # Install dependencies
-brew install --cask miniconda
-eval "$(/opt/homebrew/Caskroom/miniconda/base/bin/conda shell.bash hook)"
+brew install --cask miniforge
+eval "$(\"$(brew --prefix)/Caskroom/miniforge/base/bin/conda\" shell.bash hook)"
 conda init bash
-conda install -c conda-forge opencv cmake imagemagick -y
+mamba install -c conda-forge opencv cmake imagemagick -y
 # Install Python dependencies
 pip install -r requirements.txt --user
 # Test cv2 import
