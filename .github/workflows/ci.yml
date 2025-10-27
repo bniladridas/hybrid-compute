@@ -53,6 +53,17 @@ jobs:
       - name: Run linters
         run: pre-commit run --all-files
 
+      - name: Commit fixes
+        if: github.event_name == 'pull_request'
+        run: |
+           if [ -n "$(git status --porcelain)" ]; then
+             git config --global user.name 'github-actions[bot]'
+             git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+             git add .
+             git commit -m "fix: auto-fix lint issues"
+             git push
+           fi
+
   # ────────────────────────────── Python Tests ──────────────────────────────
   python-tests:
     needs: lint-and-polish
@@ -167,9 +178,52 @@ jobs:
                 --output-on-failure --timeout 300 --parallel $(nproc)
             fi
 
+  # ────────────────────────────── E2E Tests ──────────────────────────────
+  e2e:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            python3-opencv libopencv-dev \
+            && sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create build directory
+        run: mkdir -p build
+
+      - name: Cache build dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            build/_deps
+          key: "ubuntu-build-13.0.1-${{ hashFiles('**/CMakeLists.txt') }}"
+          restore-keys: |
+            ubuntu-build-13.0.1-
+            ubuntu-build-
+
+      - name: Build project
+        run: |
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
+          make -j$(nproc)
+
+      - name: Run E2E tests
+        run: python scripts/e2e.py
+
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
-    needs: test-and-build
+    needs: [test-and-build, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
