@@ -11,6 +11,7 @@
 - **GPU Acceleration**: Optimized Metal shaders on macOS and CUDA kernels on Linux/Windows for high-performance processing.
 - **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
 - **CI/CD**: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.
+- **Metal Shim Documentation**: Comprehensive accessibility guide for Metal compatibility layer with synchronization diagrams[^4].
 - **Notes**: Google Benchmark is enabled by default on macOS/Linux, but disabled on Windows due to linking issues (set in WindowsConfig.cmake). Modify ENABLE_BENCHMARK option in benchmark.cmake to adjust on other platforms. CI runs with parallel testing, non-interactive prompts, and containerized builds.
 - **Development Documentation**: Detailed setup, architecture, onboarding, and compatibility guides[^2][^3].
   **Workflow**
@@ -183,6 +184,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 [^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
 
-Test update for CI trigger.
-
-Minor update for release trigger.
+[^4]: [METAL_SHIM_ACCESSIBILITY.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/METAL_SHIM_ACCESSIBILITY.md) - Metal shim accessibility documentation with synchronization diagrams and implementation details.

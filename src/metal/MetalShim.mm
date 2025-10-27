@@ -360,20 +360,6 @@ public:
         }
       }
 
-      // Handle different copy kinds
-      /*
-       * Host-to-device and device-to-host async memcpy operations are now properly
-       * synchronized with the Metal command stream using MTLSharedEvent.
-       *
-       * The implementation:
-       * 1. Creates a MTLSharedEvent for synchronization
-       * 2. Encodes a GPU wait command for the event in a MTLCommandBuffer
-       * 3. Performs CPU-side memcpy asynchronously and signals the event upon completion
-       * 4. Commits the command buffer and tracks it in the stream for synchronization
-       *
-       * This ensures proper ordering with subsequent GPU operations and correct behavior
-       * of cudaStreamSynchronize.
-       */
       switch (kind) {
       case cudaMemcpyHostToDevice: {
         if (!dstBuffer)
@@ -395,7 +381,6 @@ public:
           return cudaErrorInitializationError;
         }
 
-        // Encode wait for the event on GPU side
         id<MTLComputeCommandEncoder> computeEncoder =
             [commandBuffer computeCommandEncoder];
         if (!computeEncoder) {
@@ -406,30 +391,22 @@ public:
         if (@available(macOS 10.14, *) &&
             [computeEncoder respondsToSelector:@selector(waitForEvent:value:)]) {
           [computeEncoder waitForEvent:sharedEvent value:1];
-        } else {
-          // Fallback for older macOS - use a dummy kernel or skip wait
-          // This may not provide perfect synchronization on older systems
         }
         [computeEncoder endEncoding];
 
-        // Perform CPU-side memcpy asynchronously and signal event
         dispatch_async(
             dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
               ::memcpy([dstBuffer contents], src, count);
-              // Signal the event after memcpy completes
               [sharedEvent setSignaledValue:1];
             });
 
-        // Commit the command buffer
         [commandBuffer commit];
 
-        // Store the command buffer in the stream if provided
         if (stream) {
           std::lock_guard<std::mutex> streamLock(stream->mutex);
           stream->lastCommandBuffer = commandBuffer;
         }
 
-        // If this is a blocking call, wait for the command buffer to complete
         if (!stream || !stream->isNonBlocking) {
           [commandBuffer waitUntilCompleted];
         }
@@ -444,12 +421,10 @@ public:
         if ([srcBuffer length] < count)
           return cudaErrorInvalidValue;
 
-        // Create shared event for synchronization
         id<MTLSharedEvent> sharedEvent = [m_device newSharedEvent];
         if (!sharedEvent)
           return cudaErrorInitializationError;
 
-        // Create command buffer for the stream
         id<MTLCommandBuffer> commandBuffer = stream
                                                   ? [stream->queue commandBuffer]
                                                   : [m_commandQueue commandBuffer];
@@ -458,7 +433,6 @@ public:
           return cudaErrorInitializationError;
         }
 
-        // Encode wait for the event on GPU side
         id<MTLComputeCommandEncoder> computeEncoder =
             [commandBuffer computeCommandEncoder];
         if (!computeEncoder) {
@@ -469,30 +443,22 @@ public:
         if (@available(macOS 10.14, *) &&
             [computeEncoder respondsToSelector:@selector(waitForEvent:value:)]) {
           [computeEncoder waitForEvent:sharedEvent value:1];
-        } else {
-          // Fallback for older macOS - use a dummy kernel or skip wait
-          // This may not provide perfect synchronization on older systems
         }
         [computeEncoder endEncoding];
 
-        // Perform CPU-side memcpy asynchronously and signal event
         dispatch_async(
             dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
               ::memcpy(dst, [srcBuffer contents], count);
-              // Signal the event after memcpy completes
               [sharedEvent setSignaledValue:1];
             });
 
-        // Commit the command buffer
         [commandBuffer commit];
 
-        // Store the command buffer in the stream if provided
         if (stream) {
           std::lock_guard<std::mutex> streamLock(stream->mutex);
           stream->lastCommandBuffer = commandBuffer;
         }
 
-        // If this is a blocking call, wait for the command buffer to complete
         if (!stream || !stream->isNonBlocking) {
           [commandBuffer waitUntilCompleted];
         }
