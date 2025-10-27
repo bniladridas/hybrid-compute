@@ -26,10 +26,8 @@
 #include <cstring> // for memcpy
 #include <dispatch/dispatch.h>
 #include <functional>
-#include <iostream>
 #include <mutex>
 #include <unordered_map>
-#include <vector>
 
 // Manual memory management for Objective-C objects
 
