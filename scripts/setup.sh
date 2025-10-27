@@ -6,8 +6,8 @@
 set -euo pipefail
 
 # --- Constants ---
-VERSION=$(cat VERSION)
-MIN_PYTHON_VERSION="3.9"
+VERSION=$(sed -n '2p' VERSION)
+MIN_PYTHON_VERSION=$(sed -n '4p' VERSION)
 MIN_CMAKE_VERSION="3.10"
 
 # --- Colors ---
@@ -111,7 +111,7 @@ install_dependencies() {
 			opencv \
 			cmake \
 			imagemagick \
-			python="$MIN_PYTHON_VERSION"
+			python="3.12"
 		;;
 
 	"linux")
@@ -193,7 +193,7 @@ setup_python() {
 	log_info "Setting up Python environment..."
 
 	# Check Python version
-	if ! python3 -c "import sys; exit(0 if sys.version_info >= (3, 9) else 1)"; then
+		if ! python3 -c "import sys; exit(0 if sys.version_info >= (3, 9) else 1)"; then
 		log_error "Python $MIN_PYTHON_VERSION or higher is required"
 		exit 1
 	fi
