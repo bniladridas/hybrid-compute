@@ -372,26 +372,30 @@ public:
          if (!sharedEvent)
            return cudaErrorInitializationError;
 
-         // Launch asynchronous memcpy and signal event
-         dispatch_async(
-             dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-               ::memcpy([dstBuffer contents], src, count);
-               [sharedEvent setSignaledValue:1];
-             });
+          // Launch asynchronous memcpy and signal event
+          dispatch_async(
+              dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                ::memcpy([dstBuffer contents], src, count);
+                [sharedEvent setSignaledValue:1];
+              });
 
-         // Create command buffer for the stream
-         id<MTLCommandBuffer> commandBuffer = stream
-                                                   ? [stream->queue commandBuffer]
-                                                   : [m_commandQueue commandBuffer];
-         if (!commandBuffer) {
-           [sharedEvent release];
-           return cudaErrorInitializationError;
-         }
+          // Create command buffer for the stream
+          id<MTLCommandBuffer> commandBuffer = stream
+                                                    ? [stream->queue commandBuffer]
+                                                    : [m_commandQueue commandBuffer];
+          if (!commandBuffer) {
+            [sharedEvent release];
+            return cudaErrorInitializationError;
+          }
 
-         // Encode wait for the event
-         if (@available(macOS 10.14, *)) {
-           [commandBuffer encodeWaitForEvent:sharedEvent value:1];
-         }
+          // Encode wait for the event
+          if (@available(macOS 10.14, *)) {
+            [commandBuffer encodeWaitForEvent:sharedEvent value:1];
+          } else {
+            // MTLSharedEvent synchronization requires macOS 10.14+
+            [sharedEvent release];
+            return cudaErrorNotSupported;
+          }
 
          [commandBuffer commit];
 
@@ -419,26 +423,30 @@ public:
          if (!sharedEvent)
            return cudaErrorInitializationError;
 
-         // Launch asynchronous memcpy and signal event
-         dispatch_async(
-             dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-               ::memcpy(dst, [srcBuffer contents], count);
-               [sharedEvent setSignaledValue:1];
-             });
+          // Launch asynchronous memcpy and signal event
+          dispatch_async(
+              dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                ::memcpy(dst, [srcBuffer contents], count);
+                [sharedEvent setSignaledValue:1];
+              });
 
-         // Create command buffer for the stream
-         id<MTLCommandBuffer> commandBuffer = stream
-                                                   ? [stream->queue commandBuffer]
-                                                   : [m_commandQueue commandBuffer];
-         if (!commandBuffer) {
-           [sharedEvent release];
-           return cudaErrorInitializationError;
-         }
+          // Create command buffer for the stream
+          id<MTLCommandBuffer> commandBuffer = stream
+                                                    ? [stream->queue commandBuffer]
+                                                    : [m_commandQueue commandBuffer];
+          if (!commandBuffer) {
+            [sharedEvent release];
+            return cudaErrorInitializationError;
+          }
 
-         // Encode wait for the event
-         if (@available(macOS 10.14, *)) {
-           [commandBuffer encodeWaitForEvent:sharedEvent value:1];
-         }
+          // Encode wait for the event
+          if (@available(macOS 10.14, *)) {
+            [commandBuffer encodeWaitForEvent:sharedEvent value:1];
+          } else {
+            // MTLSharedEvent synchronization requires macOS 10.14+
+            [sharedEvent release];
+            return cudaErrorNotSupported;
+          }
 
          [commandBuffer commit];
 
