@@ -1,7 +1,7 @@
-# Windows-specific configuration Benchmarks are disabled on Windows due to linking issues with Google Benchmark tests.
+# Disable benchmarks on Windows due to linking issues with Google Benchmark
 set(ENABLE_BENCHMARK
     OFF
     CACHE BOOL "Disable benchmarks on Windows" FORCE)
 
-# Set MSVC runtime to static to avoid linking conflicts with benchmark and gtest
+# Use static MSVC runtime to avoid linking conflicts
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
