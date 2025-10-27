@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 import os
 import sys
 from pathlib import Path
@@ -6,11 +5,11 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import cv2
-import numpy as np
-import pytest
+import cv2  # noqa: E402
+import numpy as np  # noqa: E402
+import pytest  # noqa: E402
 
-from scripts.stitch import stitch_tiles
+from scripts.stitch import stitch_tiles  # noqa: E402
 
 
 def create_dummy_tiles(input_dir: str, tile_count: int, tile_size: tuple[int, int] = (10, 10)) -> None:
