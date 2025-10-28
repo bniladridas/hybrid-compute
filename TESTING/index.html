@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Testing and Benchmarking Guide - Hybrid Compute</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Testing and Benchmarking Guide";
+        var mkdocs_page_input_path = "TESTING.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Hybrid Compute
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="" href="../index.md">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../docs/ONBOARDING.md">Onboarding</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../docs/TESTING.md">Testing</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Hybrid Compute</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Testing and Benchmarking Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="testing-and-benchmarking-guide">Testing and Benchmarking Guide</h1>
+<p>This document provides information on how to run tests and benchmarks for the Metal shim implementation.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Xcode command line tools</li>
+<li>CMake 3.10+</li>
+<li>C++17 compatible compiler</li>
+<li>Metal-capable macOS device</li>
+</ul>
+<h2 id="running-tests">Running Tests</h2>
+<h3 id="unit-tests">Unit Tests</h3>
+<p>To build and run the unit tests:</p>
+<pre><code class="language-bash">mkdir -p build &amp;&amp; cd build
+cmake .. -DBUILD_TESTS=ON
+make
+ctest --output-on-failure
+</code></pre>
+<h3 id="performance-benchmarks">Performance Benchmarks</h3>
+<p>To run the performance benchmarks:</p>
+<pre><code class="language-bash">cd build
+./tests/benchmark_metal_shim --benchmark_min_time=1s
+</code></pre>
+<h3 id="test-coverage">Test Coverage</h3>
+<p>To generate a test coverage report (requires <code>gcov</code> and <code>lcov</code>):</p>
+<pre><code class="language-bash">mkdir -p build_coverage &amp;&amp; cd build_coverage
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
+make
+test_metal_shim
+lcov --capture --directory . --output-file coverage.info
+genhtml coverage.info --output-directory coverage
+open coverage/index.html
+</code></pre>
+<h2 id="writing-tests">Writing Tests</h2>
+<h3 id="unit-tests_1">Unit Tests</h3>
+<ul>
+<li>Place unit tests in <code>tests/unit/</code></li>
+<li>Use Google Test framework</li>
+<li>Test files should be named <code>test_*.cpp</code></li>
+<li>Test cases should be small and focused</li>
+</ul>
+<h3 id="benchmark-tests">Benchmark Tests</h3>
+<ul>
+<li>Place benchmark tests in <code>tests/performance/</code></li>
+<li>Use Google Benchmark framework</li>
+<li>Test files should be named <code>benchmark_*.cpp</code></li>
+<li>Include a range of input sizes</li>
+</ul>
+<h2 id="cicd-integration">CI/CD Integration</h2>
+<p>Tests are automatically run on pull requests and pushes to the main branch. The CI pipeline includes:</p>
+<ul>
+<li>Build verification</li>
+<li>Unit tests</li>
+<li>Code style checks</li>
+<li>Documentation generation</li>
+</ul>
+<h2 id="performance-profiling">Performance Profiling</h2>
+<p>To profile the Metal shim:</p>
+<ol>
+<li>Use Xcode's Instruments</li>
+<li>Select the Time Profiler</li>
+<li>Run your benchmark or test</li>
+<li>Analyze the results</li>
+</ol>
+<h2 id="memory-management">Memory Management</h2>
+<p>Use the following tools to check for memory issues:</p>
+<ul>
+<li>Xcode's Memory Graph Debugger</li>
+<li>Address Sanitizer (add <code>-fsanitize=address</code> to compiler flags)</li>
+<li>Leak Sanitizer (add <code>-fsanitize=leak</code> to compiler flags)</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="test-executable-not-found">Test Executable Not Found</h3>
+<p>If <code>ctest</code> reports "Could not find executable", build first:</p>
+<pre><code class="language-bash">cmake --build build
+cd build &amp;&amp; ctest -R user_counters_tabular_test -V
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Write tests for all new features</li>
+<li>Update tests when modifying existing code</li>
+<li>Keep tests independent and isolated</li>
+<li>Use meaningful test names</li>
+<li>Include assertions for expected behavior</li>
+<li>Test edge cases and error conditions</li>
+<li>Document test assumptions and requirements</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
