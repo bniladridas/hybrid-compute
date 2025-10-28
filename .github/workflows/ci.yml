@@ -215,7 +215,7 @@ jobs:
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
-    needs: [test-and-build, build-cuda, e2e]
+    needs: [test-and-build, build-cuda]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
