@@ -9,7 +9,7 @@ runs:
       run: |
         URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb"
         wget -q "$URL" -O /tmp/cuda-keyring.deb
-        sudo dpkg -i /tmp/cuda-keyring.deb
+        sudo apt install -y /tmp/cuda-keyring.deb
         echo "deb http://archive.ubuntu.com/ubuntu jammy main" | \
           sudo tee /etc/apt/sources.list.d/jammy.list
         sudo apt-get update
