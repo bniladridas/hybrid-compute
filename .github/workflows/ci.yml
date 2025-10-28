@@ -104,9 +104,6 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            cuda: "13.0.1"
-            tag: ""
-          - os: ubuntu-latest
             cuda: ""
             tag: "-cpu"
           - os: macos-latest
@@ -195,9 +192,68 @@ jobs:
                 --output-on-failure --timeout 300 --parallel $(nproc)
             fi
 
+  # ────────────────────────────── Build CUDA ──────────────────────────────
+  build-cuda:
+    needs: lint-and-polish
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        run: |
+          sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            cmake build-essential libopencv-dev git \
+            && sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install CUDA (Linux)
+        run: |
+          URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb"
+          wget -q "$URL" -O /tmp/cuda-keyring.deb
+          sudo dpkg -i /tmp/cuda-keyring.deb
+          # Add Ubuntu 22.04 sources for libtinfo5
+          echo "deb http://archive.ubuntu.com/ubuntu jammy main" | \
+            sudo tee /etc/apt/sources.list.d/jammy.list
+          sudo apt-get update
+          # Install CUDA without recommended packages to avoid dependency issues
+          sudo apt-get install -y --no-install-recommends \
+            cuda-compiler-12-6 cuda-libraries-12-6 || echo "CUDA installation skipped"
+          # Set CUDA architecture for CI (no GPU available)
+          echo "CMAKE_CUDA_ARCHITECTURES=75;80;86" >> $GITHUB_ENV
+
+      - name: Create build directory
+        run: mkdir -p build
+
+      - name: Cache build dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/Library/Caches/pip
+            %USERPROFILE%\AppData\Local\pip\Cache
+            build/_deps
+          key: "ubuntu-build-13.0.1-${{ hashFiles('**/CMakeLists.txt') }}"
+          restore-keys: |
+            ubuntu-build-13.0.1-
+            ubuntu-build-
+
+      - name: Build & Test
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
+            -DWITH_OPENCV=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
+          make -j$(nproc)
+          # Run benchmark test with verbose output
+          ctest -R user_counters_tabular_test -V --timeout 300
+          # Run other tests with output on failure
+          ctest -E user_counters_tabular_test \
+            --output-on-failure --timeout 300 --parallel $(nproc)
+
   # ────────────────────────────── E2E Tests ──────────────────────────────
   e2e:
-    needs: test-and-build
+    needs: [test-and-build, build-cuda]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -255,7 +311,7 @@ jobs:
 
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
-    needs: [test-and-build, e2e]
+    needs: [test-and-build, build-cuda, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
