@@ -205,6 +205,8 @@ jobs:
           # Install CUDA without recommended packages to avoid dependency issues
           sudo apt-get install -y --no-install-recommends \
             cuda-compiler-12-6 cuda-libraries-12-6 || echo "CUDA installation skipped"
+          # Set CUDA architecture for CI (no GPU available)
+          echo "CMAKE_CUDA_ARCHITECTURES=75" >> $GITHUB_ENV
 
       - name: Install Python dependencies
         run: |
