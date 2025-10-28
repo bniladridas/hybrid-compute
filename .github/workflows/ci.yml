@@ -253,7 +253,68 @@ jobs:
           cd build
           ctest --output-on-failure --timeout 300 --parallel $(sysctl -n hw.ncpu)
 
-   # ────────────────────────────── Docker Build & Test ──────────────────────────────
+  # ────────────────────────────── Code Coverage ──────────────────────────────
+  coverage:
+    needs: lint-and-polish
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/install-cuda
+
+      - name: Install lcov
+        run: |
+          export PATH=/usr/bin:/bin:$PATH
+          /usr/bin/sudo /usr/bin/apt-get update
+          /usr/bin/sudo /usr/bin/apt-get install -y lcov
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create build directory
+        run: mkdir -p build
+
+      - name: Cache build dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            build/_deps
+          key: "ubuntu-coverage-${{ hashFiles('**/CMakeLists.txt') }}"
+          restore-keys: |
+            ubuntu-coverage-
+
+      - name: Build with coverage
+        run: |
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DUSE_CUDA=ON \
+            -DWITH_OPENCV=ON -DCOVERAGE=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
+          make -j$(nproc)
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure --timeout 300 --parallel $(nproc)
+
+      - name: Generate coverage report
+        run: |
+          cd build
+          lcov --capture --directory . --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '*/_deps/*' --output-file coverage.info
+          genhtml coverage.info --output-directory coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: build/coverage.info
+          flags: c++
+          name: C++ Coverage
+
+  # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
     needs: [test-and-build, build-cuda, build-metal]
     runs-on: ubuntu-latest
