@@ -207,7 +207,8 @@ jobs:
         run: |
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
-            -DWITH_OPENCV=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
+            -DWITH_OPENCV=ON -DENABLE_BENCHMARK=ON \
+            -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
           make -j$(nproc)
 
       - name: Run E2E tests
