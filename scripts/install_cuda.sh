@@ -5,6 +5,10 @@ export PATH=/usr/bin:/bin:$PATH
 
 echo "Installing CUDA..."
 
+# Ensure curl is installed
+/usr/bin/sudo /usr/bin/apt-get update
+/usr/bin/sudo /usr/bin/apt-get install -y curl
+
 URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb"
 /usr/bin/curl -s -o /tmp/cuda-keyring.deb "$URL"
 /usr/bin/sudo /usr/bin/apt install -y /tmp/cuda-keyring.deb
