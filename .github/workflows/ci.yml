@@ -353,14 +353,7 @@ jobs:
           wsl-shell-command: |
             sudo apt-get update
             sudo apt-get install -y cmake build-essential libopencv-dev git
-            URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb"
-            wget -q "$URL" -O /tmp/cuda-keyring.deb
-            sudo dpkg -i /tmp/cuda-keyring.deb
-            sudo apt-get update
-            sudo apt-get install -y --no-install-recommends \
-              cuda-compiler-12-6 cuda-libraries-12-6 || echo "CUDA installation skipped"
-            echo "CUDACXX=nvcc" >> $GITHUB_ENV
-            echo "CMAKE_CUDA_ARCHITECTURES=75;80;86" >> $GITHUB_ENV
+            bash scripts/install_cuda.sh
             python3 -m pip install --upgrade pip
             pip install -r requirements.txt
             mkdir build
