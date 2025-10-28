@@ -136,7 +136,8 @@ jobs:
            # Install CUDA without recommended packages to avoid dependency issues
            sudo apt-get install -y --no-install-recommends \
              cuda-compiler-12-6 cuda-libraries-12-6 || echo "CUDA installation skipped"
-           # Set CUDA architecture for CI (no GPU available)
+           # Set CUDA compiler and architecture for CI (no GPU available)
+           echo "CUDACXX=nvcc" >> $GITHUB_ENV
            echo "CMAKE_CUDA_ARCHITECTURES=75;80;86" >> $GITHUB_ENV
 
       - name: Install dependencies (macOS)
@@ -274,12 +275,13 @@ jobs:
           # Add Ubuntu 22.04 sources for libtinfo5
           echo "deb http://archive.ubuntu.com/ubuntu jammy main" | \
             sudo tee /etc/apt/sources.list.d/jammy.list
-          sudo apt-get update
-          # Install CUDA without recommended packages to avoid dependency issues
-          sudo apt-get install -y --no-install-recommends \
-            cuda-compiler-12-6 cuda-libraries-12-6 || echo "CUDA installation skipped"
-          # Set CUDA architecture for CI (no GPU available)
-          echo "CMAKE_CUDA_ARCHITECTURES=75;80;86" >> $GITHUB_ENV
+           sudo apt-get update
+           # Install CUDA without recommended packages to avoid dependency issues
+           sudo apt-get install -y --no-install-recommends \
+             cuda-compiler-12-6 cuda-libraries-12-6 || echo "CUDA installation skipped"
+           # Set CUDA compiler and architecture for CI (no GPU available)
+           echo "CUDACXX=nvcc" >> $GITHUB_ENV
+           echo "CMAKE_CUDA_ARCHITECTURES=75;80;86" >> $GITHUB_ENV
 
       - name: Install Python dependencies
         run: |
@@ -303,7 +305,8 @@ jobs:
       - name: Build project
         run: |
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
+            -DWITH_OPENCV=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
           make -j$(nproc)
 
       - name: Run E2E tests
