@@ -1,0 +1,7 @@
+---
+site_name: Hybrid Compute
+nav:
+  - Home: index.md
+  - Onboarding: docs/ONBOARDING.md
+  - Testing: docs/TESTING.md
+theme: readthedocs
