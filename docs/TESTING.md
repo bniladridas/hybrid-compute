@@ -28,7 +28,24 @@ To run the performance benchmarks:
 
 ```bash
 cd build
-./tests/benchmark_metal_shim --benchmark_min_time=1s
+./bin/benchmark_metal_shim --benchmark_min_time=1s
+```
+
+#### Running Individual Benchmarks Locally
+
+For manual testing or debugging:
+
+```bash
+# Build first
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+
+# Run benchmark library tests (e.g., user counters)
+./bin/user_counters_tabular_test --benchmark_min_time=1s --benchmark_repetitions=3
+
+# Run project performance benchmarks (Metal shim)
+./bin/benchmark_metal_shim
 ```
 
 ### Test Coverage
