@@ -10,7 +10,7 @@ on:
 jobs:
   # ────────────────────────────── Code Scanning ──────────────────────────────
   codeql:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
@@ -34,7 +34,7 @@ jobs:
   # ────────────────────────────── Lint & Polish ──────────────────────────────
   lint-and-polish:
     needs: codeql
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - name: Checkout code
@@ -67,7 +67,7 @@ jobs:
   # ────────────────────────────── Python Tests ──────────────────────────────
   python-tests:
     needs: lint-and-polish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
       matrix:
@@ -118,9 +118,11 @@ jobs:
         run: |
           sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
             cmake build-essential libopencv-dev git \
-            && sudo rm -rf /var/lib/apt/lists/*
+             && sudo rm -rf /var/lib/apt/lists/*
 
-      - run: bash scripts/install_cuda.sh
+      - name: Install CUDA
+        if: runner.os == 'Linux'
+        run: bash scripts/install_cuda.sh
 
       - name: Create build directory
         run: mkdir -p build
@@ -167,7 +169,7 @@ jobs:
   # ────────────────────────────── Build CUDA ──────────────────────────────
   build-cuda:
     needs: lint-and-polish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - name: Checkout repository
@@ -262,7 +264,7 @@ jobs:
   # ────────────────────────────── Code Coverage ──────────────────────────────
   coverage:
     needs: lint-and-polish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - name: Checkout repository
@@ -323,7 +325,7 @@ jobs:
   # ────────────────────────────── Performance Benchmarks ──────────────────────────────
   benchmark:
     needs: build-cuda
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Download build artifacts
@@ -350,9 +352,10 @@ jobs:
         uses: Vampire/setup-wsl@v3
         with:
           distribution: Ubuntu-22.04
+          wsl-shell-user: root
           wsl-shell-command: |
-            sudo apt-get update
-            sudo apt-get install -y cmake build-essential libopencv-dev git
+            apt-get update
+            apt-get install -y cmake build-essential libopencv-dev git
             bash scripts/install_cuda.sh
             python3 -m pip install --upgrade pip
             pip install -r requirements.txt
@@ -366,7 +369,7 @@ jobs:
   # ────────────────────────────── Documentation ──────────────────────────────
   docs:
     needs: lint-and-polish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: write
@@ -394,7 +397,7 @@ jobs:
   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
     needs: [test-and-build, build-cuda, build-metal]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     permissions:
       contents: read
@@ -433,7 +436,7 @@ jobs:
           fi
           TAG_BASE="$REG/$OWNER/$NAME"
           echo "IMAGE_TAG1=$TAG_BASE:${{ github.sha }}" >> $GITHUB_ENV
-          echo "IMAGE_TAG2=$TAG_BASE:latest${{ matrix.tag }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG2=$TAG_BASE:latest${{ matrix.tag-suffix }}" >> $GITHUB_ENV
 
       - name: Build & push Docker image
         uses: docker/build-push-action@v5
@@ -486,7 +489,7 @@ jobs:
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
   dependabot-auto-merge:
     needs: docker
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.actor == 'dependabot[bot]'
     steps:
       - name: Checkout code
@@ -500,7 +503,7 @@ jobs:
   # ────────────────────────────── Automated Release ──────────────────────────────
   release:
     needs: docker
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: write
