@@ -140,16 +140,10 @@ jobs:
            echo "CUDACXX=nvcc" >> $GITHUB_ENV
            echo "CMAKE_CUDA_ARCHITECTURES=75;80;86" >> $GITHUB_ENV
 
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
+      - name: Verify CUDA installation
         run: |
-          brew update
-          brew install cmake opencv
-
-      - name: Install dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          choco install cmake opencv
+          which nvcc
+          nvcc --version
 
       - name: Create build directory
         run: mkdir -p build
@@ -282,6 +276,11 @@ jobs:
            # Set CUDA compiler and architecture for CI (no GPU available)
            echo "CUDACXX=nvcc" >> $GITHUB_ENV
            echo "CMAKE_CUDA_ARCHITECTURES=75;80;86" >> $GITHUB_ENV
+
+      - name: Verify CUDA installation
+        run: |
+          which nvcc
+          nvcc --version
 
       - name: Install Python dependencies
         run: |
