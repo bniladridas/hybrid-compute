@@ -337,7 +337,31 @@ jobs:
           cd build
           ./bin/user_counters_tabular_test --benchmark_min_time=1s --benchmark_repetitions=3
 
-   # ────────────────────────────── Docker Build & Test ──────────────────────────────
+  # ────────────────────────────── Documentation ──────────────────────────────
+  docs:
+    needs: lint-and-polish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install MkDocs
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs
+
+      - name: Build documentation
+        run: mkdocs build
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+
+  # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
     needs: [test-and-build, build-cuda, build-metal]
     runs-on: ubuntu-latest
@@ -413,6 +437,21 @@ jobs:
                    docker run --entrypoint bash "${{ env.IMAGE_TAG1 }}" \
                      -c "ls -l /app/ && test -f /app/preprocess_c && echo OK"
             fi
+
+      - name: Scan image with Trivy
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          scan-ref: '${{ env.IMAGE_TAG1 }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        if: github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
   dependabot-auto-merge:
