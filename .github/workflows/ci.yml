@@ -341,15 +341,8 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          bash -c "
-          cd build &&
-          ./bin/user_counters_tabular_test
-          --benchmark_min_time=1s
-          --benchmark_repetitions=3
-          2>/dev/null ||
-          ./bin/benchmark_metal_shim
-          --benchmark_min_time=1s
-          "
+          cd build
+          ./bin/benchmark_metal_shim --benchmark_min_time=1s
 
   # ────────────────────────────── Cross-Platform CUDA ──────────────────────────────
   windows-cuda:
