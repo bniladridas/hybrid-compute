@@ -126,6 +126,22 @@ jobs:
             cmake build-essential libopencv-dev git \
             && sudo rm -rf /var/lib/apt/lists/*
 
+      - name: Install CUDA (Linux)
+        if: runner.os == 'Linux' && matrix.cuda != ''
+        run: |
+           URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb"
+           wget -q "$URL" -O /tmp/cuda-keyring.deb
+           sudo dpkg -i /tmp/cuda-keyring.deb
+           # Add Ubuntu 22.04 sources for libtinfo5
+           echo "deb http://archive.ubuntu.com/ubuntu jammy main" | \
+             sudo tee /etc/apt/sources.list.d/jammy.list
+           sudo apt-get update
+           # Install CUDA without recommended packages to avoid dependency issues
+           sudo apt-get install -y --no-install-recommends \
+             cuda-compiler-12-6 cuda-libraries-12-6 || echo "CUDA installation skipped"
+           # Set CUDA architecture for CI (no GPU available)
+           echo "CMAKE_CUDA_ARCHITECTURES=75;80;86" >> $GITHUB_ENV
+
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -158,11 +174,12 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          if [ "${{ matrix.cuda }}" != "" ]; then
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON
-          else
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
-          fi
+           if [ "${{ matrix.cuda }}" != "" ]; then
+             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
+               -DWITH_OPENCV=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
+           else
+             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
+           fi
           if [ "$RUNNER_OS" == "Windows" ]; then
             cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
           else
