@@ -210,6 +210,12 @@ jobs:
       - name: Run E2E tests
         run: python scripts/e2e.py
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-cuda-artifacts
+          path: build/
+
   # ────────────────────────────── Build Metal ──────────────────────────────
   build-metal:
     needs: lint-and-polish
@@ -314,7 +320,24 @@ jobs:
           flags: c++
           name: C++ Coverage
 
-  # ────────────────────────────── Docker Build & Test ──────────────────────────────
+  # ────────────────────────────── Performance Benchmarks ──────────────────────────────
+  benchmark:
+    needs: build-cuda
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-cuda-artifacts
+          path: build
+
+      - name: Run benchmarks
+        run: |
+          cd build
+          ./bin/user_counters_tabular_test --benchmark_min_time=1s --benchmark_repetitions=3
+
+   # ────────────────────────────── Docker Build & Test ──────────────────────────────
   docker:
     needs: [test-and-build, build-cuda, build-metal]
     runs-on: ubuntu-latest
