@@ -263,6 +263,12 @@ jobs:
           cd build
           ctest --output-on-failure --timeout 300 --parallel $(sysctl -n hw.ncpu)
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metal-artifacts
+          path: build/
+
   # ────────────────────────────── Code Coverage ──────────────────────────────
   coverage:
     needs: lint-and-polish
@@ -327,14 +333,14 @@ jobs:
 
   # ────────────────────────────── Performance Benchmarks ──────────────────────────────
   benchmark:
-    needs: build-cuda
-    runs-on: ubuntu-24.04
+    needs: build-metal
+    runs-on: macos-latest
     timeout-minutes: 30
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-cuda-artifacts
+          name: build-metal-artifacts
           path: build
 
       - name: Set executable permissions
