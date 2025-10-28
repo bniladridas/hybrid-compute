@@ -126,4 +126,8 @@ if(ENABLE_BENCHMARK AND TARGET cudart_shim)
     PRIVATE
       ${CMAKE_SOURCE_DIR}/include
       ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers)
+
+  # Add benchmark as a test (with timeout)
+  add_test(NAME benchmark_metal_shim COMMAND $<TARGET_FILE:benchmark_metal_shim> --benchmark_min_time=1s)
+  set_tests_properties(benchmark_metal_shim PROPERTIES TIMEOUT 300)
 endif()
