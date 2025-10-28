@@ -94,7 +94,20 @@ ctest --output-on-failure
 <h3 id="performance-benchmarks">Performance Benchmarks</h3>
 <p>To run the performance benchmarks:</p>
 <pre><code class="language-bash">cd build
-./tests/benchmark_metal_shim --benchmark_min_time=1s
+./bin/benchmark_metal_shim --benchmark_min_time=1s
+</code></pre>
+<h4 id="running-individual-benchmarks-locally">Running Individual Benchmarks Locally</h4>
+<p>For manual testing or debugging:</p>
+<pre><code class="language-bash"># Build first
+mkdir build &amp;&amp; cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+
+# Run benchmark library tests (e.g., user counters)
+./bin/user_counters_tabular_test --benchmark_min_time=1s --benchmark_repetitions=3
+
+# Run project performance benchmarks (Metal shim)
+./bin/benchmark_metal_shim
 </code></pre>
 <h3 id="test-coverage">Test Coverage</h3>
 <p>To generate a test coverage report (requires <code>gcov</code> and <code>lcov</code>):</p>
