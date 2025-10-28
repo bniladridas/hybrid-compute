@@ -122,7 +122,7 @@ jobs:
 
       - name: Install CUDA
         if: runner.os == 'Linux'
-        run: bash scripts/install_cuda.sh
+        uses: ./.github/actions/install-cuda
 
       - name: Create build directory
         run: mkdir -p build
@@ -181,7 +181,8 @@ jobs:
             cmake build-essential libopencv-dev git \
             && sudo rm -rf /var/lib/apt/lists/*
 
-      - run: bash scripts/install_cuda.sh
+      - name: Install CUDA
+        uses: ./.github/actions/install-cuda
 
       - name: Install Python dependencies
         run: |
@@ -270,7 +271,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - run: bash scripts/install_cuda.sh
+      - name: Install CUDA
+        uses: ./.github/actions/install-cuda
 
       - name: Install lcov
         run: |
