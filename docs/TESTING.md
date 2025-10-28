@@ -39,7 +39,10 @@ For manual testing or debugging:
 # Build first
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
+# On Linux:
 make -j$(nproc)
+# On macOS:
+make -j$(sysctl -n hw.ncpu)
 
 # Run benchmark library tests (e.g., user counters)
 ./bin/user_counters_tabular_test --benchmark_min_time=1s --benchmark_repetitions=3
