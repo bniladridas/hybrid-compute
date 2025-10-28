@@ -278,7 +278,7 @@ jobs:
         run: |
           export PATH=/usr/bin:/bin:$PATH
           /usr/bin/sudo /usr/bin/apt-get update
-          /usr/bin/sudo /usr/bin/apt-get install -y lcov
+          /usr/bin/sudo /usr/bin/apt-get install -y lcov libopencv-dev
 
       - name: Install Python dependencies
         run: |
