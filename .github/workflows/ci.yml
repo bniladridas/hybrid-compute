@@ -120,7 +120,7 @@ jobs:
             cmake build-essential libopencv-dev git \
             && sudo rm -rf /var/lib/apt/lists/*
 
-      - uses: ./.github/actions/install-cuda
+      - run: bash scripts/install_cuda.sh
 
       - name: Create build directory
         run: mkdir -p build
@@ -179,7 +179,7 @@ jobs:
             cmake build-essential libopencv-dev git \
             && sudo rm -rf /var/lib/apt/lists/*
 
-      - uses: ./.github/actions/install-cuda
+      - run: bash scripts/install_cuda.sh
 
       - name: Install Python dependencies
         run: |
@@ -268,7 +268,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: ./.github/actions/install-cuda
+      - run: bash scripts/install_cuda.sh
 
       - name: Install lcov
         run: |
