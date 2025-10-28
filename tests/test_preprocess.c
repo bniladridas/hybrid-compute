@@ -53,8 +53,8 @@ int main() {
   ret = system("python3 ../create_test_image.py");
   (void)ret;
 
-  // Run preprocess_c (in same directory)
-  ret = system("./preprocess_c test_images test_output_tiles");
+   // Run preprocess_c (in bin directory)
+   ret = system("./bin/preprocess_c test_images test_output_tiles");
   (void)ret;
 
   // Check if output directory exists
