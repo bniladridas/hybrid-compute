@@ -7,6 +7,7 @@ runs:
     - name: Install CUDA
       shell: bash
       run: |
+        export PATH=/usr/bin:/bin:$PATH
         URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb"
         wget -q "$URL" -O /tmp/cuda-keyring.deb
         sudo apt install -y /tmp/cuda-keyring.deb
@@ -20,5 +21,6 @@ runs:
     - name: Verify CUDA installation
       shell: bash
       run: |
+        export PATH=/usr/bin:/bin:$PATH
         which nvcc
         nvcc --version
