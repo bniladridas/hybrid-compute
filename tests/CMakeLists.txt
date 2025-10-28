@@ -124,8 +124,13 @@ if(ENABLE_BENCHMARK AND TARGET cudart_shim)
   target_include_directories(
     benchmark_metal_shim
     PRIVATE
-      ${CMAKE_SOURCE_DIR}/include
-      ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers)
+      ${CMAKE_SOURCE_DIR}/include)
+  if(APPLE)
+    target_include_directories(
+      benchmark_metal_shim
+      PRIVATE
+        ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Metal.framework/Headers)
+  endif()
 
   # Add benchmark as a test (with timeout)
   add_test(NAME benchmark_metal_shim COMMAND $<TARGET_FILE:benchmark_metal_shim> --benchmark_min_time=1s)
