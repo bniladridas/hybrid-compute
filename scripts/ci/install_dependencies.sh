@@ -65,35 +65,70 @@ install_python_deps() {
 
 # Install CUDA (if needed)
 install_cuda() {
-    if [ "${USE_CUDA:-0}" = "1" ]; then
-        echo "Installing CUDA dependencies..."
+    if [ "${USE_CUDA:-0}" != "1" ]; then
+        echo "CUDA installation skipped (USE_CUDA not set to 1)"
+        return 0
+    fi
 
-        # Use sudo if not root
-        local SUDO=""
-        if [ "$(id -u)" -ne 0 ]; then
-            SUDO=sudo
-        fi
+    echo "Installing CUDA dependencies..."
 
-        # Install CUDA repository key
+    # Use sudo if not root
+    local SUDO=""
+    if [ "$(id -u)" -ne 0 ]; then
+        SUDO=sudo
+    fi
+
+    # Install basic CUDA dependencies
+    $SUDO apt-get update
+    $SUDO apt-get install -y --no-install-recommends \
+        build-essential \
+        software-properties-common \
+        wget \
+        gnupg2 \
+        lsb-release
+
+    # Install CUDA repository key
+    if [ ! -f "/etc/apt/sources.list.d/cuda.list" ]; then
         wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
         $SUDO dpkg -i cuda-keyring_1.1-1_all.deb
         $SUDO apt-get update
-
-        # Install CUDA toolkit
-        $SUDO apt-get install -y --no-install-recommends cuda-toolkit-12-3
-
-        # Add CUDA to PATH
-        echo 'export PATH="/usr/local/cuda/bin:$PATH"' >> ~/.bashrc
-        echo 'export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"' >> ~/.bashrc
-        export PATH="/usr/local/cuda/bin:$PATH"
-        export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
-
-        # Verify installation
-        nvcc --version || {
-            echo "Failed to verify CUDA installation. Please check the logs."
-            exit 1
-        }
     fi
+
+    # Install only the essential CUDA packages
+    echo "Installing CUDA toolkit..."
+    $SUDO apt-get install -y --no-install-recommends \
+        cuda-compiler-12-3 \
+        cuda-libraries-dev-12-3 \
+        cuda-command-line-tools-12-3 \
+        cuda-cudart-dev-12-3 \
+        cuda-nvcc-12-3 \
+        libcublas-dev-12-3 \
+        libcufft-dev-12-3 \
+        libcurand-dev-12-3 \
+        libcusolver-dev-12-3 \
+        libcusparse-dev-12-3 \
+        libcudnn9 \
+        libcudnn9-dev
+
+    # Create symlinks for backward compatibility
+    $SUDO ln -s /usr/local/cuda-12.3 /usr/local/cuda
+
+    # Add CUDA to PATH
+    echo 'export PATH="/usr/local/cuda/bin:$PATH"' >> ~/.bashrc
+    echo 'export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"' >> ~/.bashrc
+    export PATH="/usr/local/cuda/bin:$PATH"
+    export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+
+    # Verify installation
+    if ! command -v nvcc &> /dev/null; then
+        echo "Error: nvcc not found after CUDA installation"
+        exit 1
+    fi
+
+    echo "CUDA installation complete. nvcc version:"
+    nvcc --version || {
+        echo "Warning: nvcc version check failed, but continuing..."
+    }
 }
 
 # Install CodeQL
