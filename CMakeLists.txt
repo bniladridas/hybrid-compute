@@ -547,16 +547,30 @@ if(WITH_OPENCV)
     find_program(APT_GET_EXECUTABLE apt-get)
     if(APT_GET_EXECUTABLE)
       message(STATUS "Attempting to install OpenCV via apt...")
+      # Install OpenCV packages one by one to avoid line continuation issues
       execute_process(
         COMMAND ${APT_GET_EXECUTABLE} update
-        COMMAND ${APT_GET_EXECUTABLE} install -y --no-install-recommends \
-          libopencv-dev \
-          libopencv-core-dev \
-          libopencv-imgproc-dev \
-          libopencv-highgui-dev \
-          libopencv-imgcodecs-dev
-        RESULT_VARIABLE APT_RESULT
+        RESULT_VARIABLE UPDATE_RESULT
       )
+
+      if(UPDATE_RESULT EQUAL 0)
+        set(OPENCV_PACKAGES "libopencv-dev" "libopencv-core-dev" "libopencv-imgproc-dev" "libopencv-highgui-dev" "libopencv-imgcodecs-dev")
+        set(APT_RESULT 0)
+
+        foreach(PKG IN LISTS OPENCV_PACKAGES)
+          execute_process(
+            COMMAND ${APT_GET_EXECUTABLE} install -y --no-install-recommends ${PKG}
+            RESULT_VARIABLE PKG_RESULT
+          )
+          if(NOT PKG_RESULT EQUAL 0)
+            set(APT_RESULT ${PKG_RESULT})
+            message(WARNING "Failed to install package: ${PKG}")
+          endif()
+        endforeach()
+      else()
+        set(APT_RESULT ${UPDATE_RESULT})
+        message(WARNING "Failed to update package lists")
+      endif()
 
       if(APT_RESULT EQUAL 0)
         # Try to find the installed OpenCV
