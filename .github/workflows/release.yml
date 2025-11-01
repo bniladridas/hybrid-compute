@@ -1,0 +1,46 @@
+---
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'VERSION'
+      - '.github/workflows/release.yml'
+      - 'release-please-config.json'
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Release Please
+        id: release
+        uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: "simple"
+          package-name: "hybrid-compute"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          command: github-release
+          changelog-types: |
+            {
+              "feat": "Features",
+              "fix": "Bug Fixes",
+              "perf": "Performance Improvements",
+              "refactor": "Code Refactoring",
+              "docs": "Documentation",
+              "test": "Tests",
+              "build": "Build System",
+              "ci": "Continuous Integration",
+              "chore": "Chores"
+            }
