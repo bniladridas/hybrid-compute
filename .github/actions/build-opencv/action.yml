@@ -17,8 +17,9 @@ runs:
       shell: bash
       run: |
         # Create build directory
-        mkdir -p ~/opencv_build
-        cd ~/opencv_build
+        OPENCV_BUILD_DIR=$HOME/opencv_build
+        mkdir -p $OPENCV_BUILD_DIR
+        cd $OPENCV_BUILD_DIR
 
         # Clone OpenCV and opencv_contrib
         git clone https://github.com/opencv/opencv.git
@@ -36,11 +37,11 @@ runs:
         cd build
 
         # Configure with default options
-        OPENCV_SRC=$(pwd)/../opencv
+        OPENCV_SRC=$OPENCV_BUILD_DIR/opencv
         cmake -D CMAKE_BUILD_TYPE=RELEASE \
               -D CMAKE_INSTALL_PREFIX=/usr/local \
               -D OPENCV_GENERATE_PKGCONFIG=ON \
-              -D OPENCV_EXTRA_MODULES_PATH=$OPENCV_SRC/../opencv_contrib/modules \
+              -D OPENCV_EXTRA_MODULES_PATH=$OPENCV_BUILD_DIR/opencv_contrib/modules \
               -D WITH_CUDA=OFF \
               -D WITH_GTK=ON \
               -D WITH_QT=OFF \
@@ -60,14 +61,9 @@ runs:
               -D BUILD_opencv_python3=ON \
               -D PYTHON3_EXECUTABLE=$(which python3) \
               -D PYTHON3_INCLUDE_DIR=$(python3 -c \
-                "from distutils.sysconfig import get_python_inc; print(get_python_inc())") \
+                "import sysconfig; print(sysconfig.get_path('include'))") \
               -D PYTHON3_PACKAGES_PATH=$(python3 -c \
-                "from distutils.sysconfig import get_python_lib; print(get_python_lib())") \
-              -D PYTHON3_LIBRARY=$(python3 -c \
-                "from distutils.sysconfig import get_config_var;"\
-                "from os.path import dirname,join;"\
-                "print(join(dirname(get_config_var('LIBPC')),"\
-                "get_config_var('LDLIBRARY')))") \
+                "import sysconfig; print(sysconfig.get_path('purelib'))") \
               $OPENCV_SRC
 
         # Build with limited parallel jobs, increased verbosity, and debug output
