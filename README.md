@@ -157,17 +157,45 @@ python3 scripts/e2e.py
 - **Code Review**: Manually inspect `cloud_gpu/upscale.cu` for CUDA best practices and logic correctness.
   **Git Commit Standards**
 This project enforces conventional commit standards for clean history:
-- Commit messages must follow the format: `type(scope): description`
-  - Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`
-  - Scope should be a short description of the affected area (e.g., `ci`, `api`, `ui`)
-  - Description should be in lowercase and concise
-- The first line must be ≤60 characters
-- All text must be in lowercase
 
-Examples:
-- `feat(api): add user authentication`
-- `fix(ui): resolve button alignment`
-- `docs(readme): update commit message guidelines`
+### Commit Message Format
+```
+type(scope): short description (≤60 chars)
+- optional bullet point 1 (≤72 chars)
+- optional bullet point 2
+```
+
+### Rules
+- **Type**: Must be one of:
+  - `feat`: New feature
+  - `fix`: Bug fix
+  - `docs`: Documentation changes
+  - `style`: Code style/formatting
+  - `refactor`: Code change that neither fixes a bug nor adds a feature
+  - `perf`: Performance improvements
+  - `test`: Adding or modifying tests
+  - `chore`: Maintenance tasks
+  - `ci`: CI/CD related changes
+  - `build`: Build system changes
+  - `revert`: Revert a previous commit
+- **Scope**: Lowercase with hyphens (e.g., `ci`, `api`, `ui`)
+- **Description**: Short summary in lowercase (no period at the end)
+- **Bullet Points**: Optional, each starting with `- ` and ≤72 characters
+- **All text must be in lowercase**
+
+### Examples
+```
+feat(api): add user authentication
+- implement jwt token generation
+- add login endpoint
+ix(ci): resolve build failures
+- update cmake minimum version
+- fix opencv linking
+
+docs(readme): update contribution guidelines
+- add commit message format
+- include code style requirements
+```
 
 To enable enforcement, copy the hook:
 
