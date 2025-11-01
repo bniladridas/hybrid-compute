@@ -1,4 +1,13 @@
 # Project version
 0.2.0
-# Python version
-3.12
+
+# Language Versions
+- Python: 3.12+
+- C++: 20
+- CUDA: 11.8+ (optional, for GPU acceleration)
+- Objective-C++: 17 (macOS Metal support)
+
+# Build Tools
+- CMake: 3.10+
+- CUDA Toolkit: 11.8+ (optional)
+- Xcode: 14.0+ (for macOS Metal development)
