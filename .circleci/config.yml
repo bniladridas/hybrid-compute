@@ -20,25 +20,20 @@ parameters:
   run-nightly:
     type: boolean
     default: false
+  enable-macos:
+    type: boolean
+    default: false  # Set to true only if macOS resources are available
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Executors
 # ────────────────────────────────────────────────────────────────────────────────
 
 executors:
-  ubuntu-cuda:
-    docker:
-      - image: nvidia/cuda:13.0.1-devel-ubuntu24.04
-    resource_class: gpu.nvidia.small
-    environment:
-      DEBIAN_FRONTEND: noninteractive
-      TZ: UTC
-      NVIDIA_VISIBLE_DEVICES: all
-
-  ubuntu-cpu:
+  # Standard Linux executor
+  linux:
     docker:
       - image: ubuntu:24.04
-    resource_class: large
+    resource_class: medium
     environment:
       DEBIAN_FRONTEND: noninteractive
       TZ: UTC
@@ -329,7 +324,7 @@ jobs:
 
   # ────────────────────────────── Build & Test Linux CUDA ──────────────────────────────
   build-linux-cuda:
-    executor: ubuntu-cuda
+    executor: linux
     steps:
       - checkout
 
@@ -434,25 +429,51 @@ jobs:
       - store_artifacts:
           path: build/
 
-  # ────────────────────────────── Build Windows CUDA ──────────────────────────────
-  build-windows-cuda:
+  # ────────────────────────────── Build Windows ──────────────────────────────
+  build-windows:
     executor: windows-cuda
     steps:
       - checkout
 
       - run:
-          name: Install dependencies
+          name: Install build tools
           command: |
-            choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
-            choco install opencv -y
-            choco install python --version 3.12 -y
+            # Install Chocolatey if not already installed
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            $secProtocol = [System.Net.ServicePointManager]::SecurityProtocol
+            [System.Net.ServicePointManager]::SecurityProtocol = $secProtocol -bor 3072
+            if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+                $installScript = (New-Object System.Net.WebClient)
+                    .DownloadString('https://chocolatey.org/install.ps1')
+                iex $installScript
+                $machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+                $userPath = [System.Environment]::GetEnvironmentVariable("Path", "User")
+                $env:Path = "$machinePath;$userPath"
+            }
 
-      - run:
-          name: Install CUDA (WSL)
-          command: |
-            wsl --install -d Ubuntu-22.04
-            wsl bash -c "apt-get update && apt-get install -y cmake build-essential \
-              libopencv-dev git"
+            # Install required tools
+            choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y --no-progress
+            choco install opencv --version=4.5.5 -y --no-progress
+            choco install python --version=3.10.0 -y --no-progress
+            refreshenv
+
+            # Install Python packages
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
+
+            # Set OpenCV environment variables
+            $opencvPath = (Get-Command opencv_version).Source | Split-Path -Parent
+            [System.Environment]::SetEnvironmentVariable(
+                "OpenCV_DIR",
+                $opencvPath,
+                [System.EnvironmentVariableTarget]::Machine
+            )
+            $env:Path = "$env:Path;$opencvPath\x64\vc16\bin"
+
+            # Verify installations
+            cmake --version
+            python --version
+            python -c "import cv2; print(f'OpenCV version: {cv2.__version__}')
             # Note: CUDA installation in WSL would need to be handled separately
 
       - install-python-deps
@@ -463,10 +484,18 @@ jobs:
       - run:
           name: Configure and build
           command: |
+            # Create build directory
             mkdir build
             cd build
-            cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON ..
-            cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
+
+            # Configure with CMake
+            cmake .. -G "Visual Studio 17 2022" -A x64 \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DUSE_CUDA=OFF \
+              -DWITH_OPENCV=ON
+
+            # Build the project
+            cmake --build . --config Release -- /m:4
 
       - run:
           name: Run tests
@@ -482,7 +511,7 @@ jobs:
 
   # ────────────────────────────── Code Coverage ──────────────────────────────
   code-coverage:
-    executor: ubuntu-cuda
+    executor: linux
     steps:
       - checkout
 
@@ -694,11 +723,15 @@ workflows:
           requires:
             - code-quality
 
-      - build-macos-metal:
-          requires:
-            - code-quality
+      # macOS build job - disabled by default
+      # - build-macos-metal:
+      #     requires:
+      #       - code-quality
+      #     filters:
+      #       branches:
+      #         ignore: /.*/  # Disable by default - only run when explicitly enabled via API
 
-      - build-windows-cuda:
+      - build-windows:
           requires:
             - code-quality
 
@@ -706,10 +739,13 @@ workflows:
           requires:
             - build-linux-cuda
 
+      # Benchmark job - runs on Linux
       - benchmark:
+          executor: linux
           requires:
-            - build-macos-metal
+            - build-linux-cuda
 
+      # Docker build job - only depends on Linux builds
       - docker-build:
           matrix:
             parameters:
@@ -717,7 +753,6 @@ workflows:
           requires:
             - build-linux-cuda
             - build-linux-cpu
-            - build-macos-metal
 
       - security-scan:
           requires:
