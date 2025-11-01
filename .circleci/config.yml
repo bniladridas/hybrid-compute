@@ -1,0 +1,671 @@
+version: 2.1
+
+# ────────────────────────────────────────────────────────────────────────────────
+# CircleCI Configuration for Hybrid Compute
+# ────────────────────────────────────────────────────────────────────────────────
+
+orbs:
+  python: circleci/python@2.1.1
+  docker: circleci/docker@2.5.0
+  node: circleci/node@5.2.0
+  aws-cli: circleci/aws-cli@4.1.0
+  kubernetes: circleci/kubernetes@2.0.1
+
+# ────────────────────────────────────────────────────────────────────────────────
+# Parameters
+# ────────────────────────────────────────────────────────────────────────────────
+
+parameters:
+  run-nightly:
+    type: boolean
+    default: false
+
+# ────────────────────────────────────────────────────────────────────────────────
+# Executors
+# ────────────────────────────────────────────────────────────────────────────────
+
+executors:
+  ubuntu-cuda:
+    docker:
+      - image: nvidia/cuda:13.0.1-devel-ubuntu24.04
+    resource_class: gpu.nvidia.small
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      TZ: UTC
+      NVIDIA_VISIBLE_DEVICES: all
+
+  ubuntu-cpu:
+    docker:
+      - image: ubuntu:24.04
+    resource_class: large
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      TZ: UTC
+
+  macos-metal:
+    macos:
+      xcode: 15.0
+    resource_class: macos.x86.medium.gen2
+
+  windows-cuda:
+    machine:
+      image: windows-server-2022-gui:current
+    resource_class: windows.medium
+    shell: powershell.exe -ExecutionPolicy Bypass
+
+# ────────────────────────────────────────────────────────────────────────────────
+# Commands
+# ────────────────────────────────────────────────────────────────────────────────
+
+commands:
+  install-build-deps:
+    description: "Install build dependencies for Linux"
+    parameters:
+      cuda:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Update package lists
+          command: |
+            apt-get update && apt-get install -y --no-install-recommends \
+              cmake build-essential libopencv-dev git pkg-config \
+              python3 python3-pip python3-dev \
+              && rm -rf /var/lib/apt/lists/*
+
+      - when:
+          condition: << parameters.cuda >>
+          steps:
+            - run:
+                name: Install CUDA
+                command: |
+                  wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+                  dpkg -i cuda-keyring_1.1-1_all.deb
+                  apt-get update
+                  apt-get install -y cuda-toolkit-13-0
+                  echo 'export PATH=/usr/local/cuda/bin:$PATH' >> $BASH_ENV
+                  echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> $BASH_ENV
+
+  install-python-deps:
+    description: "Install Python dependencies"
+    steps:
+      - run:
+          name: Install Python dependencies
+          command: |
+            python3 -m pip install --upgrade pip
+            pip3 install -r requirements.txt
+
+  setup-build-cache:
+    description: "Set up build caching"
+    parameters:
+      key:
+        type: string
+        default: "build-cache"
+    steps:
+      - restore_cache:
+          keys:
+            - << parameters.key >>-{{ .Branch }}-{{ checksum "CMakeLists.txt" }}
+            - << parameters.key >>-{{ .Branch }}
+            - << parameters.key >>-main
+
+      - save_cache:
+          key: << parameters.key >>-{{ .Branch }}-{{ checksum "CMakeLists.txt" }}
+          paths:
+            - build/_deps
+            - ~/.cache/pip
+
+  cmake-build:
+    description: "Configure and build with CMake"
+    parameters:
+      cuda:
+        type: boolean
+        default: false
+      opencv:
+        type: boolean
+        default: true
+      benchmark:
+        type: boolean
+        default: false
+      coverage:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Configure CMake
+          command: |
+            mkdir -p build
+            cd build
+            CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
+            if [ "<< parameters.cuda >>" = "true" ]; then
+              CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75;80;86"
+            else
+              CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=OFF"
+            fi
+            if [ "<< parameters.opencv >>" = "true" ]; then
+              CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=ON"
+            else
+              CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=OFF"
+            fi
+            if [ "<< parameters.benchmark >>" = "true" ]; then
+              CMAKE_ARGS="$CMAKE_ARGS -DENABLE_BENCHMARK=ON"
+            fi
+            if [ "<< parameters.coverage >>" = "true" ]; then
+              CMAKE_ARGS="$CMAKE_ARGS -DCOVERAGE=ON"
+            fi
+            cmake $CMAKE_ARGS ..
+
+      - run:
+          name: Build project
+          command: |
+            cd build
+            if command -v nproc > /dev/null; then
+              JOBS=$(nproc)
+            else
+              JOBS=4
+            fi
+            make -j$JOBS
+
+# ────────────────────────────────────────────────────────────────────────────────
+# Jobs
+# ────────────────────────────────────────────────────────────────────────────────
+
+jobs:
+  # ────────────────────────────── Code Quality ──────────────────────────────
+  code-quality:
+    executor: ubuntu-cpu
+    steps:
+      - checkout
+
+      - python/install-packages:
+          pkg-manager: pip
+          pip-dependency-file: requirements.txt
+
+      - node/install:
+          node-version: "20.0"
+
+      - run:
+          name: Install pre-commit
+          command: pip install pre-commit
+
+      - run:
+          name: Run pre-commit hooks
+          command: pre-commit run --all-files
+
+      - run:
+          name: Install CodeQL
+          command: |
+            wget -q https://github.com/github/codeql-action/releases/download/codeql-bundle-20231211/codeql-bundle-linux64.tar.gz
+            tar -xzf codeql-bundle-linux64.tar.gz
+            sudo mv codeql /usr/local/bin/
+
+      - run:
+          name: Initialize CodeQL
+          command: |
+            codeql database create codeql-db --language=cpp --source-root=.
+            codeql database create codeql-db-python --language=python --source-root=.
+
+      - run:
+          name: Analyze with CodeQL
+          command: |
+            codeql database analyze codeql-db --format=sarif --output=cpp-results.sarif
+            codeql database analyze codeql-db-python --format=sarif --output=python-results.sarif
+
+      - store_artifacts:
+          path: cpp-results.sarif
+      - store_artifacts:
+          path: python-results.sarif
+
+  # ────────────────────────────── Python Tests ──────────────────────────────
+  python-tests:
+    parameters:
+      python-version:
+        type: string
+        default: "3.12"
+    docker:
+      - image: cimg/python:<< parameters.python-version >>
+    resource_class: large
+    steps:
+      - checkout
+
+      - python/install-packages:
+          pkg-manager: pip
+          pip-dependency-file: requirements.txt
+
+      - run:
+          name: Run Python tests
+          command: |
+            pytest --cov=. --cov-report=xml --cov-report=term
+
+      - run:
+          name: Test Python scripts
+          command: |
+            python create_test_image.py
+            python scripts/stitch.py --help || true
+
+      - store_test_results:
+          path: test-results
+
+      - store_artifacts:
+          path: coverage.xml
+
+  # ────────────────────────────── Build & Test Linux CUDA ──────────────────────────────
+  build-linux-cuda:
+    executor: ubuntu-cuda
+    steps:
+      - checkout
+
+      - install-build-deps:
+          cuda: true
+
+      - install-python-deps
+
+      - setup-build-cache:
+          key: "linux-cuda-build"
+
+      - cmake-build:
+          cuda: true
+          opencv: true
+          benchmark: true
+
+      - run:
+          name: Run tests
+          command: |
+            cd build
+            ctest --output-on-failure --timeout 300 --parallel $(nproc)
+
+      - run:
+          name: Run E2E tests
+          command: python3 scripts/e2e.py
+
+      - store_test_results:
+          path: build/Testing
+
+      - store_artifacts:
+          path: build/
+
+  # ────────────────────────────── Build & Test Linux CPU ──────────────────────────────
+  build-linux-cpu:
+    executor: ubuntu-cpu
+    steps:
+      - checkout
+
+      - install-build-deps:
+          cuda: false
+
+      - install-python-deps
+
+      - setup-build-cache:
+          key: "linux-cpu-build"
+
+      - cmake-build:
+          cuda: false
+          opencv: true
+
+      - run:
+          name: Run tests
+          command: |
+            cd build
+            ctest --output-on-failure --timeout 300 --parallel $(nproc)
+
+      - store_test_results:
+          path: build/Testing
+
+      - store_artifacts:
+          path: build/
+
+  # ────────────────────────────── Build & Test macOS Metal ──────────────────────────────
+  build-macos-metal:
+    executor: macos-metal
+    steps:
+      - checkout
+
+      - run:
+          name: Install dependencies
+          command: |
+            brew update
+            brew install cmake opencv python@3
+
+      - install-python-deps
+
+      - setup-build-cache:
+          key: "macos-build"
+
+      - run:
+          name: Configure CMake
+          command: |
+            mkdir -p build
+            cd build
+            cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON ..
+
+      - run:
+          name: Build project
+          command: |
+            cd build
+            make -j$(sysctl -n hw.ncpu)
+
+      - run:
+          name: Run tests
+          command: |
+            cd build
+            ctest --output-on-failure --timeout 300 --parallel $(sysctl -n hw.ncpu)
+
+      - store_test_results:
+          path: build/Testing
+
+      - store_artifacts:
+          path: build/
+
+  # ────────────────────────────── Build Windows CUDA ──────────────────────────────
+  build-windows-cuda:
+    executor: windows-cuda
+    steps:
+      - checkout
+
+      - run:
+          name: Install dependencies
+          command: |
+            choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+            choco install opencv -y
+            choco install python --version 3.12 -y
+
+      - run:
+          name: Install CUDA (WSL)
+          command: |
+            wsl --install -d Ubuntu-22.04
+            wsl bash -c "apt-get update && apt-get install -y cmake build-essential libopencv-dev git"
+            # Note: CUDA installation in WSL would need to be handled separately
+
+      - install-python-deps
+
+      - setup-build-cache:
+          key: "windows-build"
+
+      - run:
+          name: Configure and build
+          command: |
+            mkdir build
+            cd build
+            cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON -DWITH_OPENCV=ON ..
+            cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
+
+      - run:
+          name: Run tests
+          command: |
+            cd build
+            ctest -C Release --output-on-failure --timeout 300 --parallel $env:NUMBER_OF_PROCESSORS
+
+      - store_test_results:
+          path: build/Testing
+
+      - store_artifacts:
+          path: build/
+
+  # ────────────────────────────── Code Coverage ──────────────────────────────
+  code-coverage:
+    executor: ubuntu-cuda
+    steps:
+      - checkout
+
+      - install-build-deps:
+          cuda: true
+
+      - run:
+          name: Install lcov
+          command: |
+            apt-get update && apt-get install -y lcov libopencv-dev
+
+      - install-python-deps
+
+      - setup-build-cache:
+          key: "coverage-build"
+
+      - cmake-build:
+          cuda: true
+          opencv: true
+          coverage: true
+
+      - run:
+          name: Run tests with coverage
+          command: |
+            cd build
+            ctest --output-on-failure --timeout 300 --parallel $(nproc)
+
+      - run:
+          name: Generate coverage report
+          command: |
+            cd build
+            lcov --capture --directory . --exclude '*/_deps/*' --output-file coverage.info
+            lcov --remove coverage.info '/usr/*' --output-file coverage.info
+            genhtml coverage.info --output-directory coverage
+
+      - run:
+          name: Upload coverage reports to Codecov
+          command: npx codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" -t $CODECOV_TOKEN
+
+      - store_artifacts:
+          path: build/coverage/
+
+  # ────────────────────────────── Performance Benchmarks ──────────────────────────────
+  benchmark:
+    executor: macos-metal
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Set executable permissions
+          command: chmod +x build/bin/*
+
+      - run:
+          name: Run benchmarks
+          command: |
+            cd build
+            ./bin/benchmark_metal_shim --benchmark_min_time=1s
+
+      - store_artifacts:
+          path: benchmark-results/
+
+  # ────────────────────────────── Docker Build ──────────────────────────────
+  docker-build:
+    parameters:
+      cuda-version:
+        type: string
+        default: ""
+    docker:
+      - image: cimg/docker:20.10
+    resource_class: large
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          version: 20.10.24
+
+      - docker/install-docker-credential-helper
+
+      - run:
+          name: Set up Docker Buildx
+          command: docker buildx create --use
+
+      - when:
+          condition:
+            not:
+              equal: [<< parameters.cuda-version >>, ""]
+          steps:
+            - run:
+                name: Build CUDA Docker image
+                command: |
+                  TAG="hybrid-compute-gpu:${CIRCLE_SHA1}"
+                  docker build \
+                    -f Dockerfile.cuda \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --cache-from hybrid-compute-gpu:latest \
+                    -t $TAG \
+                    --push \
+                    .
+
+            - run:
+                name: Test CUDA container
+                command: |
+                  TAG="hybrid-compute-gpu:${CIRCLE_SHA1}"
+                  docker run --rm $TAG ls -la /app/
+      - when:
+          condition:
+            equal: [<< parameters.cuda-version >>, ""]
+          steps:
+            - run:
+                name: Build CPU Docker image
+                command: |
+                  TAG="hybrid-compute-cpu:${CIRCLE_SHA1}"
+                  docker build \
+                    -f Dockerfile \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --cache-from hybrid-compute-cpu:latest \
+                    -t $TAG \
+                    --push \
+                    .
+
+            - run:
+                name: Test CPU container
+                command: |
+                  TAG="hybrid-compute-cpu:${CIRCLE_SHA1}"
+                  docker run --rm $TAG ls -la /app/
+
+  # ────────────────────────────── Security Scan ──────────────────────────────
+  security-scan:
+    docker:
+      - image: cimg/docker:20.10.24
+    resource_class: medium
+    steps:
+      - checkout
+
+      - run:
+          name: Install Trivy
+          command: |
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
+            echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/trivy.list
+            apt-get update
+            apt-get install -y trivy
+
+      - run:
+          name: Scan CUDA image
+          command: |
+            trivy image --format sarif --output cuda-scan.sarif hybrid-compute-gpu:${CIRCLE_SHA1}
+
+      - run:
+          name: Scan CPU image
+          command: |
+            trivy image --format sarif --output cpu-scan.sarif hybrid-compute-cpu:${CIRCLE_SHA1}
+
+      - store_artifacts:
+          path: cuda-scan.sarif
+      - store_artifacts:
+          path: cpu-scan.sarif
+
+  # ────────────────────────────── Release ──────────────────────────────
+  release:
+    docker:
+      - image: cimg/node:18
+    resource_class: medium
+    steps:
+      - checkout
+
+      - run:
+          name: Install release-please
+          command: npm install -g release-please
+
+      - run:
+          name: Create release
+          command: |
+            if [ "$CIRCLE_BRANCH" = "main" ] && [ "$CIRCLECI" = "true" ]; then
+              release-please release-pr \
+                --repo-url=https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME \
+                --token=$GITHUB_TOKEN \
+                --skip-github-pull-request=true
+            fi
+
+# ────────────────────────────────────────────────────────────────────────────────
+# Workflows
+# ────────────────────────────────────────────────────────────────────────────────
+
+workflows:
+  version: 2
+
+  # Main CI workflow
+  ci:
+    when:
+      not: << pipeline.parameters.run-nightly >>
+    jobs:
+      - code-quality
+
+      - python-tests:
+          matrix:
+            parameters:
+              python-version: ["3.9", "3.10", "3.11", "3.12"]
+          requires:
+            - code-quality
+
+      - build-linux-cuda:
+          requires:
+            - code-quality
+
+      - build-linux-cpu:
+          requires:
+            - code-quality
+
+      - build-macos-metal:
+          requires:
+            - code-quality
+
+      - build-windows-cuda:
+          requires:
+            - code-quality
+
+      - code-coverage:
+          requires:
+            - build-linux-cuda
+
+      - benchmark:
+          requires:
+            - build-macos-metal
+
+      - docker-build:
+          matrix:
+            parameters:
+              cuda-version: ["13.0.1", ""]
+          requires:
+            - build-linux-cuda
+            - build-linux-cpu
+            - build-macos-metal
+
+      - security-scan:
+          requires:
+            - docker-build
+
+      - release:
+          requires:
+            - security-scan
+            - benchmark
+            - code-coverage
+          filters:
+            branches:
+              only: main
+
+  # Nightly workflow
+  nightly:
+    when: << pipeline.parameters.run-nightly >>
+    triggers:
+      - schedule:
+          cron: "0 2 * * *"  # Daily at 2 AM UTC
+          filters:
+            branches:
+              only: main
+    jobs:
+      - code-quality
+      - python-tests
+      - build-linux-cuda
+      - build-linux-cpu
+      - build-macos-metal
+      - code-coverage
+      - benchmark
+      - docker-build
+      - security-scan
