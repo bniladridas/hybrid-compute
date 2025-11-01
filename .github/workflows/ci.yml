@@ -389,8 +389,8 @@ jobs:
         run: |
           choco install opencv --version=4.8.0
           # Find and set OpenCV_DIR
-          $opencvPath = Get-ChildItem -Path "C:\tools\opencv\build" -Recurse \
-            -Filter "OpenCVConfig.cmake" | Select-Object -First 1 | \
+          $opencvPath = Get-ChildItem -Path "C:\tools\opencv\build" -Recurse `
+            -Filter "OpenCVConfig.cmake" | Select-Object -First 1 | `
             ForEach-Object { $_.DirectoryName }
           if ($opencvPath) {
             echo "OpenCV_DIR=$opencvPath" | Out-File -FilePath $env:GITHUB_ENV -Append
