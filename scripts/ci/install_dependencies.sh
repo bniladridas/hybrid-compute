@@ -43,8 +43,24 @@ install_linux_deps() {
 # Install Python dependencies
 install_python_deps() {
     echo "Installing Python dependencies..."
-    python3 -m pip install --upgrade pip
-    pip install -r requirements.txt
+
+    # Use --user flag to avoid permission issues with system pip
+    python3 -m pip install --user --upgrade pip setuptools wheel
+
+    # Add user's Python packages to PATH if not already there
+    if [[ ":$PATH:" != *"$HOME/.local/bin"* ]]; then
+        export PATH="$HOME/.local/bin:$PATH"
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+    fi
+
+    # Install project dependencies
+    pip install --user -r requirements.txt
+
+    # Verify installation
+    if ! python3 -c "import pkg_resources; pkg_resources.require(open('requirements.txt',mode='r'))" &>/dev/null; then
+        echo "Failed to verify Python dependencies. Please check the logs."
+        exit 1
+    fi
 }
 
 # Install CUDA (if needed)
