@@ -52,11 +52,19 @@ jobs:
           sudo rm -rf /var/lib/apt/lists/*
           df -h
 
-          # Remove swap file if it exists
+          # Clean up swap file if it exists
+          echo "Cleaning up swap..."
           if [ -f /swapfile ]; then
-            sudo swapoff /swapfile || true
+            sudo swapoff /swapfile 2>/dev/null || true
             sudo rm -f /swapfile
+            echo "Swap cleaned up"
           fi
+
+          # Save build logs for debugging
+          echo "Saving build logs..."
+          mkdir -p /tmp/build_logs
+          cp build.log /tmp/build_logs/ 2>/dev/null || true
+          echo "Build logs saved to /tmp/build_logs/"
 
           # Set up environment variables
           echo "CUDA_HOME=/usr/local/cuda-12.6" >> $GITHUB_ENV
@@ -86,11 +94,15 @@ jobs:
             cmake \
             build-essential
 
-          # Add swap space to prevent OOM
-          sudo fallocate -l 4G /swapfile
+          # Add larger swap space to prevent OOM
+          echo "Setting up swap space..."
+          sudo fallocate -l 8G /swapfile
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
           sudo swapon /swapfile
+          echo "Swap status:"
+          swapon --show
+          free -h
 
           # Install OpenCV from source to ensure proper configuration
           echo "Installing OpenCV from source..."
@@ -158,9 +170,26 @@ jobs:
                 -D BUILD_opencv_python3=ON \
                 -D OPENCV_ENABLE_NONFREE=ON ..
 
-          # Build with limited parallel jobs and increased verbosity
-          make -j2 VERBOSE=1
-          sudo make install
+          # Build with limited parallel jobs, increased verbosity, and debug output
+          echo "Starting OpenCV build with detailed logging..."
+          {
+            echo "===== Build Environment ====="
+            echo "CPU Cores: $(nproc)"
+            echo "Memory: $(free -h)"
+            echo "Disk space:"
+            df -h
+            echo "============================="
+
+            # Build with detailed logging
+            make -j2 VERBOSE=1 2>&1 | tee build.log || {
+              echo "Build failed, showing last 100 lines of build.log:"
+              tail -n 100 build.log
+              exit 1
+            }
+
+            # Install
+            sudo make install
+          }
           sudo ldconfig
 
           # Verify installation
