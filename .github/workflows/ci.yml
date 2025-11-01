@@ -208,16 +208,8 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install opencv --version=4.8.0 -y
-          # Find and set OpenCV_DIR
-          $opencvPath = Get-ChildItem -Path "C:\tools\opencv\build" -Recurse `
-            -Filter "OpenCVConfig.cmake" | Select-Object -First 1 | `
-            ForEach-Object { $_.DirectoryName }
-          if ($opencvPath) {
-            echo "OpenCV_DIR=$opencvPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-          } else {
-            echo "OpenCV not found after installation"
-            exit 1
-          }
+          # Set OpenCV_DIR
+          echo "OpenCV_DIR=C:\\tools\\opencv\\build\\x64\\vc16" >> $GITHUB_ENV
 
       - name: Install dependencies and build OpenCV (Linux)
         if: runner.os == 'Linux'
@@ -387,16 +379,8 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install opencv --version=4.8.0
-          # Find and set OpenCV_DIR
-          $opencvPath = Get-ChildItem -Path "C:\tools\opencv\build" -Recurse `
-            -Filter "OpenCVConfig.cmake" | Select-Object -First 1 | `
-            ForEach-Object { $_.DirectoryName }
-          if ($opencvPath) {
-            echo "OpenCV_DIR=$opencvPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-          } else {
-            echo "OpenCV not found after installation"
-            exit 1
-          }
+          # Set OpenCV_DIR
+          echo "OpenCV_DIR=C:\\tools\\opencv\\build\\x64\\vc16" >> $GITHUB_ENV
 
       - name: Create build directory
         run: mkdir -p build
