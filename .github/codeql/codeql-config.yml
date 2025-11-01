@@ -3,39 +3,26 @@ name: "Custom CodeQL Configuration"
 
 # Disable autobuild for C/C++
 disable-default-queries: false
-queries: -security-and-quality
 
-# Specify build commands for C/C++
+# Use manual build mode for C/C++
 build-mode: manual
 
-# Configure build environment
-build-steps:
-  - command: |
-      mkdir -p build && cd build
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DBUILD_TESTS=OFF
-      make -j2
-    language: cpp
+# Configure queries
+queries:
+  - uses: security-and-quality
 
-# Configure Python analysis
-python:
-  # Don't analyze test files
-  exclude: "**/test/**"
-  # Include only source files
-  include: "**/*.py"
+# Configure paths to analyze
+paths:
+  - src/
+  - cloud_gpu/
+  - include/
+  - tests/unit/
+  - tests/performance/
 
-# Configure C++ analysis
-cpp:
-  # Don't analyze test files
-  exclude: "**/test/**"
-  # Include only source files
-  include:
-    - "**/*.cpp"
-    - "**/*.hpp"
-    - "**/*.h"
-    - "**/*.c"
-    - "**/*.cu"
-    - "**/*.cuh"
-
-# Memory settings for the CodeQL runner
-memory: 8192
-threads: 2
+# Exclude paths
+paths-ignore:
+  - '**/test/**'
+  - '**/tests/**'
+  - '**/build/**'
+  - '**/third_party/**'
+  - '**/vendor/**'
