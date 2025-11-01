@@ -206,10 +206,10 @@ jobs:
 
       - name: Install OpenCV (Windows)
         if: runner.os == 'Windows'
-        run: |
-          choco install opencv --version=4.8.0 -y
-          # Set OpenCV_DIR
-          echo "OpenCV_DIR=C:\\tools\\opencv\\build\\x64\\vc16" >> $GITHUB_ENV
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgArguments: opencv
+          vcpkgTriplet: x64-windows
 
       - name: Install dependencies and build OpenCV (Linux)
         if: runner.os == 'Linux'
@@ -375,12 +375,12 @@ jobs:
         if: runner.os == 'Linux'
         uses: ./.github/actions/install-cuda
 
-      - name: Install OpenCV (Windows)
+      - name: Setup vcpkg and install OpenCV (Windows)
         if: runner.os == 'Windows'
-        run: |
-          choco install opencv --version=4.8.0
-          # Set OpenCV_DIR
-          echo "OpenCV_DIR=C:\\tools\\opencv\\build\\x64\\vc16" >> $GITHUB_ENV
+        uses: lukka/run-vcpkg@v11
+        with:
+          runVcpkgInstall: true
+          vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Create build directory
         run: mkdir -p build
