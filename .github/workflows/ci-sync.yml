@@ -135,6 +135,16 @@ jobs:
 
       - name: Install OpenCV dependencies
         run: |
+          # Add OpenCV repository for Ubuntu 22.04
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            software-properties-common \
+            wget
+
+          # Add OpenCV repository
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+
+          # Install OpenCV and development packages
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             libopencv-dev \
@@ -150,10 +160,36 @@ jobs:
             cmake \
             build-essential
 
-          # Find OpenCV path
+          # Verify OpenCV installation and set environment variables
+          echo "Verifying OpenCV installation..."
           if pkg-config --exists opencv4; then
+            echo "OpenCV found via pkg-config"
             OPENCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4
             echo "OpenCV_DIR=$OPENCV_DIR" >> $GITHUB_ENV
+            echo "OpenCV version: $(pkg-config --modversion opencv4)"
+          else
+            echo "WARNING: OpenCV not found via pkg-config, trying alternative methods..."
+            # Try common OpenCV config locations
+            for dir in \
+              "/usr/local/lib/cmake/opencv4" \
+              "/usr/lib/x86_64-linux-gnu/cmake/opencv4" \
+              "/opt/opencv/build" \
+              "/opt/opencv4/build"; do
+              if [ -f "$dir/OpenCVConfig.cmake" ]; then
+                echo "Found OpenCV in $dir"
+                echo "OpenCV_DIR=$dir" >> $GITHUB_ENV
+                export OpenCV_DIR="$dir"
+                break
+              fi
+            done
+          fi
+
+          # Verify OpenCV is found
+          if [ -n "${OpenCV_DIR:-}" ] && [ -f "${OpenCV_DIR}/OpenCVConfig.cmake" ]; then
+            echo "OpenCV configuration verified at ${OpenCV_DIR}"
+          else
+            echo "ERROR: OpenCV configuration not found after installation"
+            exit 1
           fi
 
       - name: Initialize CodeQL
