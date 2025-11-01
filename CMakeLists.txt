@@ -528,15 +528,8 @@ if(WITH_OPENCV)
    # If not found via pkg-config, try CMake's find_package
    if(NOT OpenCV_FOUND)
      message(STATUS "Trying CMake's find_package...")
-
-     # Try Ubuntu/Debian path first
-     set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4" CACHE PATH "Path to OpenCV config")
+     message(STATUS "OpenCV_DIR is: ${OpenCV_DIR}")
      find_package(OpenCV 4.0 QUIET)
-
-     if(NOT OpenCV_FOUND)
-       set(OpenCV_DIR "/usr/local/lib/cmake/opencv4" CACHE PATH "Path to OpenCV config" FORCE)
-       find_package(OpenCV 4.0 QUIET)
-     endif()
    endif()
 
   # Try to find OpenCV in additional locations
