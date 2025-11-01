@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cuda: ["13.0"]
+        cuda: ["12.6"]
         python-version: ["3.12"]
 
     steps:
