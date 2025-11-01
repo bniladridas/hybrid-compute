@@ -539,11 +539,11 @@ if(WITH_OPENCV)
     endif()
   endif()
 
-  # If still not found, try to find in common locations
+  # Try to find OpenCV in additional locations
   if(NOT OpenCV_FOUND)
-    message(STATUS "OpenCV not found, trying common locations...")
+    message(STATUS "OpenCV not found, trying additional locations...")
 
-    # Try common OpenCV installation paths
+    # Common OpenCV installation paths
     set(OPENCV_PATHS
       /usr/local/opt/opencv@4
       /usr/local/opt/opencv
@@ -551,11 +551,31 @@ if(WITH_OPENCV)
       /usr
       /opt/homebrew/opt/opencv@4
       /opt/homebrew/opt/opencv
+      /opt/opencv
+      /opt/opencv4
     )
 
+    # Add versioned paths
+    list(APPEND OPENCV_PATHS
+      /usr/local/opt/opencv@4.5
+      /usr/local/opt/opencv@4.6
+      /opt/opencv4.5
+      /opt/opencv4.6
+    )
+
+    # Try each path
     foreach(PATH ${OPENCV_PATHS})
+      # Check for OpenCV 4.x config
       if(EXISTS "${PATH}/lib/cmake/opencv4")
         set(OpenCV_DIR "${PATH}/lib/cmake/opencv4" CACHE PATH "Path to OpenCV config" FORCE)
+        message(STATUS "Trying OpenCV at: ${OpenCV_DIR}")
+        find_package(OpenCV 4.0 QUIET)
+        if(OpenCV_FOUND)
+          break()
+        endif()
+      # Check for older OpenCV config
+      elseif(EXISTS "${PATH}/share/OpenCV")
+        set(OpenCV_DIR "${PATH}/share/OpenCV" CACHE PATH "Path to OpenCV config" FORCE)
         message(STATUS "Trying OpenCV at: ${OpenCV_DIR}")
         find_package(OpenCV 4.0 QUIET)
         if(OpenCV_FOUND)
@@ -565,29 +585,58 @@ if(WITH_OPENCV)
     endforeach()
   endif()
 
-  # If still not found, try pkg-config
+  # Try pkg-config if still not found
   if(NOT OpenCV_FOUND)
     message(STATUS "Trying pkg-config...")
     find_package(PkgConfig QUIET)
     if(PKG_CONFIG_FOUND)
+      # Try opencv4 first, then opencv
       pkg_check_modules(PC_OpenCV QUIET opencv4)
+      if(NOT PC_OpenCV_FOUND)
+        pkg_check_modules(PC_OpenCV QUIET opencv)
+      endif()
+
       if(PC_OpenCV_FOUND)
         message(STATUS "Found OpenCV ${PC_OpenCV_VERSION} via pkg-config")
         set(OpenCV_INCLUDE_DIRS ${PC_OpenCV_INCLUDE_DIRS})
         set(OpenCV_LIBRARIES ${PC_OpenCV_LIBRARIES})
         set(OpenCV_VERSION ${PC_OpenCV_VERSION})
         set(OpenCV_FOUND ${PC_OpenCV_FOUND})
+
+        # Try to find the config file based on pkg-config info
+        get_filename_component(PC_OPENCV_LIBDIR ${PC_OpenCV_LIBDIR} REALPATH)
+        if(EXISTS "${PC_OPENCV_LIBDIR}/cmake/opencv4")
+          set(OpenCV_DIR "${PC_OPENCV_LIBDIR}/cmake/opencv4" CACHE PATH "Path to OpenCV config" FORCE)
+          find_package(OpenCV 4.0 QUIET)
+        endif()
       endif()
     endif()
   endif()
 
-  # Final check
+  # Final check with debug info
   if(NOT OpenCV_FOUND)
-    message(FATAL_ERROR "OpenCV 4.0 or later is required but was not found. "
-      "Please install OpenCV and set OpenCV_DIR to point to the OpenCVConfig.cmake file.\n"
+    message(STATUS "\n--- OpenCV Detection Failed ---")
+    message(STATUS "Searched in:")
+    message(STATUS "  - Standard system paths")
+    message(STATUS "  - Common installation prefixes: ${OPENCV_PATHS}")
+    message(STATUS "  - pkg-config paths")
+
+    # Try to find any OpenCV installation
+    file(GLOB_RECURSE OPENCV_CONFIG_FILES "*/OpenCVConfig.cmake" "*/opencv-config.cmake")
+    if(OPENCV_CONFIG_FILES)
+      message(STATUS "\nFound possible OpenCV config files at:")
+      foreach(FILE ${OPENCV_CONFIG_FILES})
+        message(STATUS "  - ${FILE}")
+      endforeach()
+      message(STATUS "\nPlease set OpenCV_DIR to the directory containing OpenCVConfig.cmake")
+    endif()
+
+    message(FATAL_ERROR "\nOpenCV 4.0 or later is required but was not found.\n"
+      "Please install OpenCV and set OpenCV_DIR to point to the OpenCVConfig.cmake file.\n\n"
       "On Ubuntu/Debian, you can install it with:\n"
-      "  sudo apt-get install libopencv-dev\n\n"
-      "Or download it from: https://opencv.org/releases/")
+      "  sudo apt-get update && sudo apt-get install -y \\n    libopencv-dev \\n    libopencv-core-dev \\n    libopencv-imgproc-dev \\n    libopencv-highgui-dev \\n    libopencv-imgcodecs-dev \\n    libopencv-videoio-dev\\n\n"
+      "Or download it from: https://opencv.org/releases/\n"
+      "After installation, set the OpenCV_DIR environment variable to the directory containing OpenCVConfig.cmake")
   endif()
 
   # Final checks
