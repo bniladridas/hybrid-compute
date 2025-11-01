@@ -89,13 +89,23 @@ commands:
                   echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> $BASH_ENV
 
   install-python-deps:
-    description: "Install Python dependencies"
+    description: "Install Python dependencies in a virtual environment"
     steps:
       - run:
-          name: Install Python dependencies
+          name: Set up Python virtual environment
           command: |
-            python3 -m pip install --upgrade pip
-            pip3 install -r requirements.txt
+            # Install system dependencies
+            apt-get update && apt-get install -y --no-install-recommends \
+              python3-venv python3-pip
+
+            # Create and activate virtual environment
+            python3 -m venv ~/venv
+            echo 'source ~/venv/bin/activate' >> $BASH_ENV
+            source ~/venv/bin/activate
+
+            # Upgrade pip and install dependencies
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
 
   setup-build-cache:
     description: "Set up build caching"
