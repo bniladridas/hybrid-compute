@@ -204,7 +204,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies and build OpenCV
+      - name: Install OpenCV (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install opencv --version=4.8.0 -y
+          # Find and set OpenCV_DIR
+          $opencvPath = Get-ChildItem -Path "C:\tools\opencv\build\x64\vc16\lib" `
+            -Recurse -Filter "OpenCVConfig.cmake" | Select-Object -First 1 | `
+            ForEach-Object { $_.DirectoryName }
+          if ($opencvPath) {
+            Write-Host "##[set-env name=OpenCV_DIR]${opencvPath}"
+            Add-Content $env:GITHUB_ENV "OpenCV_DIR=${opencvPath}"
+          } else {
+            Write-Error "OpenCV not found after installation"
+            exit 1
+          }
+
+      - name: Install dependencies and build OpenCV (Linux)
         if: runner.os == 'Linux'
         run: |
           # Update package lists
