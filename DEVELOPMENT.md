@@ -180,10 +180,66 @@ If you encounter permission issues, try:
 sudo chown -R $(whoami) build/
 ```
 
+## CI/CD Pipeline
+
+The project uses both GitHub Actions and CircleCI for comprehensive continuous integration and deployment.
+
+### Pre-commit Hooks
+
+Before committing, ensure code quality with pre-commit hooks:
+
+```bash
+# Install pre-commit (if not already installed)
+pip install pre-commit
+
+# Install hooks
+pre-commit install
+
+# Run on all files
+pre-commit run --all-files
+```
+
+### Code Quality Checks
+
+The CI pipeline enforces:
+- **Python formatting** with Black and isort
+- **Linting** with Ruff
+- **YAML validation** with yamllint
+- **File consistency** checks
+- **Security analysis** with CodeQL
+- **Container scanning** with Trivy
+
+### Commit Message Format
+
+Use conventional commit format:
+
+```
+type(scope): description
+
+# Examples:
+feat(auth): add login functionality
+fix(ui): resolve button alignment issue
+docs(readme): update installation instructions
+```
+
+### Testing
+
+Run tests locally before pushing:
+
+```bash
+# Build and test
+mkdir -p build && cd build
+cmake .. -DBUILD_TESTS=ON
+make
+ctest --output-on-failure
+```
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+3. Run pre-commit hooks: `pre-commit run --all-files`
+4. Commit with conventional format
+5. Run tests locally
+6. Push to the branch
+7. Create a Pull Request
