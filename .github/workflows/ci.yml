@@ -101,33 +101,26 @@ jobs:
 
       - name: Build with CodeQL (C++)
         if: matrix.language == 'cpp'
-        shell: bash
+        env:
+          OpenCV_DIR: ${{ env.OpenCV_DIR || '/usr/lib/x86_64-linux-gnu/cmake/opencv4' }}
+          CC: ${{ matrix.env.CC }}
+          CXX: ${{ matrix.env.CXX }}
         run: |
-          # First clean any previous build
-          rm -rf build
-
           # Create build directory and configure with OpenCV
           mkdir -p build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_CUDA=OFF \
-            -DBUILD_TESTS=OFF \
-            -DOpenCV_DIR="${OpenCV_DIR:-/usr/lib/x86_64-linux-gnu/cmake/opencv4}" \
+            -DOpenCV_DIR="${OpenCV_DIR}" \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
           # Build with CodeQL's build tracing
-          # The init step should have set up the environment for codeql
-          codeql database create cpp-database --language=cpp --command="make -j2"
+          cmake --build . --config Release -- -j2
 
-          # Run the analysis
-          codeql database analyze cpp-database --format=sarifv2.1.0 --output=../codeql-results.sarif
-
-          # Upload results
-          echo "CODEQL_RESULTS=codeql-results.sarif" >> $GITHUB_ENV
-
-      - name: Analyze with CodeQL
-        if: matrix.language != 'cpp'  # For non-C++ languages, use the standard analysis
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
 
   # ────────────────────────────── Lint & Polish ──────────────────────────────
   lint-and-polish:
