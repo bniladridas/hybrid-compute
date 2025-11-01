@@ -344,11 +344,12 @@ jobs:
             CODEQL_DIR="${HOME}/codeql"
             CODEQL_URL="https://github.com/github/codeql-action/releases/download/codeql-bundle-${CODEQL_VERSION}"
 
-            # Install build tools
-            apt-get update && apt-get install -y --no-install-recommends \
-                cmake build-essential gcc g++ make \
-                git python3 python3-pip python3-venv \
-                && rm -rf /var/lib/apt/lists/*
+             # Install build tools and OpenCV
+             apt-get update && apt-get install -y --no-install-recommends \
+                 cmake build-essential gcc g++ make \
+                 git python3 python3-pip python3-venv \
+                 libopencv-dev \
+                 && rm -rf /var/lib/apt/lists/*
 
             # Create directory in the home folder
             mkdir -p ${CODEQL_DIR}
@@ -366,8 +367,13 @@ jobs:
             echo 'export CODEQL_ALLOW_INSTALLATION_ANYWHERE=true' >> $BASH_ENV
             source $BASH_ENV
 
-            # Verify installation
-            codeql --version || { echo 'CodeQL installation failed'; exit 1; }
+             # Verify installation
+             codeql --version || { echo 'CodeQL installation failed'; exit 1; }
+
+             # Set OpenCV_DIR
+             if [ -d "/usr/lib/x86_64-linux-gnu/cmake/opencv4" ]; then
+               echo "OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4" >> $BASH_ENV
+             fi
 
       - run:
           name: Initialize CodeQL
