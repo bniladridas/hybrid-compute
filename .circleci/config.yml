@@ -303,10 +303,11 @@ commands:
             if [ "<< parameters.benchmark >>" = "true" ]; then
               CMAKE_ARGS="$CMAKE_ARGS -DENABLE_BENCHMARK=ON"
             fi
-            if [ "<< parameters.coverage >>" = "true" ]; then
-              CMAKE_ARGS="$CMAKE_ARGS -DCOVERAGE=ON"
-            fi
-            cmake $CMAKE_ARGS ..
+             if [ "<< parameters.coverage >>" = "true" ]; then
+               CMAKE_ARGS="$CMAKE_ARGS -DCOVERAGE=ON"
+             fi
+             echo "CMAKE_ARGS: $CMAKE_ARGS"
+             cmake $CMAKE_ARGS ..
 
       - run:
           name: Build project
@@ -528,6 +529,8 @@ jobs:
   # ────────────────────────────── Build & Test Linux CPU ──────────────────────────────
   build-linux-cpu:
     executor: linux
+    environment:
+      OpenCV_DIR: /usr/lib/x86_64-linux-gnu/cmake/opencv4
     steps:
       - checkout
 
