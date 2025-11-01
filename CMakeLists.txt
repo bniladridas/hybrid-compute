@@ -499,8 +499,19 @@ if(APPLE)
   message(STATUS "Hybrid compute shim configured for Metal")
 endif()
 
-# Make OpenCV optional
-option(WITH_OPENCV "Build with OpenCV support" OFF)
+# Make OpenCV optional but enabled by default
+option(WITH_OPENCV "Build with OpenCV support" ON)
+
+# Find OpenCV
+if(WITH_OPENCV)
+  find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs highgui)
+  if(OpenCV_FOUND)
+    include_directories(${OpenCV_INCLUDE_DIRS})
+    message(STATUS "OpenCV found: ${OpenCV_VERSION}")
+  else()
+    message(FATAL_ERROR "OpenCV not found but is required. Please install OpenCV development packages.")
+  endif()
+endif()
 
 # Code coverage
 option(COVERAGE "Enable code coverage" OFF)
