@@ -1,0 +1,29 @@
+---
+name: 'Setup vcpkg'
+description: |
+  Install vcpkg and dependencies for Windows CI builds.
+  Clones vcpkg, checks out the specified baseline, bootstraps, integrates with CMake,
+  and installs specified packages.
+
+inputs:
+  baseline:
+    description: 'vcpkg baseline commit ID'
+    required: true
+    default: 'f7423ee180c4b7f4c4bde78b8f577f7f7119f48c'
+  packages:
+    description: 'Space-separated list of packages to install'
+    required: true
+    default: 'opencv'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup vcpkg
+      shell: bash
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git --depth 1
+        cd vcpkg
+        git checkout ${{ inputs.baseline }}
+        .\bootstrap-vcpkg.bat
+        .\vcpkg integrate install
+        .\vcpkg install ${{ inputs.packages }}

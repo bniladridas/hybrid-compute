@@ -206,13 +206,7 @@ jobs:
 
       - name: Setup vcpkg
         if: runner.os == 'Windows'
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git --depth 1
-          cd vcpkg
-          git checkout f7423ee180c4b7f4c4bde78b8f577f7f7119f48c
-          .\bootstrap-vcpkg.bat
-          .\vcpkg integrate install
-          .\vcpkg install opencv
+        uses: ./.github/actions/setup-vcpkg
 
       - name: Install dependencies and build OpenCV (Linux)
         if: runner.os == 'Linux'
