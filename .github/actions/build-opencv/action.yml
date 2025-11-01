@@ -1,0 +1,101 @@
+---
+name: 'Build OpenCV from source'
+description: |
+  Build and install OpenCV from source for Linux CI builds.
+  Clones OpenCV and contrib, configures with CMake, builds, and installs.
+
+inputs:
+  opencv-version:
+    description: 'OpenCV version to build'
+    required: false
+    default: '4.6.0'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Build OpenCV from source
+      shell: bash
+      run: |
+        # Create build directory
+        mkdir -p ~/opencv_build
+        cd ~/opencv_build
+
+        # Clone OpenCV and opencv_contrib
+        git clone https://github.com/opencv/opencv.git
+        git clone https://github.com/opencv/opencv_contrib.git
+
+        # Checkout a stable version (4.6.0)
+        cd opencv
+        git checkout ${{ inputs.opencv-version }}
+        cd ../opencv_contrib
+        git checkout ${{ inputs.opencv-version }}
+        cd ../opencv
+
+        # Create build directory
+        mkdir -p build
+        cd build
+
+        # Configure with default options
+        cmake -D CMAKE_BUILD_TYPE=RELEASE \
+              -D CMAKE_INSTALL_PREFIX=/usr/local \
+              -D OPENCV_GENERATE_PKGCONFIG=ON \
+              -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
+              -D WITH_CUDA=OFF \
+              -D WITH_GTK=ON \
+              -D WITH_QT=OFF \
+              -D WITH_OPENGL=ON \
+              -D WITH_VTK=OFF \
+              -D WITH_TBB=ON \
+              -D WITH_OPENMP=ON \
+              -D WITH_FFMPEG=ON \
+              -D INSTALL_C_EXAMPLES=OFF \
+              -D INSTALL_PYTHON_EXAMPLES=OFF \
+              -D BUILD_EXAMPLES=OFF \
+              -D BUILD_DOCS=OFF \
+              -D BUILD_TESTS=OFF \
+              -D BUILD_PERF_TESTS=OFF \
+              -D BUILD_opencv_java=OFF \
+              -D BUILD_opencv_python2=OFF \
+              -D BUILD_opencv_python3=ON \
+              -D PYTHON3_EXECUTABLE=$(which python3) \
+              -D PYTHON3_INCLUDE_DIR=$(python3 -c \
+                "from distutils.sysconfig import get_python_inc; print(get_python_inc())") \
+              -D PYTHON3_PACKAGES_PATH=$(python3 -c \
+                "from distutils.sysconfig import get_python_lib; print(get_python_lib())") \
+              -D PYTHON3_LIBRARY=$(python3 -c \
+                "from distutils.sysconfig import get_config_var;"\
+                "from os.path import dirname,join;"\
+                "print(join(dirname(get_config_var('LIBPC')),"\
+                "get_config_var('LDLIBRARY')))") \
+              ../opencv
+
+        # Build with limited parallel jobs, increased verbosity, and debug output
+        echo "Starting OpenCV build with detailed logging..."
+        {
+          echo "===== Build Environment ====="
+          echo "CPU Cores: $(nproc)"
+          echo "Memory: $(free -h)"
+          echo "Disk space:"
+          df -h
+          echo "============================="
+
+          # Build with detailed logging
+          make -j2 VERBOSE=1 2>&1 | tee build.log || {
+            echo "Build failed, showing last 100 lines of build.log:"
+            tail -n 100 build.log
+            exit 1
+          }
+
+          # Install
+          sudo make install
+        }
+        sudo ldconfig
+
+        # Verify installation
+        echo "OpenCV version: $(pkg-config --modversion opencv4)"
+        echo "Setting OpenCV_DIR to /usr/local/lib/cmake/opencv4"
+        echo "OpenCV_DIR=/usr/local/lib/cmake/opencv4" >> $GITHUB_ENV
+
+        # Clean up
+        cd ~
+        rm -rf ~/opencv_build
