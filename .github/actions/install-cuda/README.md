@@ -73,4 +73,4 @@ This action sets the following environment variables:
 
 ## License
 
-This project is licensed under the terms of the MIT license.
+This project is licensed under the [Apache License 2.0](LICENSE).
