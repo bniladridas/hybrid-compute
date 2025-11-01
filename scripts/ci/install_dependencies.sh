@@ -221,13 +221,27 @@ install_cuda() {
     # Create symlinks for backward compatibility
     $SUDO ln -sf /usr/local/cuda-12.3 /usr/local/cuda
 
-    # Add cuDNN to library path
-    echo 'export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"' >> ~/.bashrc
-    export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+    # Initialize LD_LIBRARY_PATH if not set
+    if [ -z "${LD_LIBRARY_PATH:-}" ]; then
+        export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu"
+    else
+        export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+    fi
 
-    # Add CUDA to PATH
+    # Add cuDNN to library path
+    echo 'if [ -z "${LD_LIBRARY_PATH:-}" ]; then' >> ~/.bashrc
+    echo '    export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu"' >> ~/.bashrc
+    echo 'else' >> ~/.bashrc
+    echo '    export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"' >> ~/.bashrc
+    echo 'fi' >> ~/.bashrc
+
+    # Add CUDA to PATH and update LD_LIBRARY_PATH
     echo 'export PATH="/usr/local/cuda/bin:$PATH"' >> ~/.bashrc
-    echo 'export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"' >> ~/.bashrc
+    echo 'if [ -z "${LD_LIBRARY_PATH:-}" ]; then' >> ~/.bashrc
+    echo '    export LD_LIBRARY_PATH="/usr/local/cuda/lib64"' >> ~/.bashrc
+    echo 'else' >> ~/.bashrc
+    echo '    export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"' >> ~/.bashrc
+    echo 'fi' >> ~/.bashrc
     export PATH="/usr/local/cuda/bin:$PATH"
     export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
 
