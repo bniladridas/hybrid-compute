@@ -150,9 +150,71 @@ jobs:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            cmake build-essential libopencv-dev git \
-             && sudo rm -rf /var/lib/apt/lists/*
+          # Update package lists
+          sudo apt-get update -y
+
+          # Install build essentials and dependencies
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            cmake \
+            build-essential \
+            git \
+            pkg-config \
+            wget \
+            python3 \
+            python3-pip \
+            python3-dev \
+            libtbb-dev \
+            libgtk-3-dev \
+            libjpeg-dev \
+            libpng-dev \
+            libtiff-dev \
+            libavcodec-dev \
+            libavformat-dev \
+            libswscale-dev \
+            libv4l-dev \
+            libxvidcore-dev \
+            libx264-dev \
+            libatlas-base-dev \
+            gfortran \
+            libhdf5-dev \
+            libhdf5-serial-dev \
+            libopenexr-dev \
+            gcc-11 g++-11
+
+          # Install OpenCV and its development files
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            libopencv-dev \
+            libopencv-core-dev \
+            libopencv-highgui-dev \
+            libopencv-imgproc-dev \
+            libopencv-imgcodecs-dev \
+            libopencv-videoio-dev \
+            libopencv-calib3d-dev \
+            libopencv-features2d-dev \
+            libopencv-ml-dev \
+            libopencv-objdetect-dev \
+            libopencv-stitching-dev \
+            libopencv-videostab-dev \
+            python3-opencv
+
+          # Clean up to reduce image size
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+          # Debug: Show OpenCV installation info
+          echo "OpenCV installation check:"
+          pkg-config --modversion opencv4 || echo "OpenCV not found via pkg-config"
+
+          # Try to find OpenCV config file
+          echo -e "\nSearching for OpenCV config files..."
+          find /usr /opt -name "OpenCVConfig.cmake" -o -name "opencv4.pc" 2>/dev/null || true
+
+          # Set OpenCV_DIR if found
+          if [ -d "/usr/lib/x86_64-linux-gnu/cmake/opencv4" ]; then
+            echo "OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4" >> $GITHUB_ENV
+          elif [ -d "/usr/local/lib/cmake/opencv4" ]; then
+            echo "OpenCV_DIR=/usr/local/lib/cmake/opencv4" >> $GITHUB_ENV
+          fi
 
       - name: Install CUDA
         if: runner.os == 'Linux'
@@ -179,12 +241,24 @@ jobs:
         run: |
           mkdir -p build
           cd build
-           if [ "${{ matrix.cuda }}" != "" ]; then
-             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
-               -DWITH_OPENCV=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
-           else
-             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
-           fi
+           # Print environment for debugging
+          echo "Environment variables:"
+          env | sort
+
+          # Configure with OpenCV
+          if [ "${{ matrix.cuda }}" != "" ]; then
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
+              -DWITH_OPENCV=ON \
+              -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES \
+              -DOpenCV_DIR=${{ env.OpenCV_DIR }} \
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+          else
+            cmake .. -DCMAKE_BUILD_TYPE=Release \
+              -DUSE_CUDA=OFF \
+              -DWITH_OPENCV=ON \
+              -DOpenCV_DIR=${{ env.OpenCV_DIR }} \
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+          fi
           if [ "$RUNNER_OS" == "Windows" ]; then
             cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
           else
