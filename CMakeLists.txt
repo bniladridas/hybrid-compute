@@ -504,10 +504,28 @@ option(WITH_OPENCV "Build with OpenCV support" ON)
 
 # Find OpenCV
 if(WITH_OPENCV)
-  find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs highgui)
+  # Try to find OpenCV using pkg-config first
+  find_package(PkgConfig QUIET)
+  if(PKG_CONFIG_FOUND)
+    pkg_check_modules(PC_OpenCV QUIET opencv4)
+  endif()
+
+  # Set OpenCV directory hints
+  set(OpenCV_DIR "${OpenCV_DIR}" CACHE PATH "Path to OpenCV config directory")
+
+  # Find OpenCV package
+  find_package(OpenCV 4.0 QUIET COMPONENTS core imgproc imgcodecs highgui)
+
+  if(NOT OpenCV_FOUND)
+    # If not found, try to find without components
+    find_package(OpenCV 4.0 REQUIRED)
+  endif()
+
   if(OpenCV_FOUND)
     include_directories(${OpenCV_INCLUDE_DIRS})
     message(STATUS "OpenCV found: ${OpenCV_VERSION}")
+    message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
+    message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
   else()
     message(FATAL_ERROR "OpenCV not found but is required. Please install OpenCV development packages.")
   endif()

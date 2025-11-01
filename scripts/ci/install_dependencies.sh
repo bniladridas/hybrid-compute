@@ -41,7 +41,29 @@ install_linux_deps() {
         libopencv-highgui-dev \
         libopencv-imgproc-dev \
         libopencv-imgcodecs-dev \
+        libopencv-videoio-dev \
+        libtbb-dev \
+        libgtk-3-dev \
+        libjpeg-dev \
+        libpng-dev \
+        libtiff-dev \
+        libavcodec-dev \
+        libavformat-dev \
+        libswscale-dev \
+        libv4l-dev \
+        libxvidcore-dev \
+        libx264-dev \
         && $SUDO rm -rf /var/lib/apt/lists/*
+
+    # Verify OpenCV installation
+    if ! pkg-config --exists opencv4; then
+        echo "OpenCV not found via pkg-config, trying alternative installation method..."
+        $SUDO apt-get update && $SUDO apt-get install -y --no-install-recommends \
+            libopencv4 \
+            libopencv4-dev \
+            libopencv4-opencv-apps \
+            && $SUDO rm -rf /var/lib/apt/lists/*
+    fi
 }
 
 # Install Python dependencies
