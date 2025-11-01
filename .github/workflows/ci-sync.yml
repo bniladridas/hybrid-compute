@@ -36,7 +36,14 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          cmake .. -DUSE_CUDA=ON -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda -DBUILD_TESTS=ON
+          # Set CUDA architecture if needed (example: for RTX 30xx cards)
+          export CUDA_ARCHITECTURES="80"  # Ampere architecture
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_CUDA=ON \
+            -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.3 \
+            -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-} \
+            -DBUILD_TESTS=ON
 
       - name: Build
         run: |
