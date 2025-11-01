@@ -378,7 +378,8 @@ jobs:
       - run:
           name: Initialize CodeQL
           command: |
-            # Create build directory and run CMake with C++20 and Objective-C++17 standards
+            # Clean and create build directory
+            rm -rf build
             mkdir -p build && cd build
             cmake .. \
               -DCMAKE_BUILD_TYPE=Release \
