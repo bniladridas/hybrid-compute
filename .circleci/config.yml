@@ -61,8 +61,22 @@ commands:
         type: boolean
         default: false
     steps:
+      - run:
+          name: Install Linux dependencies
+          command: |
+            # Skip if not in CI environment
+            if [ -z "$CIRCLECI" ] || [ "$CIRCLECI" = "false" ]; then
+              echo "Skipping Linux dependency installation in non-CI environment"
+              exit 0
+            fi
+
+            apt-get update && apt-get install -y --no-install-recommends \
+              cmake build-essential libopencv-dev git pkg-config wget \
+              python3 python3-pip python3-dev \
+              && rm -rf /var/lib/apt/lists/*
+
       - when:
-          condition: {equal: ["linux", << pipeline.platform >>]}
+          condition: << parameters.cuda >>
           steps:
             - run:
                 name: Install Linux dependencies
