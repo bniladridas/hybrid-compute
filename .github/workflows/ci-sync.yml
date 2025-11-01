@@ -133,23 +133,46 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for CodeQL
 
+      - name: Install OpenCV dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libopencv-dev \
+            libopencv-core-dev \
+            libopencv-highgui-dev \
+            libopencv-imgproc-dev \
+            libopencv-imgcodecs-dev \
+            libopencv-videoio-dev \
+            libopencv-calib3d-dev \
+            libopencv-features2d-dev \
+            python3-opencv \
+            pkg-config \
+            cmake \
+            build-essential
+
+          # Find OpenCV path
+          if pkg-config --exists opencv4; then
+            OPENCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4
+            echo "OpenCV_DIR=$OPENCV_DIR" >> $GITHUB_ENV
+          fi
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
           config-file: .github/codeql/codeql-config.yml
 
-      - name: Build
+      - name: Build with CodeQL
         run: |
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DBUILD_TESTS=OFF
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_CUDA=OFF \
+            -DBUILD_TESTS=OFF \
+            -DOpenCV_DIR="${OpenCV_DIR:-/usr/lib/x86_64-linux-gnu/cmake/opencv4}" \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           make -j$(nproc)
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "/language:cpp"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
