@@ -1,10 +1,30 @@
 #!/bin/bash
 set -euo pipefail
 
+# Function to check if running with sudo
+check_sudo() {
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "This script requires root privileges. Please run with sudo or as root."
+        exit 1
+    fi
+}
+
 # Install system dependencies for Linux
 install_linux_deps() {
     echo "Installing Linux dependencies..."
-    apt-get update && apt-get install -y --no-install-recommends \
+    # Check if running with sudo in CI environment
+    if [ -z "${CI:-}" ] && [ "$(id -u)" -ne 0 ]; then
+        echo "This script requires root privileges. Please run with sudo or as root."
+        exit 1
+    fi
+
+    # Use sudo if not root
+    local SUDO=""
+    if [ "$(id -u)" -ne 0 ]; then
+        SUDO=sudo
+    fi
+
+    $SUDO apt-get update && $SUDO apt-get install -y --no-install-recommends \
         cmake \
         build-essential \
         libopencv-dev \
@@ -17,7 +37,7 @@ install_linux_deps() {
         clang \
         llvm \
         lld \
-        && rm -rf /var/lib/apt/lists/*
+        && $SUDO rm -rf /var/lib/apt/lists/*
 }
 
 # Install Python dependencies
@@ -31,13 +51,20 @@ install_python_deps() {
 install_cuda() {
     if [ "${USE_CUDA:-0}" = "1" ]; then
         echo "Installing CUDA dependencies..."
+
+        # Use sudo if not root
+        local SUDO=""
+        if [ "$(id -u)" -ne 0 ]; then
+            SUDO=sudo
+        fi
+
         # Install CUDA repository key
         wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
-        dpkg -i cuda-keyring_1.1-1_all.deb
-        apt-get update
+        $SUDO dpkg -i cuda-keyring_1.1-1_all.deb
+        $SUDO apt-get update
 
         # Install CUDA toolkit
-        apt-get install -y --no-install-recommends cuda-toolkit-12-3
+        $SUDO apt-get install -y --no-install-recommends cuda-toolkit-12-3
 
         # Add CUDA to PATH
         echo 'export PATH="/usr/local/cuda/bin:$PATH"' >> ~/.bashrc
@@ -46,7 +73,10 @@ install_cuda() {
         export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
 
         # Verify installation
-        nvcc --version
+        nvcc --version || {
+            echo "Failed to verify CUDA installation. Please check the logs."
+            exit 1
+        }
     fi
 }
 

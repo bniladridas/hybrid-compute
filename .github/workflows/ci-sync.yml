@@ -28,7 +28,9 @@ jobs:
         run: |
           chmod +x scripts/ci/install_dependencies.sh
           export USE_CUDA=1
-          ./scripts/ci/install_dependencies.sh
+          export CI=true
+          # Use sudo to run the installation
+          sudo -E ./scripts/ci/install_dependencies.sh
 
       - name: Configure CMake
         run: |
