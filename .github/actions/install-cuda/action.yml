@@ -1,9 +1,43 @@
 ---
-name: 'Install CUDA'
-description: 'Install CUDA compiler and libraries for Ubuntu'
+name: 'Install CUDA Toolkit'
+description: |
+  Install CUDA compiler and libraries for Ubuntu with version selection and validation.
+  This action handles the installation of CUDA toolkit, sets up environment variables,
+  and verifies the installation.
+
+inputs:
+  cuda-version:
+    description: 'CUDA version to install (e.g., 12.6)'
+    required: true
+    default: '12.6'
+  cuda-architectures:
+    description: 'Comma-separated list of CUDA architectures to target (e.g., "75,80,86")'
+    required: false
+    default: '75,80,86'
+  install-dependencies:
+    description: 'Whether to install build dependencies'
+    required: false
+    default: 'true'
+
 runs:
   using: 'composite'
   steps:
-    - name: Install CUDA
+    - name: Install CUDA ${{ inputs.cuda-version }}
       shell: bash
-      run: bash scripts/install_cuda.sh
+      run: |
+        bash "${{ github.workspace }}/scripts/install_cuda.sh" \
+          "${{ inputs.cuda-version }}" \
+          "${{ inputs.cuda-architectures }}" \
+          "${{ inputs.install-dependencies }}"
+      env:
+        RUNNER_OS: ${{ runner.os }}
+        RUNNER_ARCH: ${{ runner.arch }}
+
+    - name: Set up environment variables
+      shell: bash
+      run: |
+        echo "CUDA_HOME=/usr/local/cuda" >> $GITHUB_ENV
+        echo "PATH=/usr/local/cuda/bin:$PATH" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        echo "CUDACXX=/usr/local/cuda/bin/nvcc" >> $GITHUB_ENV
+        echo "CMAKE_CUDA_ARCHITECTURES=${{ inputs.cuda-architectures }}" >> $GITHUB_ENV
