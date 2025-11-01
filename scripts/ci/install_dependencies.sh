@@ -110,21 +110,29 @@ install_cuda() {
 
     # Install cuDNN from NVIDIA's repository
     echo "Installing cuDNN..."
-    CUDNN_DEB="cudnn-local-repo-ubuntu2204-8.9.7.29_1.0-1_amd64.deb"
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/${CUDNN_DEB}
-    $SUDO dpkg -i ${CUDNN_DEB}
 
-    # Copy the keyring
-    $SUDO cp /var/cudnn-local-repo-*/cudnn-*-keyring.gpg /usr/share/keyrings/
-
-    # Install cuDNN runtime and dev packages
+    # Add NVIDIA's repository key for cuDNN
     $SUDO apt-get update
     $SUDO apt-get install -y --no-install-recommends \
         libcudnn8=8.9.7.*-1+cuda12.3 \
-        libcudnn8-dev=8.9.7.*-1+cuda12.3
+        libcudnn8-dev=8.9.7.*-1+cuda12.3 || {
+            echo "Warning: Failed to install cuDNN 8.9.7. Trying alternative installation method..."
 
-    # Clean up
-    rm -f ${CUDNN_DEB}
+            # Alternative method: Install from the CUDA repository
+            $SUDO apt-get install -y --no-install-recommends \
+                libcudnn8 \
+                libcudnn8-dev \
+                cuda-nvtx-12-3 \
+                cuda-nvml-dev-12-3 \
+                cuda-command-line-tools-12-3 \
+                cuda-libraries-dev-12-3 \
+                cuda-minimal-build-12-3 \
+                libcublas-dev-12-3 \
+                libcufft-dev-12-3 \
+                libcurand-dev-12-3 \
+                libcusolver-dev-12-3 \
+                libcusparse-dev-12-3
+        }
 
     # Create symlinks for backward compatibility
     $SUDO ln -sf /usr/local/cuda-12.3 /usr/local/cuda
