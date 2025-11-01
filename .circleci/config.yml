@@ -75,8 +75,8 @@ commands:
             - run:
                 name: Install CUDA
                 command: |
-                  wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/\
-                    cuda-keyring_1.1-1_all.deb
+                  CUDA_REPO="https://developer.download.nvidia.com/compute/cuda"
+                  wget "${CUDA_REPO}/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb"
                   dpkg -i cuda-keyring_1.1-1_all.deb
                   apt-get update
                   apt-get install -y cuda-toolkit-13-0
