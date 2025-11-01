@@ -206,17 +206,19 @@ jobs:
 
       - name: Install OpenCV (Windows)
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           choco install opencv --version=4.8.0 -y
           # Find and set OpenCV_DIR
-          opencvPath=$(find "C:/tools/opencv/build" -name "OpenCVConfig.cmake" \
-            | head -1 | xargs dirname)
-          if [ -n "$opencvPath" ]; then
-            echo "OpenCV_DIR=$opencvPath" >> $GITHUB_ENV
-          else
-            echo "OpenCV not found after installation"
+          $opencvPath = Get-ChildItem -Path "C:\tools\opencv\build" -Recurse `
+            -Filter "OpenCVConfig.cmake" | Select-Object -First 1 | `
+            ForEach-Object { $_.DirectoryName }
+          if ($opencvPath) {
+            Add-Content $env:GITHUB_ENV "OpenCV_DIR=$opencvPath"
+          } else {
+            Write-Error "OpenCV not found after installation"
             exit 1
-          fi
+          }
 
       - name: Install dependencies and build OpenCV (Linux)
         if: runner.os == 'Linux'
