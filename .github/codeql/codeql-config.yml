@@ -1,16 +1,8 @@
 ---
-name: "Hybrid Compute CodeQL Configuration"
+# Minimal CodeQL configuration for Hybrid Compute
+# Uses default query suites with standard settings
 
-disabled-default-queries: false
-
-queries:
-  - name: security-extended
-    uses: security-extended
-  - name: security-and-quality
-    uses: security-and-quality
-  - name: cpp-security-and-quality
-    uses: security-and-quality/cpp
-
+# Include only source directories
 paths:
   - src/
   - cloud_gpu/
@@ -18,6 +10,7 @@ paths:
   - tests/unit/
   - tests/performance/
 
+# Exclude common non-source directories
 paths-ignore:
   - '**/test/**'
   - '**/build/**'
@@ -27,10 +20,3 @@ paths-ignore:
   - '**/CMakeFiles/**'
   - '**/.github/**'
   - '**/.circleci/**'
-
-# Disable some queries that have high false positive rates
-disable-default-queries: false
-
-# Configure memory and thread usage
-memory: 8192
-threads: 2
