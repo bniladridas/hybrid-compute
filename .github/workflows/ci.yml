@@ -208,8 +208,8 @@ jobs:
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgArguments: opencv
-          vcpkgTriplet: x64-windows
+          runVcpkgInstall: opencv
+          vcpkgGitCommitId: 'f7423ee180c4b7f4c4bde78b8f577f7f7119f48c'
 
       - name: Install dependencies and build OpenCV (Linux)
         if: runner.os == 'Linux'
@@ -375,12 +375,12 @@ jobs:
         if: runner.os == 'Linux'
         uses: ./.github/actions/install-cuda
 
-      - name: Setup vcpkg and install OpenCV (Windows)
+      - name: Install OpenCV (Windows)
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
         with:
-          runVcpkgInstall: true
-          vcpkgJsonGlob: '**/vcpkg.json'
+          runVcpkgInstall: opencv
+          vcpkgGitCommitId: 'f7423ee180c4b7f4c4bde78b8f577f7f7119f48c'
 
       - name: Create build directory
         run: mkdir -p build
