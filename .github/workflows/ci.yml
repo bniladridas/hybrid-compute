@@ -40,6 +40,10 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           config-file: ./.github/codeql/codeql-config.yml
+          # Disable default queries for C++ as we're using manual build
+          disable-default-queries: ${{ matrix.language == 'cpp' }}
+          # Use our custom queries
+          queries: security-and-quality
 
       # Custom build command for C++
       - name: Build (C++)
@@ -47,7 +51,12 @@ jobs:
         run: |
           mkdir -p build && cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DBUILD_TESTS=OFF
-          make -j2
+          # Build with CodeQL's build tracing
+          $GITHUB_ACTION_PATH/../codeql-runner/codeql/codeql \
+            database create \
+            --language=cpp \
+            --source-root=.. \
+            --command='make -j2'
 
       # Python doesn't need a build step for CodeQL
       - name: Analyze
