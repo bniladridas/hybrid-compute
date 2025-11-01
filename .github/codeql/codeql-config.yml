@@ -1,17 +1,16 @@
 ---
-name: "Custom CodeQL Configuration"
+name: "Hybrid Compute CodeQL Configuration"
 
-# Disable autobuild for C/C++
-disable-default-queries: false
+disabled-default-queries: false
 
-# Use manual build mode for C/C++
-build-mode: manual
-
-# Configure queries
 queries:
-  - uses: security-and-quality
+  - name: security-extended
+    uses: security-extended
+  - name: security-and-quality
+    uses: security-and-quality
+  - name: cpp-security-and-quality
+    uses: security-and-quality/cpp
 
-# Configure paths to analyze
 paths:
   - src/
   - cloud_gpu/
@@ -19,10 +18,19 @@ paths:
   - tests/unit/
   - tests/performance/
 
-# Exclude paths
 paths-ignore:
   - '**/test/**'
-  - '**/tests/**'
   - '**/build/**'
   - '**/third_party/**'
   - '**/vendor/**'
+  - '**/.git/**'
+  - '**/CMakeFiles/**'
+  - '**/.github/**'
+  - '**/.circleci/**'
+
+# Disable some queries that have high false positive rates
+disable-default-queries: false
+
+# Configure memory and thread usage
+memory: 8192
+threads: 2
