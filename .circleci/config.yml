@@ -179,7 +179,7 @@ commands:
 jobs:
   # ────────────────────────────── Code Quality ──────────────────────────────
   code-quality:
-    executor: ubuntu-cpu
+    executor: linux
     steps:
       - checkout
 
