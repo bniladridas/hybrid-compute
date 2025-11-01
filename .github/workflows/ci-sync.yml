@@ -81,52 +81,23 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for CodeQL
 
-      - name: Install GitHub CLI
-        run: |
-          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
-            sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-          # Add GitHub CLI repository
-          REPO_URL="https://cli.github.com/packages"
-          ARCH=$(dpkg --print-architecture)
-          KEYRING="/usr/share/keyrings/githubcli-archive-keyring.gpg"
-          echo "deb [arch=${ARCH} signed-by=${KEYRING}] ${REPO_URL} stable main" | \
-            sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt update
-          sudo apt install gh -y
-
-      - name: Install CodeQL
-        run: |
-          # Install CodeQL CLI
-          gh extension install github/gh-codeql
-          gh codeql install-stub
-
-          # Add to PATH
-          echo "$HOME/.codeql/codeql" >> $GITHUB_PATH
-          echo "$HOME/.codeql" >> $GITHUB_PATH
-
-          # Verify installation
-          which codeql
-          codeql version
-
-      - name: Set up CodeQL
+      - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
           config-file: .github/codeql/codeql-config.yml
 
-      - name: Build with CodeQL
+      - name: Build
         run: |
-          # Verify codeql is in PATH
-          which codeql || echo "CodeQL not found in PATH"
-          codeql version || echo "CodeQL version check failed"
-
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DBUILD_TESTS=OFF
-          # Use codeql to trace the build
-          codeql database create codeql-db --language=cpp --command="make -j$(nproc)"
+          make -j$(nproc)
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:cpp"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
