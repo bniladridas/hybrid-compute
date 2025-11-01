@@ -142,14 +142,14 @@ commands:
             apt-get clean
             rm -rf /var/lib/apt/lists/*
 
-            # Verify OpenCV installation and set environment variables
-            echo "Verifying OpenCV installation..."
-            if pkg-config --exists opencv4; then
-                echo "OpenCV found via pkg-config"
-                OPENCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4
-                echo "OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
-                echo "export OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
-            else
+             # Verify OpenCV installation and set environment variables
+             echo "Verifying OpenCV installation..."
+             if pkg-config --exists opencv; then
+                 echo "OpenCV found via pkg-config"
+                 OPENCV_DIR=$(pkg-config --variable=libdir opencv)/cmake/opencv4
+                 echo "OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
+                 echo "export OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
+             else
                 echo "OpenCV not found via pkg-config, trying alternative locations..."
                 # Try common OpenCV config locations
                 for dir in \
@@ -269,8 +269,7 @@ commands:
             mkdir -p build
             cd build
              CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DWITH_OPENCV=ON"
-             CMAKE_ARGS="$CMAKE_ARGS -DOpenCV_DIR=/usr/local/lib/cmake/opencv4"
-             if [ "<< parameters.cuda >>" = "true" ]; then
+              if [ "<< parameters.cuda >>" = "true" ]; then
                CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75;80;86"
              else
                CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=OFF"
