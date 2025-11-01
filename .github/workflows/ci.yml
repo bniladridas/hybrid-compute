@@ -22,12 +22,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Python (for Python analysis)
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Set up build tools (for C++ analysis)
+        if: matrix.language == 'cpp'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+          config-file: ./.github/codeql/codeql-config.yml
+
+      # Custom build command for C++
+      - name: Build (C++)
+        if: matrix.language == 'cpp'
+        run: |
+          mkdir -p build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DBUILD_TESTS=OFF
+          make -j2
+
+      # Python doesn't need a build step for CodeQL
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
