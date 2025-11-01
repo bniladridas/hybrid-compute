@@ -55,3 +55,15 @@ repos:
         exclude: \.min\.(js|css)$
       - id: trailing-whitespace
         args: []
+
+  # CircleCI Config Validator
+  - repo: local
+    hooks:
+      - id: circleci-validate
+        name: CircleCI Config Validator
+        description: Validates CircleCI config files
+        entry: ./scripts/validate-circleci.sh
+        language: script
+        types: [yaml]
+        files: ^\.circleci/config\.yml$
+        pass_filenames: false
