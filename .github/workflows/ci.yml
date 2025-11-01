@@ -204,12 +204,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install OpenCV (Windows)
+      - name: Setup vcpkg
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
         with:
-          runVcpkgInstall: opencv
-          vcpkgGitCommitId: 'f7423ee180c4b7f4c4bde78b8f577f7f7119f48c'
+          vcpkgJsonGlob: 'vcpkg.json'
 
       - name: Install dependencies and build OpenCV (Linux)
         if: runner.os == 'Linux'
@@ -375,13 +374,6 @@ jobs:
         if: runner.os == 'Linux'
         uses: ./.github/actions/install-cuda
 
-      - name: Install OpenCV (Windows)
-        if: runner.os == 'Windows'
-        uses: lukka/run-vcpkg@v11
-        with:
-          runVcpkgInstall: opencv
-          vcpkgGitCommitId: 'f7423ee180c4b7f4c4bde78b8f577f7f7119f48c'
-
       - name: Create build directory
         run: mkdir -p build
 
@@ -418,7 +410,6 @@ jobs:
             cmake .. -DCMAKE_BUILD_TYPE=Release \
               -DUSE_CUDA=OFF \
               -DWITH_OPENCV=ON \
-              -DOpenCV_DIR=${{ env.OpenCV_DIR }} \
               -DCMAKE_VERBOSE_MAKEFILE=ON
           fi
           if [ "$RUNNER_OS" == "Windows" ]; then
