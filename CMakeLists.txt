@@ -518,10 +518,15 @@ if(WITH_OPENCV)
       set(OpenCV_FOUND ${PC_OpenCV_FOUND})
       set(OpenCV_VERSION ${PC_OpenCV_VERSION})
 
-      # Set standard OpenCV variables for compatibility
-      set(OpenCV_LIBS ${OpenCV_LIBRARIES})
-      set(OpenCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
-      set(OpenCV_LIBRARY_DIRS ${PC_OpenCV_LIBRARY_DIRS})
+       # Set standard OpenCV variables for compatibility
+       set(OpenCV_LIBS ${OpenCV_LIBRARIES})
+       set(OpenCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
+       set(OpenCV_LIBRARY_DIRS ${PC_OpenCV_LIBRARY_DIRS})
+
+       # Set OpenCV_DIR for CMake find_package
+       if(EXISTS "${PC_OpenCV_LIBDIR}/cmake/opencv4")
+         set(OpenCV_DIR "${PC_OpenCV_LIBDIR}/cmake/opencv4")
+       endif()
     endif()
   endif()
 
