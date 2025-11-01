@@ -168,8 +168,7 @@ commands:
 
                 if [ -z "${OpenCV_DIR:-}" ]; then
                     echo "WARNING: OpenCV not found in standard locations. Trying to install..."
-                    # Add OpenCV repository for Ubuntu 22.04
-                    add-apt-repository -y ppa:deadsnakes/ppa
+                    # Install OpenCV for Ubuntu 24.04
                     apt-get update -y
                     apt-get install -y --no-install-recommends \
                         libopencv-dev \
@@ -178,7 +177,8 @@ commands:
                         libopencv-imgproc-dev \
                         libopencv-imgcodecs-dev \
                         libopencv-videoio-dev \
-                        python3-opencv
+                        python3-opencv \
+                        libopencv-contrib-dev
 
                     # Try to find OpenCV after installation
                     if [ -f "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake" ]; then
