@@ -83,6 +83,65 @@
 <li>C++17 compatible compiler</li>
 <li>Metal-capable macOS device</li>
 </ul>
+<h2 id="code-quality">Code Quality</h2>
+<p>Before running tests, ensure code quality standards are met using pre-commit hooks:</p>
+<pre><code class="language-bash">pre-commit run --all-files
+</code></pre>
+<h3 id="quality-checks-overview">Quality Checks Overview</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>GitHub Actions</th>
+<th>CircleCI</th>
+<th>Tools</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Code Formatting</td>
+<td>✓</td>
+<td>✓</td>
+<td>Black, isort</td>
+</tr>
+<tr>
+<td>Linting</td>
+<td>✓</td>
+<td>✓</td>
+<td>Ruff</td>
+</tr>
+<tr>
+<td>YAML Validation</td>
+<td>✓</td>
+<td>✓</td>
+<td>yamllint</td>
+</tr>
+<tr>
+<td>File Checks</td>
+<td>✓</td>
+<td>✓</td>
+<td>pre-commit-hooks</td>
+</tr>
+<tr>
+<td>Security Analysis</td>
+<td>✓</td>
+<td>✓</td>
+<td>CodeQL</td>
+</tr>
+<tr>
+<td>Container Scanning</td>
+<td>✓</td>
+<td>✓</td>
+<td>Trivy</td>
+</tr>
+<tr>
+<td>Commit Messages</td>
+<td>✓</td>
+<td>✓</td>
+<td>commit-msg hook</td>
+</tr>
+</tbody>
+</table>
 <h2 id="running-tests">Running Tests</h2>
 <h3 id="unit-tests">Unit Tests</h3>
 <p>To build and run the unit tests:</p>
@@ -138,12 +197,16 @@ open coverage/index.html
 <li>Include a range of input sizes</li>
 </ul>
 <h2 id="cicd-integration">CI/CD Integration</h2>
-<p>Tests are automatically run on pull requests and pushes to the main branch. The CI pipeline includes:</p>
+<p>Tests are automatically run on pull requests and pushes to the main branch. The CI pipeline includes comprehensive quality checks:</p>
+<h3 id="ci-pipeline-components">CI Pipeline Components</h3>
 <ul>
-<li>Build verification</li>
-<li>Unit tests</li>
-<li>Code style checks</li>
-<li>Documentation generation</li>
+<li>Build verification across platforms (Linux, macOS, Windows)</li>
+<li>Unit tests with multiple Python versions</li>
+<li>Code style checks and formatting validation</li>
+<li>Security vulnerability scanning</li>
+<li>Performance benchmarking</li>
+<li>Docker container builds and testing</li>
+<li>Automated documentation generation</li>
 </ul>
 <h2 id="performance-profiling">Performance Profiling</h2>
 <p>To profile the Metal shim:</p>
