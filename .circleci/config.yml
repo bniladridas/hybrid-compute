@@ -359,7 +359,7 @@ jobs:
 
   # ────────────────────────────── Build & Test Linux CPU ──────────────────────────────
   build-linux-cpu:
-    executor: ubuntu-cpu
+    executor: linux
     steps:
       - checkout
 
@@ -741,7 +741,6 @@ workflows:
 
       # Benchmark job - runs on Linux
       - benchmark:
-          executor: linux
           requires:
             - build-linux-cuda
 
