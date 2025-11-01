@@ -65,7 +65,7 @@ commands:
           name: Update package lists
           command: |
             apt-get update && apt-get install -y --no-install-recommends \
-              cmake build-essential libopencv-dev git pkg-config \
+              cmake build-essential libopencv-dev git pkg-config wget \
               python3 python3-pip python3-dev \
               && rm -rf /var/lib/apt/lists/*
 
