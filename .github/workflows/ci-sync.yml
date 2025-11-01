@@ -27,22 +27,30 @@ jobs:
 
       - name: Install CUDA ${{ matrix.cuda }}
         run: |
+          # Clean up space first
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          df -h
+
           # Add NVIDIA repository
           CUDA_REPO="https://developer.download.nvidia.com/compute/cuda"
           wget "${CUDA_REPO}/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb"
           sudo dpkg -i cuda-keyring_1.1-1_all.deb
-          sudo apt-get update
 
-          # Install CUDA 12.6
+          # Update package lists and install only what's needed
+          sudo apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Retries=3
+
+          # Install minimal CUDA toolkit and required libraries
           sudo apt-get install -y --no-install-recommends \
-            cuda-toolkit-12-6 \
-            cuda-libraries-12-6 \
-            cuda-nvtx-12-6 \
-            libcufft-12-6 \
-            libcurand-12-6 \
-            libcublas-12-6 \
+            cuda-minimal-build-12-6 \
+            cuda-libraries-dev-12-6 \
             libcudnn9-cuda-12 \
             libcudnn9-dev-cuda-12
+
+          # Clean up after installation
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          df -h
 
           # Set up environment variables
           echo "CUDA_HOME=/usr/local/cuda-12.6" >> $GITHUB_ENV
