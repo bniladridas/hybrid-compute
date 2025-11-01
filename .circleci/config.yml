@@ -268,21 +268,16 @@ commands:
           command: |
             mkdir -p build
             cd build
-            CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
-            if [ "<< parameters.cuda >>" = "true" ]; then
-              CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75;80;86"
-            else
-              CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=OFF"
-            fi
-             if [ "<< parameters.opencv >>" = "true" ]; then
-               CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=ON -DOpenCV_DIR=/usr/local/lib/cmake/opencv4"
+             CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DWITH_OPENCV=ON"
+             CMAKE_ARGS="$CMAKE_ARGS -DOpenCV_DIR=/usr/local/lib/cmake/opencv4"
+             if [ "<< parameters.cuda >>" = "true" ]; then
+               CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75;80;86"
              else
-               CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=OFF"
+               CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=OFF"
              fi
             if [ "<< parameters.benchmark >>" = "true" ]; then
               CMAKE_ARGS="$CMAKE_ARGS -DENABLE_BENCHMARK=ON"
             fi
-             CMAKE_ARGS="$CMAKE_ARGS -DOpenCV_DIR=/usr/local/lib/cmake/opencv4"
              if [ "<< parameters.coverage >>" = "true" ]; then
                CMAKE_ARGS="$CMAKE_ARGS -DCOVERAGE=ON"
              fi
