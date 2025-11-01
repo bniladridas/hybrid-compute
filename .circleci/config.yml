@@ -76,10 +76,74 @@ commands:
               exit 0
             fi
 
-            apt-get update && apt-get install -y --no-install-recommends \
-              cmake build-essential libopencv-dev git pkg-config wget \
-              python3 python3-pip python3-dev \
-              && rm -rf /var/lib/apt/lists/*
+            # Update package lists
+            apt-get update -y
+
+            # Install build essentials and dependencies
+            apt-get install -y --no-install-recommends \
+                cmake \
+                build-essential \
+                git \
+                pkg-config \
+                wget \
+                python3 \
+                python3-pip \
+                python3-dev \
+                libtbb-dev \
+                libgtk-3-dev \
+                libjpeg-dev \
+                libpng-dev \
+                libtiff-dev \
+                libavcodec-dev \
+                libavformat-dev \
+                libswscale-dev \
+                libv4l-dev \
+                libxvidcore-dev \
+                libx264-dev \
+                libatlas-base-dev \
+                gfortran \
+                libhdf5-dev \
+                libhdf5-serial-dev \
+                libopenexr-dev \
+                gcc-11 g++-11
+
+            # Install OpenCV and its development files
+            apt-get install -y --no-install-recommends \
+                libopencv-dev \
+                libopencv-core-dev \
+                libopencv-highgui-dev \
+                libopencv-imgproc-dev \
+                libopencv-imgcodecs-dev \
+                libopencv-videoio-dev \
+                libopencv-calib3d-dev \
+                libopencv-features2d-dev \
+                libopencv-ml-dev \
+                libopencv-objdetect-dev \
+                libopencv-stitching-dev \
+                libopencv-videostab-dev \
+                python3-opencv
+
+            # Clean up to reduce image size
+            apt-get clean
+            rm -rf /var/lib/apt/lists/*
+
+            # Verify OpenCV installation
+            if ! pkg-config --exists opencv4; then
+                echo "OpenCV not found via pkg-config, trying alternative methods..."
+                # Try to find OpenCV config
+                if [ -f "/usr/local/lib/cmake/opencv4/OpenCVConfig.cmake" ]; then
+                    echo "Found OpenCV in /usr/local"
+                    echo "OpenCV_DIR=/usr/local/lib/cmake/opencv4" >> $BASH_ENV
+                elif [ -f "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake" ]; then
+                    echo "Found OpenCV in /usr"
+                    echo "OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4" >> $BASH_ENV
+                else
+                    echo "WARNING: OpenCV not found in standard locations. Build may fail."
+                fi
+            else
+                echo "OpenCV found via pkg-config"
+                echo "OpenCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4" >> $BASH_ENV
+            fi
 
       - when:
           condition: << parameters.cuda >>
