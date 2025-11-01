@@ -529,7 +529,7 @@ if(WITH_OPENCV)
    if(NOT OpenCV_FOUND)
      message(STATUS "Trying CMake's find_package...")
      message(STATUS "OpenCV_DIR is: ${OpenCV_DIR}")
-     find_package(OpenCV 4.0 QUIET)
+     find_package(OpenCV 4.0)
    endif()
 
   # Try to find OpenCV in additional locations
