@@ -142,22 +142,63 @@ commands:
             apt-get clean
             rm -rf /var/lib/apt/lists/*
 
-            # Verify OpenCV installation
-            if ! pkg-config --exists opencv4; then
-                echo "OpenCV not found via pkg-config, trying alternative methods..."
-                # Try to find OpenCV config
-                if [ -f "/usr/local/lib/cmake/opencv4/OpenCVConfig.cmake" ]; then
-                    echo "Found OpenCV in /usr/local"
-                    echo "OpenCV_DIR=/usr/local/lib/cmake/opencv4" >> $BASH_ENV
-                elif [ -f "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake" ]; then
-                    echo "Found OpenCV in /usr"
-                    echo "OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4" >> $BASH_ENV
-                else
-                    echo "WARNING: OpenCV not found in standard locations. Build may fail."
-                fi
-            else
+            # Verify OpenCV installation and set environment variables
+            echo "Verifying OpenCV installation..."
+            if pkg-config --exists opencv4; then
                 echo "OpenCV found via pkg-config"
-                echo "OpenCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4" >> $BASH_ENV
+                OPENCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4
+                echo "OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
+                echo "export OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
+            else
+                echo "OpenCV not found via pkg-config, trying alternative locations..."
+                # Try common OpenCV config locations
+                for dir in \
+                    "/usr/local/lib/cmake/opencv4" \
+                    "/usr/lib/x86_64-linux-gnu/cmake/opencv4" \
+                    "/opt/opencv/build" \
+                    "/opt/opencv4/build"; do
+                    if [ -f "$dir/OpenCVConfig.cmake" ]; then
+                        echo "Found OpenCV in $dir"
+                        echo "OpenCV_DIR=$dir" >> $BASH_ENV
+                        echo "export OpenCV_DIR=$dir" >> $BASH_ENV
+                        export OpenCV_DIR=$dir
+                        break
+                    fi
+                done
+
+                if [ -z "${OpenCV_DIR:-}" ]; then
+                    echo "WARNING: OpenCV not found in standard locations. Trying to install..."
+                    # Add OpenCV repository for Ubuntu 22.04
+                    add-apt-repository -y ppa:deadsnakes/ppa
+                    apt-get update -y
+                    apt-get install -y --no-install-recommends \
+                        libopencv-dev \
+                        libopencv-core-dev \
+                        libopencv-highgui-dev \
+                        libopencv-imgproc-dev \
+                        libopencv-imgcodecs-dev \
+                        libopencv-videoio-dev \
+                        python3-opencv
+
+                    # Try to find OpenCV after installation
+                    if [ -f "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake" ]; then
+                        echo "OpenCV installed successfully"
+                        OPENCV_DIR="/usr/lib/x86_64-linux-gnu/cmake/opencv4"
+                        echo "OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
+                        echo "export OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
+                    else
+                        echo "ERROR: Failed to install or locate OpenCV"
+                        exit 1
+                    fi
+                fi
+            fi
+
+            # Verify OpenCV is found
+            if [ -n "${OpenCV_DIR:-}" ] && [ -f "${OpenCV_DIR}/OpenCVConfig.cmake" ]; then
+                echo "OpenCV configuration verified at ${OpenCV_DIR}"
+            else
+                echo "ERROR: OpenCV configuration not found after installation"
+                exit 1
             fi
 
       - when:
