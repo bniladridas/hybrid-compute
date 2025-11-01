@@ -35,7 +35,10 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          config-file: ./.github/codeql/codeql-config.yml
+          # Use default configuration with our path filters
+          config-file: .github/codeql/codeql-config.yml
+          # Use standard query suites
+          queries: security-extended,security-and-quality
 
       - name: Build with CodeQL (C++)
         if: matrix.language == 'cpp'
