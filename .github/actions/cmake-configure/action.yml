@@ -1,0 +1,51 @@
+---
+name: 'CMake Configure'
+description: |
+  Configure CMake build with specified options.
+  Sets up the build directory and runs cmake with appropriate flags.
+
+inputs:
+  cuda:
+    description: 'Enable CUDA support'
+    required: false
+    default: 'false'
+  opencv:
+    description: 'Enable OpenCV support'
+    required: false
+    default: 'true'
+  benchmark:
+    description: 'Enable benchmark support'
+    required: false
+    default: 'false'
+  coverage:
+    description: 'Enable code coverage'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure CMake
+      shell: bash
+      run: |
+        mkdir -p build
+        cd build
+        CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
+        if [ "${{ inputs.cuda }}" = "true" ]; then
+          CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75;80;86"
+        else
+          CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=OFF"
+        fi
+        if [ "${{ inputs.opencv }}" = "true" ]; then
+          CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=ON"
+        else
+          CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=OFF"
+        fi
+        if [ "${{ inputs.benchmark }}" = "true" ]; then
+          CMAKE_ARGS="$CMAKE_ARGS -DENABLE_BENCHMARK=ON"
+        fi
+        if [ "${{ inputs.coverage }}" = "true" ]; then
+          CMAKE_ARGS="$CMAKE_ARGS -DCOVERAGE=ON"
+        fi
+        echo "CMAKE_ARGS: $CMAKE_ARGS"
+        cmake $CMAKE_ARGS ..
