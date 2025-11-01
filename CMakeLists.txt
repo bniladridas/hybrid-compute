@@ -157,10 +157,6 @@ if(USE_CUDA)
     set(CMAKE_CUDA_COMPILER_ID "NVIDIA")
     set(CMAKE_CUDA_COMPILER_VERSION "${CUDA_VERSION_STRING}")
 
-    # Set CUDA standard to C++17
-    set(CMAKE_CUDA_STANDARD 17)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
     # Set CUDA architectures for the build
     set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
 
@@ -531,11 +527,12 @@ find_package(OpenMP)
 if(COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-endif()
 
 if(CUDAToolkit_FOUND)
   enable_language(CUDA)
+  set(CMAKE_CUDA_STANDARD 17)
+  set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++17")
   set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
   add_executable(upscale cloud_gpu/upscale.cu)
   target_link_libraries(upscale CUDA::cudart)
