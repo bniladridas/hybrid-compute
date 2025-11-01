@@ -274,12 +274,11 @@ commands:
             else
               CMAKE_ARGS="$CMAKE_ARGS -DUSE_CUDA=OFF"
             fi
-            if [ "<< parameters.opencv >>" = "true" ]; then
-              CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=ON"
-              CMAKE_ARGS="$CMAKE_ARGS -DOpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4"
-            else
-              CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=OFF"
-            fi
+             if [ "<< parameters.opencv >>" = "true" ]; then
+               CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=ON -DOpenCV_DIR=/usr/local/lib/cmake/opencv4"
+             else
+               CMAKE_ARGS="$CMAKE_ARGS -DWITH_OPENCV=OFF"
+             fi
             if [ "<< parameters.benchmark >>" = "true" ]; then
               CMAKE_ARGS="$CMAKE_ARGS -DENABLE_BENCHMARK=ON"
             fi
