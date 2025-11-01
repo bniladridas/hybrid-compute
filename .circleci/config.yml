@@ -282,11 +282,11 @@ commands:
             if [ "<< parameters.benchmark >>" = "true" ]; then
               CMAKE_ARGS="$CMAKE_ARGS -DENABLE_BENCHMARK=ON"
             fi
+             CMAKE_ARGS="$CMAKE_ARGS -DOpenCV_DIR=/usr/local/lib/cmake/opencv4"
              if [ "<< parameters.coverage >>" = "true" ]; then
                CMAKE_ARGS="$CMAKE_ARGS -DCOVERAGE=ON"
              fi
              echo "CMAKE_ARGS: $CMAKE_ARGS"
-             export OpenCV_DIR=/usr/local/lib/cmake/opencv4
              cmake $CMAKE_ARGS ..
 
       - run:
