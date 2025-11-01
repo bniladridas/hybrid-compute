@@ -32,21 +32,21 @@ jobs:
           sudo dpkg -i cuda-keyring_1.1-1_all.deb
           sudo apt-get update
 
-          # Install CUDA 13.0
+          # Install CUDA 12.6
           sudo apt-get install -y --no-install-recommends \
-            cuda-toolkit-13-0 \
-            cuda-libraries-13-0 \
-            cuda-nvtx-13-0 \
-            libcufft-13-0 \
-            libcurand-13-0 \
-            libcublas-13-0 \
-            libcudnn9 \
-            libcudnn9-dev
+            cuda-toolkit-12-6 \
+            cuda-libraries-12-6 \
+            cuda-nvtx-12-6 \
+            libcufft-12-6 \
+            libcurand-12-6 \
+            libcublas-12-6 \
+            libcudnn9-cuda-12 \
+            libcudnn9-dev-cuda-12
 
           # Set up environment variables
-          echo "CUDA_HOME=/usr/local/cuda-13.0" >> $GITHUB_ENV
-          echo "PATH=/usr/local/cuda-13.0/bin:$PATH" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=/usr/local/cuda-13.0/lib64:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "CUDA_HOME=/usr/local/cuda-12.6" >> $GITHUB_ENV
+          echo "PATH=/usr/local/cuda-12.6/bin:$PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
