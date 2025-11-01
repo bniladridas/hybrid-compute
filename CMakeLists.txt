@@ -543,28 +543,75 @@ if(WITH_OPENCV)
   if(NOT OpenCV_FOUND)
     message(STATUS "OpenCV not found, attempting to build from source...")
 
-    # Download and build OpenCV
-    include(FetchContent)
-    FetchContent_Declare(
-      opencv
-      URL https://github.com/opencv/opencv/archive/4.5.5.zip
-      URL_HASH SHA256=a1cfdcf6619387ca9e232687504da996aaa9f7b5689986b8331ec02cb61d28ad
-    )
+    # Try to install OpenCV using apt first
+    find_program(APT_GET_EXECUTABLE apt-get)
+    if(APT_GET_EXECUTABLE)
+      message(STATUS "Attempting to install OpenCV via apt...")
+      execute_process(
+        COMMAND ${APT_GET_EXECUTABLE} update
+        COMMAND ${APT_GET_EXECUTABLE} install -y --no-install-recommends \
+          libopencv-dev \
+          libopencv-core-dev \
+          libopencv-imgproc-dev \
+          libopencv-highgui-dev \
+          libopencv-imgcodecs-dev
+        RESULT_VARIABLE APT_RESULT
+      )
 
-    # Set OpenCV build options
-    set(BUILD_opencv_world OFF CACHE BOOL "")
-    set(BUILD_TESTS OFF CACHE BOOL "")
-    set(BUILD_PERF_TESTS OFF CACHE BOOL "")
-    set(BUILD_EXAMPLES OFF CACHE BOOL "")
-    set(BUILD_DOCS OFF CACHE BOOL "")
-    set(WITH_QT OFF CACHE BOOL "")
-    set(WITH_GTK ON CACHE BOOL "")
+      if(APT_RESULT EQUAL 0)
+        # Try to find the installed OpenCV
+        find_package(OpenCV 4.0 QUIET)
+        if(OpenCV_FOUND)
+          message(STATUS "Successfully installed OpenCV via apt")
+          set(OpenCV_FOUND TRUE)
+        endif()
+      endif()
+    endif()
 
-    # Make the build quiet
-    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "")
+    # If apt installation failed, try downloading a pre-built version
+    if(NOT OpenCV_FOUND)
+      message(STATUS "Falling back to downloading pre-built OpenCV...")
 
-    # Download and build
-    FetchContent_MakeAvailable(opencv)
+      # Download pre-built OpenCV from a reliable source
+      include(FetchContent)
+
+      # Use a mirror that provides consistent hashes
+      set(OPENCV_VERSION "4.5.5")
+      set(OPENCV_URL "https://github.com/opencv/opencv/releases/download/${OPENCV_VERSION}/opencv-${OPENCV_VERSION}-linux-x86_64.tar.gz")
+      set(OPENCV_SHA256 "a1cfdcf6619387ca9e232687504da996aaa9f7b5689986b8331ec02cb61d28ad")
+
+      # Download and extract
+      file(DOWNLOAD
+        ${OPENCV_URL}
+        ${CMAKE_BINARY_DIR}/opencv-${OPENCV_VERSION}.tar.gz
+        SHOW_PROGRESS
+        EXPECTED_HASH SHA256=${OPENCV_SHA256}
+        STATUS DOWNLOAD_STATUS
+      )
+
+      # Check download status
+      list(GET DOWNLOAD_STATUS 0 DOWNLOAD_STATUS_CODE)
+      if(NOT DOWNLOAD_STATUS_CODE EQUAL 0)
+        message(WARNING "Failed to download OpenCV, trying without hash verification...")
+        file(DOWNLOAD
+          ${OPENCV_URL}
+          ${CMAKE_BINARY_DIR}/opencv-${OPENCV_VERSION}.tar.gz
+          SHOW_PROGRESS
+          STATUS DOWNLOAD_STATUS
+        )
+      endif()
+
+      # Extract the archive
+      file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/opencv)
+      execute_process(
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_BINARY_DIR}/opencv-${OPENCV_VERSION}.tar.gz
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/opencv
+      )
+
+      # Set OpenCV variables
+      set(OpenCV_DIR ${CMAKE_BINARY_DIR}/opencv/opencv-${OPENCV_VERSION}/lib/cmake/opencv4)
+      find_package(OpenCV 4.0 REQUIRED)
+    endif()
 
     if(OpenCV_FOUND)
       message(STATUS "OpenCV built from source successfully")
