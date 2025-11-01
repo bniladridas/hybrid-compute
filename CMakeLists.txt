@@ -131,19 +131,19 @@ if(USE_CUDA)
     message(STATUS "CUDA found, building with CUDA support (version ${CUDA_VERSION_STRING})")
 
     # Check CUDA version compatibility
-    if(CUDA_VERSION VERSION_LESS "13.0")
-      message(FATAL_ERROR "CUDA 13.0 or higher is required. Found: ${CUDA_VERSION_STRING}")
+    if(CUDA_VERSION VERSION_LESS "12.0")
+      message(FATAL_ERROR "CUDA 12.0 or higher is required. Found: ${CUDA_VERSION_STRING}")
     endif()
 
     enable_language(CUDA)
 
     # Set CUDA architectures for the build
     if(NOT DEFINED CUDA_ARCH)
-      # Default architectures for CUDA 13.x
-      set(CUDA_ARCH "75;80;86")
+      # Default architectures for CUDA 12.x
+      set(CUDA_ARCH "70;75;80;86")  # Added Volta (70) for better compatibility
     endif()
 
-    # Set CUDA standard to match installed version (13.x)
+    # Set CUDA standard to match installed version (12.x)
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
