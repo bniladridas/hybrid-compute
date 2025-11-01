@@ -61,20 +61,28 @@ install_linux_deps() {
     # Install version-specific packages based on Ubuntu version
     if [ -f /etc/os-release ]; then
         . /etc/os-release
-        if [ "$VERSION_ID" = "22.04" ] || [ "VERSION_ID" = "24.04" ]; then
-            echo "Installing Ubuntu $VERSION_IFO specific packages..."
-            $SUDO apt-get install -y --no-install-recommends \
-                libhdf5-103-1t64 \
-                libqt5gui5 \
-                qt5-qmake \
-                qtbase5-dev-tools
-        else
-            echo "Installing legacy Ubuntu packages..."
-            $SUDO apt-get install -y --no-install-recommends \
-                libhdf5-103 \
-                libqtgui4 \
-                libqt4-test
-        fi
+        echo "Installing Ubuntu $VERSION_ID specific packages..."
+
+        # Common packages for all supported versions
+        PACKAGES="libqt5gui5 qt5-qmake qtbase5-dev-tools"
+
+        # Version-specific packages
+        case "$VERSION_ID" in
+            "22.04")
+                PACKAGES+=" libhdf5-103-1"
+                ;;
+            "24.04")
+                PACKAGES+=" libhdf5-103-1t64"
+                ;;
+            *)
+                # For older versions, try to install what we can
+                PACKAGES+=" libhdf5-103"
+                ;;
+        esac
+
+        echo "Installing packages: $PACKAGES"
+        $SUDO apt-get install -y --no-install-recommends $PACKAGES || \
+            echo "Warning: Some packages could not be installed"
     fi
 
     # Install OpenCV and its development files
