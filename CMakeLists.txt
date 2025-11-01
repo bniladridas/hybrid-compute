@@ -128,41 +128,57 @@ endif()
 if(USE_CUDA)
   find_package(CUDA QUIET)
   if(CUDA_FOUND)
-    message(STATUS "CUDA found, building with CUDA support")
+    message(STATUS "CUDA found, building with CUDA support (version ${CUDA_VERSION_STRING})")
+
+    # Check CUDA version compatibility
+    if(CUDA_VERSION VERSION_LESS "13.0")
+      message(FATAL_ERROR "CUDA 13.0 or higher is required. Found: ${CUDA_VERSION_STRING}")
+    endif()
+
     enable_language(CUDA)
+
+    # Set CUDA architectures for the build
+    if(NOT DEFINED CUDA_ARCH)
+      # Default architectures for CUDA 13.x
+      set(CUDA_ARCH "75;80;86")
+    endif()
+
+    # Set CUDA standard to match installed version (13.x)
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
     # Optimize CUDA compilation for memory usage
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --ptxas-options=-v")
     set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -G")
     set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3 -DNDEBUG")
 
-    # Limit the number of parallel jobs for CUDA compilation
-    set(CMAKE_CUDA_ARCHITECTURES "${CUDA_ARCH}")
+    # Set CUDA compiler information
     set(CMAKE_CUDA_COMPILER_LOADED 1)
     set(CMAKE_CUDA_COMPILER_ID "NVIDIA")
     set(CMAKE_CUDA_COMPILER_VERSION "${CUDA_VERSION_STRING}")
+
+    # Set CUDA standard to C++17
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+    # Set CUDA architectures for the build
+    set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
 
     # Set the number of parallel jobs based on available memory
     execute_process(
         COMMAND nproc
-        OUTPUT_VARIABLE CPU_CORES
+        OUTPUT_VARIABLE NUM_JOBS
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-
-    # Calculate safe number of jobs (1 job per 2GB of memory, with min of 1 and max of available cores)
-    math(EXPR SAFE_JOBS "${CPU_CORES} / 2")
+    math(EXPR SAFE_JOBS "${NUM_JOBS} / 2")
     if(SAFE_JOBS LESS 1)
         set(SAFE_JOBS 1)
     endif()
 
+    # Set job pools for parallel compilation
     set(CMAKE_JOB_POOL_COMPILE "compile_pool=${SAFE_JOBS}")
     set(CMAKE_JOB_POOL_LINK "link_pool=1")
     set_property(GLOBAL PROPERTY JOB_POOLS "compile_pool=${SAFE_JOBS};link_pool=1")
-    set(CMAKE_CUDA_STANDARD 17)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
 
     include_directories(${CUDA_INCLUDE_DIRS})
     link_directories(${CUDA_LIBRARY_DIRS})
