@@ -99,26 +99,59 @@ install_cuda() {
 # Install CodeQL
 install_codeql() {
     echo "Installing CodeQL..."
+
+    # Create codeql home directory
+    export CODEQL_HOME="${HOME}/codeql-home"
+    mkdir -p "${CODEQL_HOME}"
+
     # Install GitHub CLI if not already installed
     if ! command -v gh &> /dev/null; then
-        type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-        && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-        && sudo apt update \
-        && sudo apt install gh -y
+        echo "Installing GitHub CLI..."
+        type -p curl >/dev/null || (sudo apt update && sudo apt install -y curl)
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+            sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | \
+               sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+            && sudo apt update \
+            && sudo apt install -y gh
     fi
 
-    # Install CodeQL
-    gh extension install github/gh-codeql --force
-    gh codeql install
+    # Install CodeQL CLI if not already installed
+    if ! command -v codeql &> /dev/null; then
+        echo "Downloading and installing CodeQL..."
+        cd "${CODEQL_HOME}" || exit 1
 
-    # Add CodeQL to PATH
-    echo 'export PATH="$HOME/.local/share/github/codeql:$PATH"' >> ~/.bashrc
-    export PATH="$HOME/.local/share/github/codeql:$PATH"
+        # Download and extract CodeQL
+        wget -q https://github.com/github/codeql-cli-binaries/releases/latest/download/codeql-linux64.zip
+        unzip -q codeql-linux64.zip
+        rm codeql-linux64.zip
 
-    # Verify installation
-    codeql version
+        # Add to PATH
+        echo "export PATH=\"${CODEQL_HOME}/codeql:\$PATH\"" >> ~/.bashrc
+        export PATH="${CODEQL_HOME}/codeql:${PATH}"
+
+        # Verify the installation
+        if ! "${CODEQL_HOME}/codeql/codeql" --version; then
+            echo "Failed to verify CodeQL installation."
+            exit 1
+        fi
+
+        cd - >/dev/null || exit 1
+    fi
+
+    # Ensure codeql is in PATH for the current shell
+    if ! command -v codeql &> /dev/null; then
+        export PATH="${CODEQL_HOME}/codeql:${PATH}"
+    fi
+
+    # Final verification
+    if ! command -v codeql &> /dev/null; then
+        echo "CodeQL installation failed. The 'codeql' command is not available."
+        exit 1
+    fi
+
+    echo "CodeQL version: $(codeql --version)"
 }
 
 # Main function
