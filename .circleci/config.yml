@@ -32,11 +32,17 @@ executors:
   # Standard Linux executor
   linux:
     docker:
-      - image: ubuntu:24.04
-    resource_class: medium
+      - image: nvidia/cuda:12.2.0-devel-ubuntu24.04
+    resource_class: gpu.medium
     environment:
       DEBIAN_FRONTEND: noninteractive
       TZ: UTC
+      # Optimize build process
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      CTEST_PARALLEL_LEVEL: 2
+      # Limit memory usage
+      NINJA_STATUS: "[%f/%t %o/sec] "
+      NINJA_FLAGS: "-j2"
 
   macos-metal:
     macos:
@@ -345,8 +351,29 @@ jobs:
   # ────────────────────────────── Build & Test Linux CUDA ──────────────────────────────
   build-linux-cuda:
     executor: linux
+    environment:
+      # Optimize build process
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      CTEST_PARALLEL_LEVEL: 2
     steps:
       - checkout
+      - run:
+          name: Check CUDA
+          command: nvcc --version
+      - run:
+          name: Configure CMake with optimized settings
+          command: |
+            mkdir -p build && cd build
+            cmake .. \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DUSE_CUDA=ON \
+              -DCMAKE_CUDA_FLAGS="-O3 --ptxas-options=-v" \
+              -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG" \
+              -DCMAKE_EXE_LINKER_FLAGS="-Wl,--no-as-needed" \
+              -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-as-needed" \
+              -DCMAKE_JOB_POOLS=compile=2,link=1 \
+              -DCMAKE_JOB_POOL_COMPILE=compile \
+              -DCMAKE_JOB_POOL_LINK=link
 
       - install-build-deps:
           cuda: true
@@ -432,10 +459,11 @@ jobs:
             cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON ..
 
       - run:
-          name: Build project
+          name: Build with limited parallelism
           command: |
             cd build
-            make -j$(sysctl -n hw.ncpu)
+            # Use 2 parallel jobs to prevent OOM
+            cmake --build . -- -j2 VERBOSE=1
 
       - run:
           name: Run tests

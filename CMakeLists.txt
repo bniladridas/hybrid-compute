@@ -130,6 +130,36 @@ if(USE_CUDA)
   if(CUDA_FOUND)
     message(STATUS "CUDA found, building with CUDA support")
     enable_language(CUDA)
+
+    # Optimize CUDA compilation for memory usage
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --ptxas-options=-v")
+    set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -G")
+    set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3 -DNDEBUG")
+
+    # Limit the number of parallel jobs for CUDA compilation
+    set(CMAKE_CUDA_ARCHITECTURES "${CUDA_ARCH}")
+    set(CMAKE_CUDA_COMPILER_LOADED 1)
+    set(CMAKE_CUDA_COMPILER_ID "NVIDIA")
+    set(CMAKE_CUDA_COMPILER_VERSION "${CUDA_VERSION_STRING}")
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+    # Set the number of parallel jobs based on available memory
+    execute_process(
+        COMMAND nproc
+        OUTPUT_VARIABLE CPU_CORES
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    # Calculate safe number of jobs (1 job per 2GB of memory, with min of 1 and max of available cores)
+    math(EXPR SAFE_JOBS "${CPU_CORES} / 2")
+    if(SAFE_JOBS LESS 1)
+        set(SAFE_JOBS 1)
+    endif()
+
+    set(CMAKE_JOB_POOL_COMPILE "compile_pool=${SAFE_JOBS}")
+    set(CMAKE_JOB_POOL_LINK "link_pool=1")
+    set_property(GLOBAL PROPERTY JOB_POOLS "compile_pool=${SAFE_JOBS};link_pool=1")
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
@@ -175,6 +205,11 @@ if(APPLE)
   # Enable Objective-C and Objective-C++ for Metal shim
   enable_language(OBJC)
   enable_language(OBJCXX)
+
+  # Optimize build settings for Metal
+  set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES)
+  set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_WEAK YES
+  set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
 
   # Set Objective-C/Objective-C++ standard and properties
   set(CMAKE_OBJC_STANDARD 17)

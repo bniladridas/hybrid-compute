@@ -8,13 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Automated release workflow with Release Please
-- CHANGELOG.md for tracking project changes
-- Updated release configuration for better version management
+- GitHub Issue #31: Optimize CUDA build process to prevent memory issues
+- Memory-optimized build configurations for CI/CD pipelines
+- Job pool management for controlled parallel compilation
 
 ### Changed
-- Updated commit message validation to require scopes
-- Improved release-please configuration
+- Updated CircleCI and GitHub Actions workflows with memory optimizations
+- Limited parallel jobs in build processes to prevent OOM errors
+- Enhanced build output verbosity for better diagnostics
+- Optimized CUDA compiler flags for better memory management
+
+### Fixed
+- Resolved "Killed" and "Segmentation fault" errors during CUDA compilation
+- Fixed memory exhaustion issues in CI/CD pipelines
+- Addressed parallel build race conditions in CI environments
 
 ## [0.2.0] - 2025-11-01
 
