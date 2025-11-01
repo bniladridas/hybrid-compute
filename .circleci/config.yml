@@ -214,26 +214,27 @@ jobs:
           command: |
             set -x
             CODEQL_VERSION="20231211"
-            CODEQL_DIR="/opt/codeql"
+            CODEQL_DIR="${HOME}/codeql"
             CODEQL_URL="https://github.com/github/codeql-action/releases/download"
 
-            # Create directory with proper permissions
+            # Create directory in the home folder
             mkdir -p ${CODEQL_DIR}
-            chmod -R 777 ${CODEQL_DIR}
 
             # Download and extract CodeQL
-            cd ${CODEQL_DIR}
+            cd ${HOME}
             wget -q --show-progress --progress=bar:force:noscroll \
               "${CODEQL_URL}/codeql-bundle-${CODEQL_VERSION}/codeql-bundle-linux64.tar.gz" \
+              -O codeql-bundle-linux64.tar.gz \
               || { echo 'Failed to download CodeQL bundle'; exit 1; }
 
-            tar -xzf codeql-bundle-linux64.tar.gz --strip-components=1
+            tar -xzf codeql-bundle-linux64.tar.gz -C ${CODEQL_DIR} --strip-components=1
 
             # Add to PATH
             echo 'export PATH="'${CODEQL_DIR}':$PATH"' >> $BASH_ENV
+            source $BASH_ENV
 
             # Verify installation
-            ${CODEQL_DIR}/codeql --version || { echo 'CodeQL installation failed'; exit 1; }
+            codeql --version || { echo 'CodeQL installation failed'; exit 1; }
 
       - run:
           name: Initialize CodeQL
