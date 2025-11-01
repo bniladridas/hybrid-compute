@@ -33,7 +33,7 @@ executors:
   linux:
     docker:
       - image: nvidia/cuda:12.2.0-devel-ubuntu24.04
-    resource_class: gpu.medium
+    resource_class: medium
     environment:
       DEBIAN_FRONTEND: noninteractive
       TZ: UTC
