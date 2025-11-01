@@ -81,29 +81,64 @@ jobs:
             cmake \
             build-essential
 
-          # Verify OpenCV installation
-          echo "Verifying OpenCV installation..."
-          if pkg-config --exists opencv4; then
-            echo "OpenCV found via pkg-config"
-            OPENCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4
-            echo "OpenCV_DIR=$OPENCV_DIR" >> $GITHUB_ENV
-            echo "OpenCV version: $(pkg-config --modversion opencv4)"
-          else
-            echo "WARNING: OpenCV not found via pkg-config, trying alternative methods..."
-            # Try common OpenCV config locations
-            for dir in \
-              "/usr/local/lib/cmake/opencv4" \
-              "/usr/lib/x86_64-linux-gnu/cmake/opencv4" \
-              "/opt/opencv/build" \
-              "/opt/opencv4/build"; do
-              if [ -f "$dir/OpenCVConfig.cmake" ]; then
-                echo "Found OpenCV in $dir"
-                echo "OpenCV_DIR=$dir" >> $GITHUB_ENV
-                export OpenCV_DIR="$dir"
-                break
-              fi
-            done
-          fi
+          # Install OpenCV from source to ensure proper configuration
+          echo "Installing OpenCV from source..."
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            git \
+            libgtk2.0-dev \
+            pkg-config \
+            libavcodec-dev \
+            libavformat-dev \
+            libswscale-dev \
+            libtbb2 \
+            libtbb-dev \
+            libjpeg-dev \
+            libpng-dev \
+            libtiff-dev \
+            libdc1394-22-dev
+
+          # Create build directory
+          mkdir -p ~/opencv_build
+          cd ~/opencv_build
+
+          # Clone OpenCV and opencv_contrib
+          git clone https://github.com/opencv/opencv.git
+          git clone https://github.com/opencv/opencv_contrib.git
+
+          # Checkout a stable version (4.6.0)
+          cd opencv
+          git checkout 4.6.0
+          cd ../opencv_contrib
+          git checkout 4.6.0
+          cd ../opencv
+
+          # Create build directory
+          mkdir -p build
+          cd build
+
+          # Configure with default options
+          cmake -D CMAKE_BUILD_TYPE=RELEASE \
+                -D CMAKE_INSTALL_PREFIX=/usr/local \
+                -D OPENCV_GENERATE_PKGCONFIG=ON \
+                -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
+                -D WITH_CUDA=OFF \
+                -D INSTALL_C_EXAMPLES=OFF \
+                -D INSTALL_PYTHON_EXAMPLES=OFF \
+                -D BUILD_EXAMPLES=OFF ..
+
+          # Build and install
+          make -j$(nproc)
+          sudo make install
+          sudo ldconfig
+
+          # Verify installation
+          echo "OpenCV version: $(pkg-config --modversion opencv4)"
+          echo "Setting OpenCV_DIR to /usr/local/lib/cmake/opencv4"
+          echo "OpenCV_DIR=/usr/local/lib/cmake/opencv4" >> $GITHUB_ENV
+          export OpenCV_DIR="/usr/local/lib/cmake/opencv4"
 
           # Run the custom dependency installation script
           chmod +x scripts/ci/install_dependencies.sh
@@ -173,11 +208,7 @@ jobs:
             software-properties-common \
             wget
 
-          # Add OpenCV repository
-          sudo add-apt-repository -y ppa:deadsnakes/ppa
-
           # Install OpenCV and development packages
-          sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             libopencv-dev \
             libopencv-core-dev \
@@ -192,35 +223,15 @@ jobs:
             cmake \
             build-essential
 
-          # Verify OpenCV installation and set environment variables
-          echo "Verifying OpenCV installation..."
-          if pkg-config --exists opencv4; then
-            echo "OpenCV found via pkg-config"
-            OPENCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4
-            echo "OpenCV_DIR=$OPENCV_DIR" >> $GITHUB_ENV
-            echo "OpenCV version: $(pkg-config --modversion opencv4)"
+          # Set OpenCV directory
+          if [ -d "/usr/lib/x86_64-linux-gnu/cmake/opencv4" ]; then
+            echo "Found OpenCV in /usr/lib/x86_64-linux-gnu/cmake/opencv4"
+            echo "OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4" >> $GITHUB_ENV
+          elif [ -d "/usr/local/lib/cmake/opencv4" ]; then
+            echo "Found OpenCV in /usr/local/lib/cmake/opencv4"
+            echo "OpenCV_DIR=/usr/local/lib/cmake/opencv4" >> $GITHUB_ENV
           else
-            echo "WARNING: OpenCV not found via pkg-config, trying alternative methods..."
-            # Try common OpenCV config locations
-            for dir in \
-              "/usr/local/lib/cmake/opencv4" \
-              "/usr/lib/x86_64-linux-gnu/cmake/opencv4" \
-              "/opt/opencv/build" \
-              "/opt/opencv4/build"; do
-              if [ -f "$dir/OpenCVConfig.cmake" ]; then
-                echo "Found OpenCV in $dir"
-                echo "OpenCV_DIR=$dir" >> $GITHUB_ENV
-                export OpenCV_DIR="$dir"
-                break
-              fi
-            done
-          fi
-
-          # Verify OpenCV is found
-          if [ -n "${OpenCV_DIR:-}" ] && [ -f "${OpenCV_DIR}/OpenCVConfig.cmake" ]; then
-            echo "OpenCV configuration verified at ${OpenCV_DIR}"
-          else
-            echo "ERROR: OpenCV configuration not found after installation"
+            echo "ERROR: OpenCV not found in standard locations"
             exit 1
           fi
 
