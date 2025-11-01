@@ -55,10 +55,11 @@ jobs:
       actions: read
       contents: read
       security-events: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for CodeQL
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -66,8 +67,17 @@ jobs:
           languages: cpp
           config-file: .github/codeql/codeql-config.yml
 
+      - name: Build with CodeQL
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DBUILD_TESTS=OFF
+          make -j$(nproc)
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:cpp"
 
   lint:
     needs: build-and-test
