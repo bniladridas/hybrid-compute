@@ -55,11 +55,27 @@ install_linux_deps() {
         gfortran \
         libhdf5-dev \
         libhdf5-serial-dev \
-        libhdf5-103 \
-        libqtgui4 \
-        libqt4-test \
         libopenexr-dev \
         gcc-11 g++-11
+
+    # Install version-specific packages based on Ubuntu version
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        if [ "$VERSION_ID" = "22.04" ] || [ "VERSION_ID" = "24.04" ]; then
+            echo "Installing Ubuntu $VERSION_IFO specific packages..."
+            $SUDO apt-get install -y --no-install-recommends \
+                libhdf5-103-1t64 \
+                libqt5gui5 \
+                qt5-qmake \
+                qtbase5-dev-tools
+        else
+            echo "Installing legacy Ubuntu packages..."
+            $SUDO apt-get install -y --no-install-recommends \
+                libhdf5-103 \
+                libqtgui4 \
+                libqt4-test
+        fi
+    fi
 
     # Install OpenCV and its development files
     $SUDO apt-get install -y --no-install-recommends \
