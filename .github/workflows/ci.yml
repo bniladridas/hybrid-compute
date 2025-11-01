@@ -25,11 +25,55 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up build tools (for C++ analysis)
+      - name: Set up build tools and OpenCV (for C++ analysis)
         if: matrix.language == 'cpp'
         run: |
+          # Install build tools
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake
+          sudo apt-get install -y build-essential cmake pkg-config
+
+          # Install OpenCV dependencies
+          sudo apt-get install -y --no-install-recommends \
+            libopencv-dev \
+            libopencv-core-dev \
+            libopencv-highgui-dev \
+            libopencv-imgproc-dev \
+            libopencv-imgcodecs-dev \
+            libopencv-videoio-dev \
+            libopencv-calib3d-dev \
+            libopencv-features2d-dev \
+            python3-opencv
+
+          # Verify OpenCV installation
+          echo "Verifying OpenCV installation..."
+          if pkg-config --exists opencv4; then
+            echo "OpenCV found via pkg-config"
+            OPENCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4
+            echo "OpenCV_DIR=$OPENCV_DIR" >> $GITHUB_ENV
+            echo "OpenCV version: $(pkg-config --modversion opencv4)"
+          else
+            echo "WARNING: OpenCV not found via pkg-config, trying alternative methods..."
+            # Try common OpenCV config locations
+            for dir in \
+              "/usr/local/lib/cmake/opencv4" \
+              "/usr/lib/x86_64-linux-gnu/cmake/opencv4" \
+              "/opt/opencv/build" \
+              "/opt/opencv4/build"; do
+              if [ -f "$dir/OpenCVConfig.cmake" ]; then
+                echo "Found OpenCV in $dir"
+                echo "OpenCV_DIR=$dir" >> $GITHUB_ENV
+                break
+              fi
+            done
+          fi
+
+          # Verify OpenCV is found
+          if [ -n "${OpenCV_DIR:-}" ] && [ -f "${OpenCV_DIR}/OpenCVConfig.cmake" ]; then
+            echo "OpenCV configuration verified at ${OpenCV_DIR}"
+          else
+            echo "ERROR: OpenCV configuration not found after installation"
+            exit 1
+          fi
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -47,9 +91,14 @@ jobs:
           # First clean any previous build
           rm -rf build
 
-          # Create build directory and configure
+          # Create build directory and configure with OpenCV
           mkdir -p build && cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DBUILD_TESTS=OFF
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_CUDA=OFF \
+            -DBUILD_TESTS=OFF \
+            -DOpenCV_DIR="${OpenCV_DIR:-/usr/lib/x86_64-linux-gnu/cmake/opencv4}" \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
           # Build with CodeQL's build tracing
           # The init step should have set up the environment for codeql
