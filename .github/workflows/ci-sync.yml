@@ -86,7 +86,7 @@ jobs:
         with:
           languages: cpp
           config-file: .github/codeql/codeql-config.yml
-          tools: auto
+          tools: latest
 
       - name: Add CodeQL to PATH
         run: |
@@ -94,10 +94,15 @@ jobs:
 
       - name: Build with CodeQL
         run: |
+          # Verify codeql is in PATH
+          which codeql || echo "CodeQL not found in PATH"
+          codeql version || echo "CodeQL version check failed"
+          
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DBUILD_TESTS=OFF
-          make -j$(nproc)
+          # Use codeql to trace the build
+          codeql database create codeql-db --language=cpp --command="make -j$(nproc)"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
