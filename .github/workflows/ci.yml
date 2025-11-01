@@ -206,7 +206,6 @@ jobs:
 
       - name: Install OpenCV (Windows)
         if: runner.os == 'Windows'
-        shell: pwsh
         run: |
           choco install opencv --version=4.8.0 -y
           # Find and set OpenCV_DIR
@@ -214,9 +213,9 @@ jobs:
             -Filter "OpenCVConfig.cmake" | Select-Object -First 1 | `
             ForEach-Object { $_.DirectoryName }
           if ($opencvPath) {
-            Add-Content $env:GITHUB_ENV "OpenCV_DIR=$opencvPath"
+            echo "OpenCV_DIR=$opencvPath" | Out-File -FilePath $env:GITHUB_ENV -Append
           } else {
-            Write-Error "OpenCV not found after installation"
+            echo "OpenCV not found after installation"
             exit 1
           }
 
