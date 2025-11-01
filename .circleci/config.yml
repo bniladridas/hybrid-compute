@@ -105,10 +105,22 @@ commands:
                 libhdf5-dev \
                 libhdf5-serial-dev \
                 libopenexr-dev \
-                gcc-11 g++-11
-
-            # Install OpenCV and its development files
-            apt-get install -y --no-install-recommends \
+                libgstreamer1.0-0 \
+                libgstreamer1.0-dev \
+                libgstreamer-plugins-base1.0-dev \
+                libavresample-dev \
+                libxine2-dev \
+                libtesseract-dev \
+                liblapack-dev \
+                libeigen3-dev \
+                libgflags-dev \
+                libgoogle-glog-dev \
+                libprotobuf-dev \
+                protobuf-compiler \
+                libleveldb-dev \
+                liblmdb-dev \
+                libsnappy-dev \
+                libboost-all-dev \
                 libopencv-dev \
                 libopencv-core-dev \
                 libopencv-highgui-dev \
@@ -121,7 +133,10 @@ commands:
                 libopencv-objdetect-dev \
                 libopencv-stitching-dev \
                 libopencv-videostab-dev \
-                python3-opencv
+                python3-opencv \
+                libopenblas-dev \
+                gcc-11 \
+                g++-11
 
             # Clean up to reduce image size
             apt-get clean

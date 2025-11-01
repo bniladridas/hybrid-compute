@@ -26,6 +26,22 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Update package lists
+          sudo apt-get update
+
+          # Install OpenCV and development packages
+          sudo apt-get install -y --no-install-recommends \
+            libopencv-dev \
+            libopencv-core-dev \
+            libopencv-highgui-dev \
+            libopencv-imgproc-dev \
+            libopencv-imgcodecs-dev \
+            libopencv-videoio-dev \
+            libopencv-calib3d-dev \
+            libopencv-features2d-dev \
+            python3-opencv
+
+          # Run the custom dependency installation script
           chmod +x scripts/ci/install_dependencies.sh
           export USE_CUDA=1
           export CI=true
