@@ -11,8 +11,44 @@
 - **GPU Acceleration**: Optimized Metal shaders on macOS and CUDA kernels on Linux/Windows for high-performance processing.
 - **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
 - **CI/CD**: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.
-- **Notes**: Google Benchmark is enabled by default on macOS/Linux, but disabled on Windows due to linking issues (set in WindowsConfig.cmake). Modify ENABLE_BENCHMARK option in benchmark.cmake to adjust on other platforms. CI runs with parallel testing, non-interactive prompts, and containerized builds.
-- **Development Documentation**: Detailed setup, architecture, onboarding, and compatibility guides[^2][^3].
+  - **GitHub Actions**: For Linux, macOS, and Windows builds
+  - **CircleCI**: For additional Linux and CUDA-enabled builds
+  - **Automated Testing**: Includes unit tests, integration tests, and benchmarks
+  - **Code Quality**: Automated linting and formatting checks
+- **Development Documentation**: Detailed setup, architecture, onboarding, and compatibility guides.
+
+## CI/CD Pipeline
+
+The project uses a combination of GitHub Actions and CircleCI for continuous integration and deployment:
+
+### GitHub Actions
+- **Build & Test**: Runs on Linux, macOS, and Windows
+- **Code Quality**: Runs pre-commit hooks and static analysis
+- **Docker**: Builds and publishes Docker images
+
+### CircleCI
+- **CUDA Builds**: Specialized builds for CUDA-enabled environments
+- **Performance Testing**: Runs performance benchmarks
+- **Deployment**: Handles deployment to staging and production
+
+### Local Development
+
+To run the same checks locally that run in CI:
+
+```bash
+# Install pre-commit hooks
+pip install pre-commit
+pre-commit install
+
+# Run all checks
+pre-commit run --all-files
+```
+
+### Adding New CI Jobs
+
+1. For platform-agnostic jobs, add to `.github/workflows/ci-sync.yml`
+2. For CUDA-specific jobs, add to `.circleci/config-sync.yml`
+3. For shared functionality, add to `scripts/ci/`
   **Workflow**
 
 1. **Split**: Process input images locally to create tiles.

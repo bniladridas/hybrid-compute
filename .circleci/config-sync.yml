@@ -1,0 +1,158 @@
+---
+version: 2.1
+
+# Use executors to define the environment
+executors:
+  linux-cuda:
+    docker:
+      - image: nvidia/cuda:13.0.1-devel-ubuntu22.04
+    resource_class: medium
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      TZ: UTC
+      USE_CUDA: "1"
+
+  linux:
+    docker:
+      - image: cimg/base:2023.09
+    resource_class: medium
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      TZ: UTC
+      USE_CUDA: "0"
+
+  macos:
+    macos:
+      xcode: 15.0
+    resource_class: macos.x86.medium.gen2
+    environment:
+      USE_CUDA: "0"
+
+# Commands that can be reused across jobs
+commands:
+  setup_environment:
+    description: "Setup build environment"
+    steps:
+      - checkout
+      - run:
+          name: Setup environment
+          command: |
+            # Make scripts executable
+            chmod +x ./scripts/ci/*.sh
+
+            # Print build information
+            ./scripts/ci/ci_common.sh print_build_info
+
+  install_dependencies:
+    description: "Install build dependencies"
+    steps:
+      - run:
+          name: Install system dependencies
+          command: |
+            if [[ "$CIRCLE_JOB" == *"cuda"* ]]; then
+              export USE_CUDA=1
+            fi
+            ./scripts/ci/install_dependencies.sh
+
+  build_and_test:
+    description: "Build and test the project"
+    parameters:
+      build_type:
+        type: string
+        default: "Release"
+    steps:
+      - run:
+          name: Configure CMake
+          command: |
+            ./scripts/ci/ci_common.sh configure_cmake "<< parameters.build_type >>" "build" \
+              -DUSE_CUDA=$USE_CUDA \
+              -DBUILD_TESTS=ON
+
+      - run:
+          name: Build
+          command: |
+            ./scripts/ci/ci_common.sh build_project "build"
+
+      - run:
+          name: Test
+          command: |
+            ./scripts/ci/ci_common.sh run_tests "build"
+
+      - store_test_results:
+          path: build/Testing/**/*.xml
+
+      - store_artifacts:
+          path: build/Testing/**/*.xml
+          destination: test-results
+
+# Job definitions
+jobs:
+  linux-build:
+    executor: linux
+    steps:
+      - setup_environment
+      - install_dependencies
+      - build_and_test:
+          build_type: "Release"
+
+  linux-cuda-build:
+    executor: linux-cuda
+    steps:
+      - setup_environment
+      - install_dependencies
+      - build_and_test:
+          build_type: "Release"
+
+  macos-build:
+    executor: macos
+    steps:
+      - setup_environment
+      - install_dependencies
+      - build_and_test:
+          build_type: "Release"
+
+  code-quality:
+    executor: linux
+    steps:
+      - checkout
+      - run:
+          name: Install pre-commit
+          command: |
+            python3 -m pip install --upgrade pip
+            pip install pre-commit
+      - run:
+          name: Run pre-commit
+          command: |
+            pre-commit run --all-files
+
+# Workflow definitions
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - code-quality
+      - linux-build
+      - linux-cuda-build
+      - macos-build:
+          requires:
+            - code-quality
+          filters:
+            branches:
+              only: main
+
+      - hold-for-deploy:
+          type: approval
+          requires:
+            - linux-build
+            - linux-cuda-build
+            - macos-build
+          filters:
+            branches:
+              only: main
+
+      - deploy:
+          requires:
+            - hold-for-deploy
+          filters:
+            branches:
+              only: main
