@@ -95,18 +95,18 @@ install_cuda() {
     fi
 
     # Install essential CUDA packages (without cuDNN)
-    echo "Installing CUDA toolkit..."
+    echo "Installing CUDA 12.6 toolkit..."
     $SUDO apt-get install -y --no-install-recommends \
-        cuda-compiler-12-3 \
-        cuda-libraries-dev-12-3 \
-        cuda-command-line-tools-12-3 \
-        cuda-cudart-dev-12-3 \
-        cuda-nvcc-12-3 \
-        libcublas-dev-12-3 \
-        libcufft-dev-12-3 \
-        libcurand-dev-12-3 \
-        libcusolver-dev-12-3 \
-        libcusparse-dev-12-3
+        cuda-compiler-12-6 \
+        cuda-libraries-dev-12-6 \
+        cuda-command-line-tools-12-6 \
+        cuda-cudart-dev-12-6 \
+        cuda-nvcc-12-6 \
+        libcublas-dev-12-6 \
+        libcufft-dev-12-6 \
+        libcurand-dev-12-6 \
+        libcusolver-dev-12-6 \
+        libcusparse-dev-12-6
 
     # Install cuDNN from NVIDIA's repository
     echo "Installing cuDNN..."
@@ -114,8 +114,8 @@ install_cuda() {
     # Add NVIDIA's repository key for cuDNN
     $SUDO apt-get update
     $SUDO apt-get install -y --no-install-recommends \
-        libcudnn8=8.9.7.*-1+cuda12.3 \
-        libcudnn8-dev=8.9.7.*-1+cuda12.3 || {
+        libcudnn8=8.9.7.*-1+cuda12.6 \
+        libcudnn8-dev=8.9.7.*-1+cuda12.6 || {
             echo "Warning: Failed to install cuDNN 8.9.7. Trying alternative installation method..."
 
             # Alternative method: Install from the CUDA repository
