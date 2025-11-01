@@ -36,10 +36,11 @@ runs:
         cd build
 
         # Configure with default options
+        OPENCV_SRC=$(pwd)/../opencv
         cmake -D CMAKE_BUILD_TYPE=RELEASE \
               -D CMAKE_INSTALL_PREFIX=/usr/local \
               -D OPENCV_GENERATE_PKGCONFIG=ON \
-              -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
+              -D OPENCV_EXTRA_MODULES_PATH=$OPENCV_SRC/../opencv_contrib/modules \
               -D WITH_CUDA=OFF \
               -D WITH_GTK=ON \
               -D WITH_QT=OFF \
@@ -67,7 +68,7 @@ runs:
                 "from os.path import dirname,join;"\
                 "print(join(dirname(get_config_var('LIBPC')),"\
                 "get_config_var('LDLIBRARY')))") \
-              ../opencv
+              $OPENCV_SRC
 
         # Build with limited parallel jobs, increased verbosity, and debug output
         echo "Starting OpenCV build with detailed logging..."
