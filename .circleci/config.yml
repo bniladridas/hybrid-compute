@@ -222,9 +222,8 @@ jobs:
 
             # Download and extract CodeQL
             cd ${HOME}
-            wget -q --show-progress --progress=bar:force:noscroll \
+            curl -L -o codeql-bundle-linux64.tar.gz \
               "${CODEQL_URL}/codeql-bundle-${CODEQL_VERSION}/codeql-bundle-linux64.tar.gz" \
-              -O codeql-bundle-linux64.tar.gz \
               || { echo 'Failed to download CodeQL bundle'; exit 1; }
 
             tar -xzf codeql-bundle-linux64.tar.gz -C ${CODEQL_DIR} --strip-components=1
