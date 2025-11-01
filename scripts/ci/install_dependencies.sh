@@ -27,7 +27,6 @@ install_linux_deps() {
     $SUDO apt-get update && $SUDO apt-get install -y --no-install-recommends \
         cmake \
         build-essential \
-        libopencv-dev \
         git \
         pkg-config \
         wget \
@@ -37,6 +36,11 @@ install_linux_deps() {
         clang \
         llvm \
         lld \
+        libopencv-dev \
+        libopencv-core-dev \
+        libopencv-highgui-dev \
+        libopencv-imgproc-dev \
+        libopencv-imgcodecs-dev \
         && $SUDO rm -rf /var/lib/apt/lists/*
 }
 
