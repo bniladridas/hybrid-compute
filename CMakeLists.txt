@@ -539,99 +539,55 @@ if(WITH_OPENCV)
     endif()
   endif()
 
-  # If still not found, try to build from source
+  # If still not found, try to find in common locations
   if(NOT OpenCV_FOUND)
-    message(STATUS "OpenCV not found, attempting to build from source...")
+    message(STATUS "OpenCV not found, trying common locations...")
 
-    # Try to install OpenCV using apt first
-    find_program(APT_GET_EXECUTABLE apt-get)
-    if(APT_GET_EXECUTABLE)
-      message(STATUS "Attempting to install OpenCV via apt...")
-      # Install OpenCV packages one by one to avoid line continuation issues
-      execute_process(
-        COMMAND ${APT_GET_EXECUTABLE} update
-        RESULT_VARIABLE UPDATE_RESULT
-      )
+    # Try common OpenCV installation paths
+    set(OPENCV_PATHS
+      /usr/local/opt/opencv@4
+      /usr/local/opt/opencv
+      /usr/local
+      /usr
+      /opt/homebrew/opt/opencv@4
+      /opt/homebrew/opt/opencv
+    )
 
-      if(UPDATE_RESULT EQUAL 0)
-        set(OPENCV_PACKAGES "libopencv-dev" "libopencv-core-dev" "libopencv-imgproc-dev" "libopencv-highgui-dev" "libopencv-imgcodecs-dev")
-        set(APT_RESULT 0)
-
-        foreach(PKG IN LISTS OPENCV_PACKAGES)
-          execute_process(
-            COMMAND ${APT_GET_EXECUTABLE} install -y --no-install-recommends ${PKG}
-            RESULT_VARIABLE PKG_RESULT
-          )
-          if(NOT PKG_RESULT EQUAL 0)
-            set(APT_RESULT ${PKG_RESULT})
-            message(WARNING "Failed to install package: ${PKG}")
-          endif()
-        endforeach()
-      else()
-        set(APT_RESULT ${UPDATE_RESULT})
-        message(WARNING "Failed to update package lists")
-      endif()
-
-      if(APT_RESULT EQUAL 0)
-        # Try to find the installed OpenCV
+    foreach(PATH ${OPENCV_PATHS})
+      if(EXISTS "${PATH}/lib/cmake/opencv4")
+        set(OpenCV_DIR "${PATH}/lib/cmake/opencv4" CACHE PATH "Path to OpenCV config" FORCE)
+        message(STATUS "Trying OpenCV at: ${OpenCV_DIR}")
         find_package(OpenCV 4.0 QUIET)
         if(OpenCV_FOUND)
-          message(STATUS "Successfully installed OpenCV via apt")
-          set(OpenCV_FOUND TRUE)
+          break()
         endif()
       endif()
-    endif()
+    endforeach()
+  endif()
 
-    # If apt installation failed, try downloading a pre-built version
-    if(NOT OpenCV_FOUND)
-      message(STATUS "Falling back to downloading pre-built OpenCV...")
-
-      # Download pre-built OpenCV from a reliable source
-      include(FetchContent)
-
-      # Use a mirror that provides consistent hashes
-      set(OPENCV_VERSION "4.5.5")
-      set(OPENCV_URL "https://github.com/opencv/opencv/releases/download/${OPENCV_VERSION}/opencv-${OPENCV_VERSION}-linux-x86_64.tar.gz")
-      set(OPENCV_SHA256 "a1cfdcf6619387ca9e232687504da996aaa9f7b5689986b8331ec02cb61d28ad")
-
-      # Download and extract
-      file(DOWNLOAD
-        ${OPENCV_URL}
-        ${CMAKE_BINARY_DIR}/opencv-${OPENCV_VERSION}.tar.gz
-        SHOW_PROGRESS
-        EXPECTED_HASH SHA256=${OPENCV_SHA256}
-        STATUS DOWNLOAD_STATUS
-      )
-
-      # Check download status
-      list(GET DOWNLOAD_STATUS 0 DOWNLOAD_STATUS_CODE)
-      if(NOT DOWNLOAD_STATUS_CODE EQUAL 0)
-        message(WARNING "Failed to download OpenCV, trying without hash verification...")
-        file(DOWNLOAD
-          ${OPENCV_URL}
-          ${CMAKE_BINARY_DIR}/opencv-${OPENCV_VERSION}.tar.gz
-          SHOW_PROGRESS
-          STATUS DOWNLOAD_STATUS
-        )
+  # If still not found, try pkg-config
+  if(NOT OpenCV_FOUND)
+    message(STATUS "Trying pkg-config...")
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+      pkg_check_modules(PC_OpenCV QUIET opencv4)
+      if(PC_OpenCV_FOUND)
+        message(STATUS "Found OpenCV ${PC_OpenCV_VERSION} via pkg-config")
+        set(OpenCV_INCLUDE_DIRS ${PC_OpenCV_INCLUDE_DIRS})
+        set(OpenCV_LIBRARIES ${PC_OpenCV_LIBRARIES})
+        set(OpenCV_VERSION ${PC_OpenCV_VERSION})
+        set(OpenCV_FOUND ${PC_OpenCV_FOUND})
       endif()
-
-      # Extract the archive
-      file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/opencv)
-      execute_process(
-        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_BINARY_DIR}/opencv-${OPENCV_VERSION}.tar.gz
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/opencv
-      )
-
-      # Set OpenCV variables
-      set(OpenCV_DIR ${CMAKE_BINARY_DIR}/opencv/opencv-${OPENCV_VERSION}/lib/cmake/opencv4)
-      find_package(OpenCV 4.0 REQUIRED)
     endif()
+  endif()
 
-    if(OpenCV_FOUND)
-      message(STATUS "OpenCV built from source successfully")
-    else()
-      message(FATAL_ERROR "Failed to find or build OpenCV. Please install OpenCV 4.0+ manually.")
-    endif()
+  # Final check
+  if(NOT OpenCV_FOUND)
+    message(FATAL_ERROR "OpenCV 4.0 or later is required but was not found. "
+      "Please install OpenCV and set OpenCV_DIR to point to the OpenCVConfig.cmake file.\n"
+      "On Ubuntu/Debian, you can install it with:\n"
+      "  sudo apt-get install libopencv-dev\n\n"
+      "Or download it from: https://opencv.org/releases/")
   endif()
 
   # Final checks
