@@ -218,8 +218,8 @@ jobs:
             CODEQL_URL="https://github.com/github/codeql-action/releases/download"
 
             # Create directory with proper permissions
-            sudo mkdir -p ${CODEQL_DIR}
-            sudo chown -R circleci:circleci ${CODEQL_DIR}
+            mkdir -p ${CODEQL_DIR}
+            chmod -R 777 ${CODEQL_DIR}
 
             # Download and extract CodeQL
             cd ${CODEQL_DIR}
