@@ -24,7 +24,11 @@ install_linux_deps() {
         SUDO=sudo
     fi
 
-    $SUDO apt-get update && $SUDO apt-get install -y --no-install-recommends \
+    # Update package lists
+    $SUDO apt-get update
+
+    # Install build tools and dependencies
+    $SUDO apt-get install -y --no-install-recommends \
         cmake \
         build-essential \
         git \
@@ -36,12 +40,6 @@ install_linux_deps() {
         clang \
         llvm \
         lld \
-        libopencv-dev \
-        libopencv-core-dev \
-        libopencv-highgui-dev \
-        libopencv-imgproc-dev \
-        libopencv-imgcodecs-dev \
-        libopencv-videoio-dev \
         libtbb-dev \
         libgtk-3-dev \
         libjpeg-dev \
@@ -53,16 +51,52 @@ install_linux_deps() {
         libv4l-dev \
         libxvidcore-dev \
         libx264-dev \
-        && $SUDO rm -rf /var/lib/apt/lists/*
+        libatlas-base-dev \
+        gfortran \
+        libhdf5-dev \
+        libhdf5-serial-dev \
+        libhdf5-103 \
+        libqtgui4 \
+        libqt4-test \
+        libopenexr-dev \
+        gcc-11 g++-11
+
+    # Install OpenCV and its development files
+    $SUDO apt-get install -y --no-install-recommends \
+        libopencv-dev \
+        libopencv-core-dev \
+        libopencv-highgui-dev \
+        libopencv-imgproc-dev \
+        libopencv-imgcodecs-dev \
+        libopencv-videoio-dev \
+        libopencv-calib3d-dev \
+        libopencv-features2d-dev \
+        libopencv-ml-dev \
+        libopencv-objdetect-dev \
+        libopencv-stitching-dev \
+        libopencv-videostab-dev \
+        python3-opencv
+
+    # Clean up apt cache to reduce image size
+    $SUDO rm -rf /var/lib/apt/lists/*
 
     # Verify OpenCV installation
+    echo "Verifying OpenCV installation..."
     if ! pkg-config --exists opencv4; then
-        echo "OpenCV not found via pkg-config, trying alternative installation method..."
-        $SUDO apt-get update && $SUDO apt-get install -y --no-install-recommends \
-            libopencv4 \
-            libopencv4-dev \
-            libopencv4-opencv-apps \
-            && $SUDO rm -rf /var/lib/apt/lists/*
+        echo "OpenCV not found via pkg-config, trying alternative methods..."
+        # Try to find OpenCV config
+        if [ -f "/usr/local/lib/cmake/opencv4/OpenCVConfig.cmake" ]; then
+            echo "Found OpenCV in /usr/local"
+            export OpenCV_DIR=/usr/local/lib/cmake/opencv4
+        elif [ -f "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake" ]; then
+            echo "Found OpenCV in /usr"
+            export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
+        else
+            echo "WARNING: OpenCV not found in standard locations. Build may fail."
+        fi
+    else
+        echo "OpenCV found via pkg-config"
+        export OpenCV_DIR=$(pkg-config --variable=libdir opencv4)/cmake/opencv4
     fi
 }
 
