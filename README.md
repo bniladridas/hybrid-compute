@@ -156,17 +156,25 @@ python3 scripts/e2e.py
 - **Local E2E Testing**: The `scripts/run.sh` script simulates the full pipeline (tiling → copy tiles → stitching) without actual upscaling or GPU hardware. `scripts/e2e.py` provides additional end-to-end validation.
 - **Code Review**: Manually inspect `cloud_gpu/upscale.cu` for CUDA best practices and logic correctness.
   **Git Commit Standards**
-  This project enforces conventional commit standards for clean history:
-- Commit messages must start with a type: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `chore:`, `ci:`, `build:`, or `revert:`.
-- All text must be lowercase.
-- The first line must be ≤60 characters.
-  To enable enforcement, copy the hook:
+This project enforces conventional commit standards for clean history:
+- Commit messages must follow the format: `type(scope): description`
+  - Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`
+  - Scope should be a short description of the affected area (e.g., `ci`, `api`, `ui`)
+  - Description should be in lowercase and concise
+- The first line must be ≤60 characters
+- All text must be in lowercase
+
+Examples:
+- `feat(api): add user authentication`
+- `fix(ui): resolve button alignment`
+- `docs(readme): update commit message guidelines`
+
+To enable enforcement, copy the hook:
 
 ```bash
 cp scripts/commit-msg .git/hooks/commit-msg
 chmod +x .git/hooks/commit-msg
 ```
-
 To clean up existing commit messages in history:
 
 ```bash
