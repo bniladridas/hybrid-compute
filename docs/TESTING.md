@@ -9,6 +9,26 @@ This document provides information on how to run tests and benchmarks for the Me
 - C++17 compatible compiler
 - Metal-capable macOS device
 
+## Code Quality
+
+Before running tests, ensure code quality standards are met using pre-commit hooks:
+
+```bash
+pre-commit run --all-files
+```
+
+### Quality Checks Overview
+
+| Check | GitHub Actions | CircleCI | Tools |
+|-------|----------------|----------|-------|
+| Code Formatting | ✓ | ✓ | Black, isort |
+| Linting | ✓ | ✓ | Ruff |
+| YAML Validation | ✓ | ✓ | yamllint |
+| File Checks | ✓ | ✓ | pre-commit-hooks |
+| Security Analysis | ✓ | ✓ | CodeQL |
+| Container Scanning | ✓ | ✓ | Trivy |
+| Commit Messages | ✓ | ✓ | commit-msg hook |
+
 ## Running Tests
 
 ### Unit Tests
@@ -83,12 +103,17 @@ open coverage/index.html
 
 ## CI/CD Integration
 
-Tests are automatically run on pull requests and pushes to the main branch. The CI pipeline includes:
+Tests are automatically run on pull requests and pushes to the main branch. The CI pipeline includes comprehensive quality checks:
 
-- Build verification
-- Unit tests
-- Code style checks
-- Documentation generation
+### CI Pipeline Components
+
+- Build verification across platforms (Linux, macOS, Windows)
+- Unit tests with multiple Python versions
+- Code style checks and formatting validation
+- Security vulnerability scanning
+- Performance benchmarking
+- Docker container builds and testing
+- Automated documentation generation
 
 ## Performance Profiling
 
