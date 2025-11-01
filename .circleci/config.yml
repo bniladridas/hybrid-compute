@@ -266,8 +266,14 @@ jobs:
       - run:
           name: Analyze with CodeQL
           command: |
-            codeql database analyze codeql-db --format=sarif --output=cpp-results.sarif
-            codeql database analyze codeql-db-python --format=sarif --output=python-results.sarif
+            codeql database analyze codeql-db \
+              --format=sarif-latest \
+              --output=cpp-results.sarif
+            if [ -d "codeql-db-python" ]; then
+              codeql database analyze codeql-db-python \
+                --format=sarif-latest \
+                --output=python-results.sarif
+            fi
 
       - store_artifacts:
           path: cpp-results.sarif
