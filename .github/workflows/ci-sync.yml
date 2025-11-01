@@ -36,14 +36,27 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          # Set CUDA architecture if needed (example: for RTX 30xx cards)
-          export CUDA_ARCHITECTURES="80"  # Ampere architecture
+
+          # Set up environment variables for CUDA
+          export CUDA_HOME=/usr/local/cuda
+          export PATH="${CUDA_HOME}/bin:${PATH}"
+          export LD_LIBRARY_PATH="${CUDA_HOME}/lib64:${LD_LIBRARY_PATH:-}"
+
+          # Set CUDA architecture (Ampere/RTX 30xx by default)
+          export CUDA_ARCHITECTURES="80"
+
+          # Configure with CUDA support
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_CUDA=ON \
-            -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.3 \
-            -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-} \
+            -DCUDA_TOOLKIT_ROOT_DIR="${CUDA_HOME}" \
+            -DCUDA_TOOLKIT_ROOT="${CUDA_HOME}" \
+            -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES} \
             -DBUILD_TESTS=ON
+
+          # Verify CUDA configuration
+          echo "CUDA configuration:"
+          cmake -LA . | grep -i cuda
 
       - name: Build
         run: |
@@ -68,11 +81,16 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for CodeQL
 
-      - name: Initialize CodeQL
+      - name: Set up CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: cpp
           config-file: .github/codeql/codeql-config.yml
+          tools: auto
+
+      - name: Add CodeQL to PATH
+        run: |
+          echo "${HOME}/.codeql/codeql" >> $GITHUB_PATH
 
       - name: Build with CodeQL
         run: |
