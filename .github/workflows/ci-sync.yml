@@ -13,8 +13,8 @@ jobs:
     strategy:
       matrix:
         cpp: ["20"]
-        cuda: ["12.6"]
-        python-version: ["3.12"]
+        cuda: ["12.4", "12.6"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
       - name: Checkout repository
@@ -95,25 +95,15 @@ jobs:
 
       - name: Configure CMake
         run: |
-          mkdir -p build
-          cd build
-
-          # Set up environment variables for CUDA
-          export CUDA_HOME=/usr/local/cuda-12.6
-          export PATH="${CUDA_HOME}/bin:${PATH}"
-          export LD_LIBRARY_PATH="${CUDA_HOME}/lib64:${LD_LIBRARY_PATH:-}"
-
-          # Set CUDA architecture (Ampere/RTX 30xx by default)
-          export CUDA_ARCHITECTURES="80"
+          BUILD_DIR="build-${{ matrix.cuda }}-${{ matrix.python-version }}"
+          mkdir -p $BUILD_DIR
+          cd $BUILD_DIR
 
           # Configure with CUDA and OpenCV support
           echo "Configuring with OpenCV_DIR: ${OpenCV_DIR:-Not found}"
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_CUDA=ON \
-            -DCUDA_TOOLKIT_ROOT_DIR="${CUDA_HOME}" \
-            -DCUDA_TOOLKIT_ROOT="${CUDA_HOME}" \
-            -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES} \
             -DCMAKE_CXX_STANDARD=${{ matrix.cpp }} \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
             -DBUILD_TESTS=ON \
@@ -125,12 +115,14 @@ jobs:
 
       - name: Build
         run: |
-          cd build
+          BUILD_DIR="build-${{ matrix.cuda }}-${{ matrix.python-version }}"
+          cd $BUILD_DIR
           make -j$(nproc)
 
       - name: Run tests
         run: |
-          cd build
+          BUILD_DIR="build-${{ matrix.cuda }}-${{ matrix.python-version }}"
+          cd $BUILD_DIR
           ctest --output-on-failure
 
   codeql-analysis:
