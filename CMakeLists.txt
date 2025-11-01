@@ -504,30 +504,90 @@ option(WITH_OPENCV "Build with OpenCV support" ON)
 
 # Find OpenCV
 if(WITH_OPENCV)
-  # Try to find OpenCV using pkg-config first
+  message(STATUS "Looking for OpenCV...")
+
+  # First try pkg-config
   find_package(PkgConfig QUIET)
   if(PKG_CONFIG_FOUND)
+    message(STATUS "Trying pkg-config...")
     pkg_check_modules(PC_OpenCV QUIET opencv4)
+    if(PC_OpenCV_FOUND)
+      message(STATUS "OpenCV found via pkg-config")
+      set(OpenCV_INCLUDE_DIRS ${PC_OpenCV_INCLUDE_DIRS})
+      set(OpenCV_LIBRARIES ${PC_OpenCV_LIBRARIES})
+      set(OpenCV_FOUND ${PC_OpenCV_FOUND})
+      set(OpenCV_VERSION ${PC_OpenCV_VERSION})
+
+      # Set standard OpenCV variables for compatibility
+      set(OpenCV_LIBS ${OpenCV_LIBRARIES})
+      set(OpenCV_INCLUDE_DIR ${OpenCV_INCLUDE_DIRS})
+      set(OpenCV_LIBRARY_DIRS ${PC_OpenCV_LIBRARY_DIRS})
+    endif()
   endif()
 
-  # Set OpenCV directory hints
-  set(OpenCV_DIR "${OpenCV_DIR}" CACHE PATH "Path to OpenCV config directory")
-
-  # Find OpenCV package
-  find_package(OpenCV 4.0 QUIET COMPONENTS core imgproc imgcodecs highgui)
-
+  # If not found via pkg-config, try CMake's find_package
   if(NOT OpenCV_FOUND)
-    # If not found, try to find without components
-    find_package(OpenCV 4.0 REQUIRED)
+    message(STATUS "Trying CMake's find_package...")
+
+    # Try common OpenCV config locations
+    set(OpenCV_DIR "/usr/local/lib/cmake/opencv4" CACHE PATH "Path to OpenCV config")
+    find_package(OpenCV 4.0 QUIET)
+
+    if(NOT OpenCV_FOUND)
+      set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4" CACHE PATH "Path to OpenCV config" FORCE)
+      find_package(OpenCV 4.0 QUIET)
+    endif()
   endif()
 
+  # If still not found, try to build from source
+  if(NOT OpenCV_FOUND)
+    message(STATUS "OpenCV not found, attempting to build from source...")
+
+    # Download and build OpenCV
+    include(FetchContent)
+    FetchContent_Declare(
+      opencv
+      URL https://github.com/opencv/opencv/archive/4.5.5.zip
+      URL_HASH SHA256=a1cfdcf6619387ca9e232687504da996aaa9f7b5689986b8331ec02cb61d28ad
+    )
+
+    # Set OpenCV build options
+    set(BUILD_opencv_world OFF CACHE BOOL "")
+    set(BUILD_TESTS OFF CACHE BOOL "")
+    set(BUILD_PERF_TESTS OFF CACHE BOOL "")
+    set(BUILD_EXAMPLES OFF CACHE BOOL "")
+    set(BUILD_DOCS OFF CACHE BOOL "")
+    set(WITH_QT OFF CACHE BOOL "")
+    set(WITH_GTK ON CACHE BOOL "")
+
+    # Make the build quiet
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "")
+
+    # Download and build
+    FetchContent_MakeAvailable(opencv)
+
+    if(OpenCV_FOUND)
+      message(STATUS "OpenCV built from source successfully")
+    else()
+      message(FATAL_ERROR "Failed to find or build OpenCV. Please install OpenCV 4.0+ manually.")
+    endif()
+  endif()
+
+  # Final checks
   if(OpenCV_FOUND)
     include_directories(${OpenCV_INCLUDE_DIRS})
-    message(STATUS "OpenCV found: ${OpenCV_VERSION}")
-    message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
-    message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
+    link_directories(${OpenCV_LIBRARY_DIRS})
+
+    message(STATUS "OpenCV configuration successful:")
+    message(STATUS "  Version: ${OpenCV_VERSION}")
+    message(STATUS "  Includes: ${OpenCV_INCLUDE_DIRS}")
+    message(STATUS "  Libraries: ${OpenCV_LIBS}")
+    message(STATUS "  Library dirs: ${OpenCV_LIBRARY_DIRS}")
+
+    # Set a flag indicating OpenCV is available
+    add_definitions(-DHAVE_OPENCV)
   else()
-    message(FATAL_ERROR "OpenCV not found but is required. Please install OpenCV development packages.")
+    message(FATAL_ERROR "OpenCV not found. Please install OpenCV 4.0 or later and ensure it's in your PATH or set OpenCV_DIR")
   endif()
 endif()
 
