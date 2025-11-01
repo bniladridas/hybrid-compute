@@ -32,7 +32,7 @@ executors:
   # Standard Linux executor
   linux:
     docker:
-      - image: nvidia/cuda:12.2.0-devel-ubuntu24.04
+      - image: nvidia/cuda:13.0.1-devel-ubuntu22.04
     resource_class: medium
     environment:
       DEBIAN_FRONTEND: noninteractive
