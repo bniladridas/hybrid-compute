@@ -26,50 +26,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install CUDA ${{ matrix.cuda }}
-        run: |
-          # Clean up space first
-          sudo apt-get clean
-          sudo rm -rf /var/lib/apt/lists/*
-          df -h
-
-          # Add NVIDIA repository
-          CUDA_REPO="https://developer.download.nvidia.com/compute/cuda"
-          wget "${CUDA_REPO}/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb"
-          sudo dpkg -i cuda-keyring_1.1-1_all.deb
-
-          # Update package lists and install only what's needed
-          sudo apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Retries=3
-
-          # Install minimal CUDA toolkit and required libraries
-          sudo apt-get install -y --no-install-recommends \
-            cuda-minimal-build-12-6 \
-            cuda-libraries-dev-12-6 \
-            libcudnn9-cuda-12 \
-            libcudnn9-dev-cuda-12
-
-          # Clean up after installation
-          sudo apt-get clean
-          sudo rm -rf /var/lib/apt/lists/*
-          df -h
-
-          # Clean up swap file if it exists
-          echo "Cleaning up swap..."
-          if [ -f /swapfile ]; then
-            sudo swapoff /swapfile 2>/dev/null || true
-            sudo rm -f /swapfile
-            echo "Swap cleaned up"
-          fi
-
-          # Save build logs for debugging
-          echo "Saving build logs..."
-          mkdir -p /tmp/build_logs
-          cp build.log /tmp/build_logs/ 2>/dev/null || true
-          echo "Build logs saved to /tmp/build_logs/"
-
-          # Set up environment variables
-          echo "CUDA_HOME=/usr/local/cuda-12.6" >> $GITHUB_ENV
-          echo "PATH=/usr/local/cuda-12.6/bin:$PATH" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        uses: ./.github/actions/install-cuda
+        with:
+          cuda-version: ${{ matrix.cuda }}
+          cuda-architectures: "75,80,86"
+          install-dependencies: true
 
       - name: Install dependencies
         run: |
@@ -104,16 +65,11 @@ jobs:
           swapon --show
           free -h
 
-          # Install OpenCV from source to ensure proper configuration
-          echo "Installing OpenCV from source..."
+      - name: Install OpenCV dependencies
+        run: |
           sudo apt-get update
-
-          # First, install TBB from Ubuntu's repositories
           sudo apt-get install -y --no-install-recommends \
-            libtbb-dev
-
-          # Install other build dependencies
-          sudo apt-get install -y --no-install-recommends \
+            libtbb-dev \
             build-essential \
             cmake \
             git \
@@ -127,81 +83,14 @@ jobs:
             libtiff-dev \
             libdc1394-dev
 
-          # Create build directory
-          mkdir -p ~/opencv_build
-          cd ~/opencv_build
+      - name: Build OpenCV from source
+        uses: ./.github/actions/build-opencv
 
-          # Clone OpenCV and opencv_contrib
-          git clone https://github.com/opencv/opencv.git
-          git clone https://github.com/opencv/opencv_contrib.git
-
-          # Checkout a stable version (4.6.0)
-          cd opencv
-          git checkout 4.6.0
-          cd ../opencv_contrib
-          git checkout 4.6.0
-          cd ../opencv
-
-          # Create build directory
-          mkdir -p build
-          cd build
-
-          # Configure with default options
-          cmake -D CMAKE_BUILD_TYPE=RELEASE \
-                -D CMAKE_INSTALL_PREFIX=/usr/local \
-                -D OPENCV_GENERATE_PKGCONFIG=ON \
-                -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
-                -D WITH_CUDA=OFF \
-                -D WITH_GTK=ON \
-                -D WITH_QT=OFF \
-                -D WITH_OPENGL=ON \
-                -D WITH_VTK=OFF \
-                -D WITH_TBB=ON \
-                -D WITH_OPENMP=ON \
-                -D WITH_FFMPEG=ON \
-                -D INSTALL_C_EXAMPLES=OFF \
-                -D INSTALL_PYTHON_EXAMPLES=OFF \
-                -D BUILD_EXAMPLES=OFF \
-                -D BUILD_DOCS=OFF \
-                -D BUILD_TESTS=OFF \
-                -D BUILD_PERF_TESTS=OFF \
-                -D BUILD_opencv_java=OFF \
-                -D BUILD_opencv_python2=OFF \
-                -D BUILD_opencv_python3=ON \
-                -D OPENCV_ENABLE_NONFREE=ON ..
-
-          # Build with limited parallel jobs, increased verbosity, and debug output
-          echo "Starting OpenCV build with detailed logging..."
-          {
-            echo "===== Build Environment ====="
-            echo "CPU Cores: $(nproc)"
-            echo "Memory: $(free -h)"
-            echo "Disk space:"
-            df -h
-            echo "============================="
-
-            # Build with detailed logging
-            make -j2 VERBOSE=1 2>&1 | tee build.log || {
-              echo "Build failed, showing last 100 lines of build.log:"
-              tail -n 100 build.log
-              exit 1
-            }
-
-            # Install
-            sudo make install
-          }
-          sudo ldconfig
-
-          # Verify installation
-          echo "OpenCV version: $(pkg-config --modversion opencv4)"
-          echo "Setting OpenCV_DIR to /usr/local/lib/cmake/opencv4"
-          echo "OpenCV_DIR=/usr/local/lib/cmake/opencv4" >> $GITHUB_ENV
-
-          # Run the custom dependency installation script
+      - name: Run custom dependency script
+        run: |
           chmod +x scripts/ci/install_dependencies.sh
           export USE_CUDA=1
           export CI=true
-          # Use sudo to run the installation
           sudo -E ./scripts/ci/install_dependencies.sh
 
       - name: Configure CMake
