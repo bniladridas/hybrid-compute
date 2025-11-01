@@ -208,6 +208,7 @@ jobs:
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
         with:
+          vcpkgDirectory: ''
           vcpkgJsonGlob: 'vcpkg.json'
 
       - name: Install dependencies and build OpenCV (Linux)
