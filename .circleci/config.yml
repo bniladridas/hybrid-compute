@@ -307,6 +307,7 @@ commands:
                CMAKE_ARGS="$CMAKE_ARGS -DCOVERAGE=ON"
              fi
              echo "CMAKE_ARGS: $CMAKE_ARGS"
+             export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
              cmake $CMAKE_ARGS ..
 
       - run:
