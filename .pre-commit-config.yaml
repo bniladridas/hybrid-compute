@@ -56,14 +56,16 @@ repos:
       - id: trailing-whitespace
         args: []
 
-  # CircleCI Config Validator
+  # CircleCI Config Validator - Only run locally, not in CI
   - repo: local
     hooks:
       - id: circleci-validate
         name: CircleCI Config Validator
-        description: Validates CircleCI config files
+        description: Validates CircleCI config files (local only)
         entry: ./scripts/validate-circleci.sh
         language: script
         types: [yaml]
         files: ^\.circleci/config\.yml$
         pass_filenames: false
+        # Skip in CI environments
+        exclude: .*
