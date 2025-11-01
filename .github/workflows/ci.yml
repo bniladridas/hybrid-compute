@@ -204,12 +204,26 @@ jobs:
             ubuntu-build-
 
       - name: Build project
+        env:
+          # Limit parallel jobs to prevent OOM
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+          CTEST_PARALLEL_LEVEL: 2
         run: |
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
-            -DWITH_OPENCV=ON -DENABLE_BENCHMARK=ON \
-            -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
-          make -j$(nproc)
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_CUDA=ON \
+            -DWITH_OPENCV=ON \
+            -DENABLE_BENCHMARK=ON \
+            -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES \
+            -DCMAKE_CUDA_FLAGS="-O3 --ptxas-options=-v" \
+            -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG" \
+            -DCMAKE_EXE_LINKER_FLAGS="-Wl,--no-as-needed" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-as-needed" \
+            -DCMAKE_JOB_POOLS="compile=2,link=1" \
+            -DCMAKE_JOB_POOL_COMPILE=compile \
+            -DCMAKE_JOB_POOL_LINK=link
+          cmake --build . -- -j2 VERBOSE=1
 
       - name: Run E2E tests
         run: python scripts/e2e.py
@@ -261,7 +275,8 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          ctest --output-on-failure --timeout 300 --parallel $(sysctl -n hw.ncpu)
+          # Run tests with limited parallelism
+          ctest --output-on-failure --timeout 300 --parallel 2
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
