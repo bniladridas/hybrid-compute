@@ -166,30 +166,10 @@ commands:
                     fi
                 done
 
-                if [ -z "${OpenCV_DIR:-}" ]; then
-                    echo "WARNING: OpenCV not found in standard locations. Trying to install..."
-                    # Install OpenCV for Ubuntu 24.04
-                    apt-get update -y
-                    apt-get install -y --no-install-recommends \
-                        libopencv-dev \
-                        libopencv-core-dev \
-                        libopencv-highgui-dev \
-                        libopencv-imgproc-dev \
-                        libopencv-imgcodecs-dev \
-                        libopencv-videoio-dev \
-                        python3-opencv \
-                        libopencv-contrib-dev
-
-                    # Try to find OpenCV after installation
-                    if [ -f "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake" ]; then
-                        echo "OpenCV installed successfully"
-                        OPENCV_DIR="/usr/lib/x86_64-linux-gnu/cmake/opencv4"
-                        echo "OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
-                        echo "export OpenCV_DIR=$OPENCV_DIR" >> $BASH_ENV
-                    else
-                        echo "ERROR: Failed to install or locate OpenCV"
-                        exit 1
-                    fi
+                 if [ -z "${OpenCV_DIR:-}" ]; then
+                     echo "WARNING: OpenCV not found, building from source..."
+                     build_opencv
+                   fi
                 fi
             fi
 
