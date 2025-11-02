@@ -8,8 +8,8 @@ description: |
 inputs:
   baseline:
     description: 'vcpkg baseline commit ID'
-    required: true
-    default: 'f7423ee180c4b7f4c4bde78b8f577f7f7119f48c'
+    required: false
+    default: 'latest'
   packages:
     description: 'Space-separated list of packages to install'
     required: true
@@ -19,11 +19,28 @@ runs:
   using: 'composite'
   steps:
     - name: Setup vcpkg
-      shell: bash
+      shell: pwsh
       run: |
-        git clone https://github.com/microsoft/vcpkg.git --depth 1
+        # Clone vcpkg without depth limit to avoid checkout issues
+        git clone https://github.com/microsoft/vcpkg.git
         cd vcpkg
-        git checkout ${{ inputs.baseline }}
+
+        # Checkout baseline if specified, otherwise use latest
+        if ("${{ inputs.baseline }}" -ne "latest") {
+          if (git checkout ${{ inputs.baseline }} 2>$null) {
+            Write-Host "Checked out baseline: ${{ inputs.baseline }}"
+          } else {
+            Write-Host "Baseline checkout failed, using latest commit"
+          }
+        } else {
+          Write-Host "Using latest vcpkg commit"
+        }
+
+        # Bootstrap vcpkg
         .\bootstrap-vcpkg.bat
+
+        # Integrate with CMake
         .\vcpkg integrate install
+
+        # Install packages
         .\vcpkg install ${{ inputs.packages }}
