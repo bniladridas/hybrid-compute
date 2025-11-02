@@ -46,11 +46,17 @@ runs:
 
         # Verify vcpkg is working
         Write-Host "Verifying vcpkg installation..."
-        .\vcpkg version
+        if (Test-Path ".\vcpkg.exe") {
+          Write-Host "vcpkg.exe found successfully"
+          .\vcpkg.exe version
+        } else {
+          Write-Error "vcpkg.exe not found after bootstrap"
+          exit 1
+        }
 
         # Integrate with CMake
         Write-Host "Integrating vcpkg with CMake..."
-        .\vcpkg integrate install
+        .\vcpkg.exe integrate install
         if ($LASTEXITCODE -ne 0) {
           Write-Error "vcpkg integration failed"
           exit 1
@@ -65,10 +71,13 @@ runs:
         foreach ($package in $packageList) {
           if ($package.Trim()) {
             Write-Host "Installing package: $package"
-            .\vcpkg install $package.Trim()
+            Write-Host "Running: .\vcpkg.exe install $($package.Trim())"
+            .\vcpkg.exe install $package.Trim()
             if ($LASTEXITCODE -ne 0) {
               Write-Error "Failed to install package: $package"
               exit 1
+            } else {
+              Write-Host "Successfully installed: $package"
             }
           }
         }
