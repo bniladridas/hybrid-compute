@@ -245,7 +245,7 @@ jobs:
           if [ "$RUNNER_OS" == "Windows" ]; then
             cmake --build . --config Release --parallel $NUMBER_OF_PROCESSORS
           else
-            make -j$(nproc)
+            make -j2  # Limited parallelism to avoid memory issues
           fi
 
       - name: Run tests
@@ -421,7 +421,7 @@ jobs:
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Debug -DUSE_CUDA=ON \
             -DWITH_OPENCV=ON -DCOVERAGE=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
-          make -j$(nproc)
+          make -j2  # Limited parallelism to avoid memory issues
 
       - name: Run tests
         run: |
@@ -487,8 +487,8 @@ jobs:
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
               -DWITH_OPENCV=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
-            make -j$(nproc)
-            ctest --output-on-failure --timeout 300 --parallel $(nproc)
+            make -j2  # Limited parallelism to avoid memory issues
+            ctest --output-on-failure --timeout 300 --parallel 2
 
   # ────────────────────────────── Documentation ──────────────────────────────
   docs:
