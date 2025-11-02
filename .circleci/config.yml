@@ -523,18 +523,18 @@ jobs:
           pkg-manager: pip
           pip-dependency-file: requirements.txt
 
-       - run:
-           name: Run Python tests
-           shell: bash
-           command: |
-             pytest --cov=. --cov-report=xml --cov-report=term
+      - run:
+          name: Run Python tests
+          shell: bash
+          command: |
+            pytest --cov=. --cov-report=xml --cov-report=term
 
-       - run:
-           name: Test Python scripts
-           shell: bash
-           command: |
-             python create_test_image.py
-             python scripts/stitch.py --help || true
+      - run:
+          name: Test Python scripts
+          shell: bash
+          command: |
+            python create_test_image.py
+            python scripts/stitch.py --help || true
 
       - store_test_results:
           path: test-results
@@ -551,18 +551,18 @@ jobs:
       CTEST_PARALLEL_LEVEL: 2
     steps:
       - checkout
-       - run:
-           name: Check CUDA
-           shell: bash
-           command: nvcc --version
-       - run:
-           name: Configure CMake with optimized settings
-           shell: bash
-           command: |
-             mkdir -p build && cd build
-             cmake .. \
-               -DCMAKE_BUILD_TYPE=Release \
-               -DUSE_CUDA=ON \
+      - run:
+          name: Check CUDA
+          shell: bash
+          command: nvcc --version
+      - run:
+          name: Configure CMake with optimized settings
+          shell: bash
+          command: |
+            mkdir -p build && cd build
+            cmake .. \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DUSE_CUDA=ON \
                -DCMAKE_CUDA_FLAGS="-O3 --ptxas-options=-v" \
                -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG" \
                -DCMAKE_EXE_LINKER_FLAGS="-Wl,--no-as-needed" \
@@ -571,33 +571,30 @@ jobs:
                -DCMAKE_JOB_POOL_COMPILE=compile \
                -DCMAKE_JOB_POOL_LINK=link
 
-       - install-system-deps
+      - install-build-deps:
+          cuda: true
 
-       - install-opencv-deps
+      - install-python-deps
 
-       - install-cuda-deps
+      - setup-build-cache:
+          key: "linux-cuda-build"
 
-       - install-python-deps
+      - cmake-build:
+          cuda: true
+          opencv: true
+          benchmark: true
 
-       - setup-build-cache:
-           key: "linux-cuda-build"
+      - run:
+          name: Run tests
+          shell: bash
+          command: |
+            cd build
+            ctest --output-on-failure --timeout 300 --parallel $(nproc)
 
-       - cmake-build:
-           cuda: true
-           opencv: true
-           benchmark: true
-
-       - run:
-           name: Run tests
-           shell: bash
-           command: |
-             cd build
-             ctest --output-on-failure --timeout 300 --parallel $(nproc)
-
-       - run:
-           name: Run E2E tests
-           shell: bash
-           command: python3 scripts/e2e.py
+      - run:
+          name: Run E2E tests
+          shell: bash
+          command: python3 scripts/e2e.py
 
       - store_test_results:
           path: build/Testing
@@ -625,12 +622,12 @@ jobs:
           cuda: false
           opencv: true
 
-       - run:
-           name: Run tests
-           shell: bash
-           command: |
-             cd build
-             ctest --output-on-failure --timeout 300 --parallel $(nproc)
+      - run:
+          name: Run tests
+          shell: bash
+          command: |
+            cd build
+            ctest --output-on-failure --timeout 300 --parallel $(nproc)
 
       - store_test_results:
           path: build/Testing
@@ -644,40 +641,40 @@ jobs:
     steps:
       - checkout
 
-       - run:
-           name: Install dependencies
-           shell: bash
-           command: |
-             brew update
-             brew install cmake opencv python@3
+      - run:
+          name: Install dependencies
+          shell: bash
+          command: |
+            brew update
+            brew install cmake opencv python@3
 
-       - install-python-deps
+      - install-python-deps
 
-       - setup-build-cache:
-           key: "macos-build"
+      - setup-build-cache:
+          key: "macos-build"
 
-       - run:
-           name: Configure CMake
-           shell: bash
-           command: |
-             mkdir -p build
-             cd build
-             cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON ..
+      - run:
+          name: Configure CMake
+          shell: bash
+          command: |
+            mkdir -p build
+            cd build
+            cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON ..
 
-       - run:
-           name: Build with limited parallelism
-           shell: bash
-           command: |
-             cd build
-             # Use 2 parallel jobs to prevent OOM
-             cmake --build . -- -j2 VERBOSE=1
+      - run:
+          name: Build with limited parallelism
+          shell: bash
+          command: |
+            cd build
+            # Use 2 parallel jobs to prevent OOM
+            cmake --build . -- -j2 VERBOSE=1
 
-       - run:
-           name: Run tests
-           shell: bash
-           command: |
-             cd build
-             ctest --output-on-failure --timeout 300 --parallel $(sysctl -n hw.ncpu)
+      - run:
+          name: Run tests
+          shell: bash
+          command: |
+            cd build
+            ctest --output-on-failure --timeout 300 --parallel $(sysctl -n hw.ncpu)
 
       - store_test_results:
           path: build/Testing
@@ -698,29 +695,29 @@ jobs:
       - setup-build-cache:
           key: "windows-build"
 
-       - run:
-           name: Configure and build
-           shell: powershell
-           command: |
-             # Create build directory
-             mkdir build
-             cd build
+      - run:
+          name: Configure and build
+          shell: powershell
+          command: |
+            # Create build directory
+            mkdir build
+            cd build
 
-             # Configure with CMake
-             cmake .. -G "Visual Studio 17 2022" -A x64 `
-               -DCMAKE_BUILD_TYPE=Release `
-               -DUSE_CUDA=OFF `
-               -DWITH_OPENCV=ON
+            # Configure with CMake
+            cmake .. -G "Visual Studio 17 2022" -A x64 `
+              -DCMAKE_BUILD_TYPE=Release `
+              -DUSE_CUDA=OFF `
+              -DWITH_OPENCV=ON
 
-             # Build the project
-             cmake --build . --config Release -- /m:4
+            # Build the project
+            cmake --build . --config Release -- /m:4
 
-       - run:
-           name: Run tests
-           shell: powershell
-           command: |
-             cd build
-             ctest -C Release --output-on-failure --timeout 300 --parallel $env:NUMBER_OF_PROCESSORS
+      - run:
+          name: Run tests
+          shell: powershell
+          command: |
+            cd build
+            ctest -C Release --output-on-failure --timeout 300 --parallel $env:NUMBER_OF_PROCESSORS
 
       - store_test_results:
           path: build/Testing
@@ -737,48 +734,45 @@ jobs:
       - install-build-deps:
           cuda: true
 
-       - run:
-           name: Install lcov
-           shell: bash
-           command: |
-             apt-get update && apt-get install -y lcov libopencv-dev
+      - run:
+          name: Install lcov
+          shell: bash
+          command: |
+            apt-get update && apt-get install -y lcov libopencv-dev
 
-       - install-system-deps
+      - install-build-deps:
+          cuda: true
 
-       - install-opencv-deps
+      - install-python-deps
 
-       - install-cuda-deps
+      - setup-build-cache:
+          key: "coverage-build"
 
-       - install-python-deps
+      - cmake-build:
+          cuda: true
+          opencv: true
+          coverage: true
 
-       - setup-build-cache:
-           key: "coverage-build"
+      - run:
+          name: Run tests with coverage
+          shell: bash
+          command: |
+            cd build
+            ctest --output-on-failure --timeout 300 --parallel $(nproc)
 
-       - cmake-build:
-           cuda: true
-           opencv: true
-           coverage: true
+      - run:
+          name: Generate coverage report
+          shell: bash
+          command: |
+            cd build
+            lcov --capture --directory . --exclude '*/_deps/*' --output-file coverage.info
+            lcov --remove coverage.info '/usr/*' --output-file coverage.info
+            genhtml coverage.info --output-directory coverage
 
-       - run:
-           name: Run tests with coverage
-           shell: bash
-           command: |
-             cd build
-             ctest --output-on-failure --timeout 300 --parallel $(nproc)
-
-       - run:
-           name: Generate coverage report
-           shell: bash
-           command: |
-             cd build
-             lcov --capture --directory . --exclude '*/_deps/*' --output-file coverage.info
-             lcov --remove coverage.info '/usr/*' --output-file coverage.info
-             genhtml coverage.info --output-directory coverage
-
-       - run:
-           name: Upload coverage reports to Codecov
-           shell: bash
-           command: npx codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" -t $CODECOV_TOKEN
+      - run:
+          name: Upload coverage reports to Codecov
+          shell: bash
+          command: npx codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" -t $CODECOV_TOKEN
 
       - store_artifacts:
           path: build/coverage/
@@ -790,17 +784,17 @@ jobs:
       - attach_workspace:
           at: .
 
-       - run:
-           name: Set executable permissions
-           shell: bash
-           command: chmod +x build/bin/*
+      - run:
+          name: Set executable permissions
+          shell: bash
+          command: chmod +x build/bin/*
 
-       - run:
-           name: Run benchmarks
-           shell: bash
-           command: |
-             cd build
-             ./bin/benchmark_metal_shim --benchmark_min_time=1s
+      - run:
+          name: Run benchmarks
+          shell: bash
+          command: |
+            cd build
+            ./bin/benchmark_metal_shim --benchmark_min_time=1s
 
       - store_artifacts:
           path: benchmark-results/
@@ -822,58 +816,58 @@ jobs:
 
       - docker/install-docker-credential-helper
 
-       - run:
-           name: Set up Docker Buildx
-           shell: bash
-           command: docker buildx create --use
+      - run:
+          name: Set up Docker Buildx
+          shell: bash
+          command: docker buildx create --use
 
-       - when:
-           condition:
-             not:
-               equal: [<< parameters.cuda-version >>, ""]
-           steps:
-             - run:
-                 name: Build CUDA Docker image
-                 shell: bash
-                 command: |
-                   TAG="hybrid-compute-gpu:${CIRCLE_SHA1}"
-                   docker build \
-                     -f Dockerfile.cuda \
-                     --build-arg BUILDKIT_INLINE_CACHE=1 \
-                     --cache-from hybrid-compute-gpu:latest \
-                     -t $TAG \
-                     --push \
-                     .
+      - when:
+          condition:
+            not:
+              equal: [<< parameters.cuda-version >>, ""]
+          steps:
+            - run:
+                name: Build CUDA Docker image
+                shell: bash
+                command: |
+                  TAG="hybrid-compute-gpu:${CIRCLE_SHA1}"
+                  docker build \
+                    -f Dockerfile.cuda \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --cache-from hybrid-compute-gpu:latest \
+                    -t $TAG \
+                    --push \
+                    .
 
-             - run:
-                 name: Test CUDA container
-                 shell: bash
-                 command: |
-                   TAG="hybrid-compute-gpu:${CIRCLE_SHA1}"
-                   docker run --rm $TAG ls -la /app/
-       - when:
-           condition:
-             equal: [<< parameters.cuda-version >>, ""]
-           steps:
-             - run:
-                 name: Build CPU Docker image
-                 shell: bash
-                 command: |
-                   TAG="hybrid-compute-cpu:${CIRCLE_SHA1}"
-                   docker build \
-                     -f Dockerfile \
-                     --build-arg BUILDKIT_INLINE_CACHE=1 \
-                     --cache-from hybrid-compute-cpu:latest \
-                     -t $TAG \
-                     --push \
-                     .
+            - run:
+                name: Test CUDA container
+                shell: bash
+                command: |
+                  TAG="hybrid-compute-gpu:${CIRCLE_SHA1}"
+                  docker run --rm $TAG ls -la /app/
+      - when:
+          condition:
+            equal: [<< parameters.cuda-version >>, ""]
+          steps:
+            - run:
+                name: Build CPU Docker image
+                shell: bash
+                command: |
+                  TAG="hybrid-compute-cpu:${CIRCLE_SHA1}"
+                  docker build \
+                    -f Dockerfile \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --cache-from hybrid-compute-cpu:latest \
+                    -t $TAG \
+                    --push \
+                    .
 
-             - run:
-                 name: Test CPU container
-                 shell: bash
-                 command: |
-                   TAG="hybrid-compute-cpu:${CIRCLE_SHA1}"
-                   docker run --rm $TAG ls -la /app/
+            - run:
+                name: Test CPU container
+                shell: bash
+                command: |
+                  TAG="hybrid-compute-cpu:${CIRCLE_SHA1}"
+                  docker run --rm $TAG ls -la /app/
 
   # ────────────────────────────── Security Scan ──────────────────────────────
   security-scan:
@@ -883,28 +877,28 @@ jobs:
     steps:
       - checkout
 
-       - run:
-           name: Install Trivy
-           shell: bash
-           command: |
-             wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
-               | apt-key add -
-             echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" \
-               | tee -a /etc/apt/sources.list.d/trivy.list
-             apt-get update
-             apt-get install -y trivy
+      - run:
+          name: Install Trivy
+          shell: bash
+          command: |
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+              | apt-key add -
+            echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" \
+              | tee -a /etc/apt/sources.list.d/trivy.list
+            apt-get update
+            apt-get install -y trivy
 
-       - run:
-           name: Scan CUDA image
-           shell: bash
-           command: |
-             trivy image --format sarif --output cuda-scan.sarif hybrid-compute-gpu:${CIRCLE_SHA1}
+      - run:
+          name: Scan CUDA image
+          shell: bash
+          command: |
+            trivy image --format sarif --output cuda-scan.sarif hybrid-compute-gpu:${CIRCLE_SHA1}
 
-       - run:
-           name: Scan CPU image
-           shell: bash
-           command: |
-             trivy image --format sarif --output cpu-scan.sarif hybrid-compute-cpu:${CIRCLE_SHA1}
+      - run:
+          name: Scan CPU image
+          shell: bash
+          command: |
+            trivy image --format sarif --output cpu-scan.sarif hybrid-compute-cpu:${CIRCLE_SHA1}
 
       - store_artifacts:
           path: cuda-scan.sarif
@@ -919,21 +913,21 @@ jobs:
     steps:
       - checkout
 
-       - run:
-           name: Install release-please
-           shell: bash
-           command: npm install -g release-please
+      - run:
+          name: Install release-please
+          shell: bash
+          command: npm install -g release-please
 
-       - run:
-           name: Create release
-           shell: bash
-           command: |
-             if [ "$CIRCLE_BRANCH" = "main" ] && [ "$CIRCLECI" = "true" ]; then
-               release-please release-pr \
-                 --repo-url=https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME \
-                 --token=$GITHUB_TOKEN \
-                 --skip-github-pull-request=true
-             fi
+      - run:
+          name: Create release
+          shell: bash
+          command: |
+            if [ "$CIRCLE_BRANCH" = "main" ] && [ "$CIRCLECI" = "true" ]; then
+              release-please release-pr \
+                --repo-url=https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME \
+                --token=$GITHUB_TOKEN \
+                --skip-github-pull-request=true
+            fi
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Workflows
