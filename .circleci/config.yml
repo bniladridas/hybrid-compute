@@ -708,9 +708,16 @@ jobs:
           name: Install Node.js and upload coverage reports to Codecov
           shell: bash
           command: |
-            # Install Node.js
+            # Install curl first
+            apt-get update && apt-get install -y curl
+
+            # Install Node.js and npm
             curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-            apt-get install -y nodejs
+            apt-get install -y nodejs npm
+
+            # Verify installations
+            node --version
+            npm --version
 
             # Upload coverage report
             npx codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" -t $CODECOV_TOKEN
