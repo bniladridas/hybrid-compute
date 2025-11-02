@@ -32,12 +32,28 @@ Triggers: daily 02:00 UTC
 
 ## Environment Variables
 
+Required environment variables in CircleCI project settings:
+
 ```bash
-GITHUB_TOKEN=<token>
-DOCKER_USERNAME=<username>
-DOCKER_PASSWORD=<password>
-CODECOV_TOKEN=<token>
+GITHUB_TOKEN=<github_personal_access_token>
+DOCKERHUB_USERNAME=<your_dockerhub_username>
+DOCKERHUB_PASSWORD=<your_dockerhub_password_or_token>
+CODECOV_TOKEN=<codecov_project_token>
 ```
+
+### Docker Hub Setup
+
+1. **Create Docker Hub account** at https://hub.docker.com
+2. **Generate access token** (recommended over password):
+   - Go to Account Settings → Security → Access Tokens
+   - Create new token with Read/Write permissions
+3. **Add to CircleCI**:
+   - Project Settings → Environment Variables
+   - Add `DOCKERHUB_USERNAME` with your Docker Hub username
+   - Add `DOCKERHUB_PASSWORD` with your access token
+4. **Update image namespace**:
+   - Replace `yourusername` in the config with your actual Docker Hub username
+   - Or set `DOCKERHUB_USERNAME` environment variable
 
 ## Executors
 
