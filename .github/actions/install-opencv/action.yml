@@ -122,8 +122,9 @@ runs:
               "get_config_var('LDLIBRARY')))") \
             ../opencv
 
-          # Build and install
-          make -j$(nproc)
+          # Build and install with limited parallelism to avoid memory issues
+          echo "Building with limited parallelism to prevent OOM..."
+          make -j2
           sudo make install
           sudo ldconfig
 
