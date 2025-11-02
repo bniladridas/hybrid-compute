@@ -70,33 +70,25 @@ jobs:
           swapon --show
           free -h
 
-      - name: Install OpenCV dependencies
+      - name: Set up OpenCV environment
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libtbb-dev \
-            build-essential \
-            cmake \
-            git \
-            libgtk2.0-dev \
-            pkg-config \
-            libavcodec-dev \
-            libavformat-dev \
-            libswscale-dev \
-            libjpeg-dev \
-            libpng-dev \
-            libtiff-dev \
-            libdc1394-dev
+          # Set OpenCV directory for CMake
+          if [ -d "/usr/lib/x86_64-linux-gnu/cmake/opencv4" ]; then
+            echo "Found OpenCV in /usr/lib/x86_64-linux-gnu/cmake/opencv4"
+            echo "OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4" >> $GITHUB_ENV
+          elif [ -d "/usr/local/lib/cmake/opencv4" ]; then
+            echo "Found OpenCV in /usr/local/lib/cmake/opencv4"
+            echo "OpenCV_DIR=/usr/local/lib/cmake/opencv4" >> $GITHUB_ENV
+          else
+            echo "Using system OpenCV packages"
+            echo "OpenCV_DIR=" >> $GITHUB_ENV
+          fi
 
-      - name: Build OpenCV from source
-        uses: ./.github/actions/build-opencv
-
-      - name: Run custom dependency script
-        run: |
-          chmod +x scripts/ci/install_dependencies.sh
-          export USE_CUDA=1
-          export CI=true
-          sudo -E ./scripts/ci/install_dependencies.sh
+          # Verify OpenCV installation
+          pkg-config --exists opencv4 && \
+            echo "OpenCV4 found" || echo "OpenCV4 not found"
+          pkg-config --exists opencv && \
+            echo "OpenCV found" || echo "OpenCV not found"
 
       - name: Configure CMake
         run: |
@@ -105,14 +97,19 @@ jobs:
           cd $BUILD_DIR
 
           # Configure with CUDA and OpenCV support
-          echo "Configuring with OpenCV_DIR: ${OpenCV_DIR:-Not found}"
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DUSE_CUDA=ON \
-            -DCMAKE_CXX_STANDARD=${{ matrix.cpp }} \
-            -DCMAKE_CXX_STANDARD_REQUIRED=ON \
-            -DBUILD_TESTS=ON \
-            -DOpenCV_DIR="${OpenCV_DIR:-/usr/local/lib/cmake/opencv4}"
+          echo "Configuring with OpenCV_DIR: ${OpenCV_DIR:-System packages}"
+          CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON"
+          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_STANDARD=${{ matrix.cpp }}"
+          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_STANDARD_REQUIRED=ON"
+          CMAKE_ARGS="$CMAKE_ARGS -DBUILD_TESTS=ON"
+
+          # Add OpenCV_DIR if set
+          if [ -n "${OpenCV_DIR}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DOpenCV_DIR=${OpenCV_DIR}"
+          fi
+
+          echo "CMake arguments: $CMAKE_ARGS"
+          cmake .. $CMAKE_ARGS
 
           # Verify CUDA configuration
           echo "CUDA configuration:"
