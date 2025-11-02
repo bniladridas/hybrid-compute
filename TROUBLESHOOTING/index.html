@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Troubleshooting Guide - Hybrid Compute</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Troubleshooting Guide";
+        var mkdocs_page_input_path = "TROUBLESHOOTING.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Hybrid Compute
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="" href="../index.md">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../docs/ONBOARDING.md">Onboarding</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../docs/TESTING.md">Testing</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Hybrid Compute</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Troubleshooting Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="troubleshooting-guide">Troubleshooting Guide</h1>
+<p>This guide provides solutions to common issues encountered when building and testing the Hybrid Compute project.</p>
+<h2 id="common-issues-and-solutions">Common Issues and Solutions</h2>
+<h3 id="1-test-failure-missing-cv2-module">1. Test Failure: Missing cv2 Module</h3>
+<p><strong>Error:</strong></p>
+<pre><code>ModuleNotFoundError: No module named 'cv2'
+Assertion failed: (file_count == 16), function main, file test_preprocess.c, line 67.
+</code></pre>
+<p><strong>Cause:</strong> The Python OpenCV module (cv2) is not installed for the system Python that the tests are using.</p>
+<p><strong>Solution:</strong></p>
+<pre><code class="language-bash"># Install OpenCV Python bindings for system Python
+pip install --break-system-packages opencv-python numpy
+
+# Verify installation
+python3 -c &quot;import cv2; print('cv2 works:', cv2.__version__)&quot;
+</code></pre>
+<p><strong>Verification:</strong></p>
+<pre><code class="language-bash"># Test the specific failing test
+ctest --test-dir build -R test_preprocess --output-on-failure
+
+# Run all tests to ensure everything works
+ctest --test-dir build --output-on-failure
+</code></pre>
+<h3 id="2-opencv-version-compatibility-warnings">2. OpenCV Version Compatibility Warnings</h3>
+<p><strong>Warning:</strong></p>
+<pre><code>ld: warning: building for macOS-11.0, but linking with dylib
+'/opt/homebrew/opt/opencv/lib/libopencv_*.dylib' which was built for newer version 26.0
+</code></pre>
+<p><strong>Cause:</strong> OpenCV libraries were built for a newer macOS version than the CMake target.</p>
+<p><strong>Solutions:</strong></p>
+<p><strong>Option A: Use Compatible OpenCV Version</strong></p>
+<pre><code class="language-bash">brew uninstall opencv
+brew install opencv@4.8  # Use a specific compatible version
+</code></pre>
+<p><strong>Option B: Update CMake Target (Recommended)</strong>
+Add to your <code>CMakeLists.txt</code>:</p>
+<pre><code class="language-cmake">set(CMAKE_OSX_DEPLOYMENT_TARGET &quot;14.0&quot;)
+</code></pre>
+<h3 id="3-missing-dependencies">3. Missing Dependencies</h3>
+<p><strong>Issues:</strong>
+- <code>Could not find nvcc, please set CUDAToolkit_ROOT</code>
+- <code>Could NOT find OpenMP_C</code>
+- <code>Could NOT find OpenMP_CXX</code></p>
+<p><strong>Solutions:</strong></p>
+<p><strong>For OpenMP Support (Performance Improvement):</strong></p>
+<pre><code class="language-bash">brew install libomp
+</code></pre>
+<p><strong>For CUDA Support (GPU Processing):</strong></p>
+<pre><code class="language-bash"># Only if you have an NVIDIA GPU
+# Follow CUDA installation guide for macOS
+# Set environment variable:
+export CUDAToolkit_ROOT=/usr/local/cuda
+</code></pre>
+<h3 id="4-build-issues">4. Build Issues</h3>
+<p><strong>Problem:</strong> Build fails or produces unexpected results.</p>
+<p><strong>Solution: Clean Build</strong></p>
+<pre><code class="language-bash">rm -rf build
+mkdir build
+cd build
+cmake ..
+make -j$(sysctl -n hw.logicalcpu)
+</code></pre>
+<p><strong>Alternative: Out-of-source Build</strong></p>
+<pre><code class="language-bash">mkdir -p build-debug &amp;&amp; cd build-debug
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+make -j$(sysctl -n hw.logicalcpu)
+</code></pre>
+<h3 id="5-python-environment-issues">5. Python Environment Issues</h3>
+<p><strong>Problem:</strong> Multiple Python installations causing conflicts.</p>
+<p><strong>Check Python Paths:</strong></p>
+<pre><code class="language-bash">which -a python3
+python3 -c &quot;import sys; print(sys.path)&quot;
+</code></pre>
+<p><strong>Solutions:</strong></p>
+<p><strong>Use Virtual Environment:</strong></p>
+<pre><code class="language-bash">python3 -m venv venv
+source venv/bin/activate
+pip install opencv-python numpy
+</code></pre>
+<p><strong>Use Homebrew Python:</strong></p>
+<pre><code class="language-bash">/opt/homebrew/opt/python@3.12/libexec/bin/python3 -c &quot;import cv2&quot;
+</code></pre>
+<h2 id="quick-fix-recipe">Quick Fix Recipe</h2>
+<p>For the most common issue (cv2 module missing):</p>
+<pre><code class="language-bash"># One-liner fix
+pip install --break-system-packages opencv-python numpy &amp;&amp; ctest --test-dir build --output-on-failure
+</code></pre>
+<h2 id="verification-commands">Verification Commands</h2>
+<p>After applying fixes, verify everything works:</p>
+<pre><code class="language-bash"># Check cv2 import
+python3 -c &quot;import cv2; print('cv2 works:', cv2.__version__)&quot;
+
+# Run specific test
+ctest --test-dir build -R test_preprocess --output-on-failure
+
+# Run all tests
+ctest --test-dir build --output-on-failure
+
+# Check build status
+make -C build
+</code></pre>
+<h2 id="expected-results">Expected Results</h2>
+<p>After successful fixes:
+- ✅ All 79 tests pass (100% success rate)
+- ✅ <code>test_preprocess</code> no longer fails
+- ✅ cv2 module imports successfully
+- ✅ Build completes without errors
+- ⚠️ OpenCV version warnings may remain (non-critical)</p>
+<h2 id="getting-help">Getting Help</h2>
+<p>If you encounter issues not covered here:</p>
+<ol>
+<li>Check the <a href="DEVELOPMENT.md">DEVELOPMENT.md</a> guide</li>
+<li>Review the <a href="../TESTING/">TESTING.md</a> documentation</li>
+<li>Ensure you've followed the setup instructions in <a href="../README.md">README.md</a></li>
+<li>Check that all prerequisites are installed</li>
+</ol>
+<h2 id="platform-specific-notes">Platform-Specific Notes</h2>
+<h3 id="macos">macOS</h3>
+<ul>
+<li>Use Homebrew for package management</li>
+<li>Xcode Command Line Tools required</li>
+<li>Metal shaders compile automatically</li>
+</ul>
+<h3 id="linux">Linux</h3>
+<ul>
+<li>Use apt/yum for system packages</li>
+<li>CUDA toolkit available for GPU support</li>
+<li>OpenMP typically available by default</li>
+</ul>
+<h3 id="windows">Windows</h3>
+<ul>
+<li>Use Chocolatey for package management</li>
+<li>Visual Studio Build Tools required</li>
+<li>Google Benchmark disabled by default (linking issues)</li>
+</ul>
+<h2 id="contributing">Contributing</h2>
+<p>If you find additional issues or solutions, please:
+1. Update this troubleshooting guide
+2. Follow the commit message format in <a href="../README.md">README.md</a>
+3. Test your changes across platforms when possible</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
