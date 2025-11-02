@@ -47,7 +47,7 @@ executors:
   macos-metal:
     macos:
       xcode: 15.0
-    resource_class: macos.x86.medium.gen2
+    resource_class: macos.m1.medium.gen1
 
   windows-cuda:
     machine:
@@ -741,7 +741,7 @@ jobs:
         type: string
         default: ""
     docker:
-      - image: cimg/docker:20.10
+      - image: cimg/base:2023.09
     resource_class: large
     steps:
       - checkout
@@ -807,7 +807,7 @@ jobs:
   # ────────────────────────────── Security Scan ──────────────────────────────
   security-scan:
     docker:
-      - image: cimg/docker:20.10.24
+      - image: cimg/base:2023.09
     resource_class: medium
     steps:
       - checkout
