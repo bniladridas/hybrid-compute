@@ -144,6 +144,7 @@ commands:
     steps:
       - run:
           name: Set up Python virtual environment
+          shell: bash
           command: |
             # Install system dependencies
             apt-get update && apt-get install -y --no-install-recommends \
@@ -337,6 +338,7 @@ jobs:
 
       - run:
           name: Install Python dependencies
+          shell: bash
           command: |
             source /opt/venv/bin/activate
             pip install --upgrade pip
@@ -347,16 +349,19 @@ jobs:
 
       - run:
           name: Install pre-commit
+          shell: bash
           command: |
             source /opt/venv/bin/activate
             pip install pre-commit
 
       - run:
           name: Run pre-commit hooks
+          shell: bash
           command: pre-commit run --all-files
 
       - run:
           name: Install CodeQL
+          shell: bash
           command: |
             set -x
             CODEQL_VERSION="v2.22.4"
@@ -396,6 +401,7 @@ jobs:
 
       - run:
           name: Initialize CodeQL
+          shell: bash
           command: |
             # Clean and create build directory
             rm -rf build
@@ -423,6 +429,7 @@ jobs:
 
       - run:
           name: Analyze with CodeQL
+          shell: bash
           command: |
             codeql database analyze codeql-db \
               --format=sarif-latest \
