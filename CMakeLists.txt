@@ -632,12 +632,14 @@ if(WITH_OPENCV)
       message(STATUS "\nPlease set OpenCV_DIR to the directory containing OpenCVConfig.cmake")
     endif()
 
-    message(FATAL_ERROR "\nOpenCV 4.0 or later is required but was not found.\n"
+    message(WARNING "\nOpenCV 4.0 or later was not found.\n"
       "Please install OpenCV and set OpenCV_DIR to point to the OpenCVConfig.cmake file.\n\n"
       "On Ubuntu/Debian, you can install it with:\n"
       "  sudo apt-get update && sudo apt-get install -y \\n    libopencv-dev \\n    libopencv-core-dev \\n    libopencv-imgproc-dev \\n    libopencv-highgui-dev \\n    libopencv-imgcodecs-dev \\n    libopencv-videoio-dev\\n\n"
       "Or download it from: https://opencv.org/releases/\n"
-      "After installation, set the OpenCV_DIR environment variable to the directory containing OpenCVConfig.cmake")
+      "After installation, set the OpenCV_DIR environment variable to the directory containing OpenCVConfig.cmake\n"
+      "Continuing build without OpenCV support...")
+    set(WITH_OPENCV OFF)
   endif()
 
   # Final checks
@@ -654,7 +656,8 @@ if(WITH_OPENCV)
     # Set a flag indicating OpenCV is available
     add_definitions(-DHAVE_OPENCV)
   else()
-    message(FATAL_ERROR "OpenCV not found. Please install OpenCV 4.0 or later and ensure it's in your PATH or set OpenCV_DIR")
+    message(WARNING "OpenCV not found. Building without OpenCV support.")
+    set(WITH_OPENCV OFF)
   endif()
 endif()
 
