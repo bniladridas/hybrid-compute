@@ -940,16 +940,11 @@ jobs:
       - checkout
 
       - run:
-          name: Install release-please
-          shell: bash
-          command: npm install -g release-please
-
-      - run:
           name: Create release
           shell: bash
           command: |
             if [ "$CIRCLE_BRANCH" = "main" ] && [ "$CIRCLECI" = "true" ]; then
-              release-please release-pr \
+              npx release-please release-pr \
                 --repo-url=https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME \
                 --token=$GITHUB_TOKEN \
                 --skip-github-pull-request=true
