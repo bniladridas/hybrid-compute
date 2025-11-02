@@ -931,25 +931,6 @@ jobs:
       - store_artifacts:
           path: cpu-scan.sarif
 
-  # ────────────────────────────── Release ──────────────────────────────
-  release:
-    docker:
-      - image: cimg/node:20.0
-    resource_class: medium
-    steps:
-      - checkout
-
-      - run:
-          name: Create release
-          shell: bash
-          command: |
-            if [ "$CIRCLE_BRANCH" = "main" ] && [ "$CIRCLECI" = "true" ]; then
-              npx release-please release-pr \
-                --repo-url=https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME \
-                --token=$GITHUB_TOKEN \
-                --skip-github-pull-request=true
-            fi
-
 # ────────────────────────────────────────────────────────────────────────────────
 # Workflows
 # ────────────────────────────────────────────────────────────────────────────────
@@ -1012,15 +993,6 @@ workflows:
       - security-scan:
           requires:
             - docker-build
-
-      - release:
-          requires:
-            - security-scan
-            - benchmark
-            - code-coverage
-          filters:
-            branches:
-              only: main
 
   # Nightly workflow
   nightly:
