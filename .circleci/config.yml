@@ -76,14 +76,21 @@ commands:
               exit 0
             fi
 
-            # Create swap file to help with memory-intensive builds
+            # Create swap file to help with memory-intensive builds (optional)
             if [ ! -f /swapfile ]; then
-              echo "Creating swap file to help with memory usage..."
-              fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1024 count=2097152
-              chmod 600 /swapfile
-              mkswap /swapfile
-              swapon /swapfile
-              echo "Swap file created and activated"
+              echo "Attempting to create swap file for memory assistance..."
+              if fallocate -l 2G /swapfile 2>/dev/null || \
+                 dd if=/dev/zero of=/swapfile bs=1024 count=2097152 2>/dev/null; then
+                chmod 600 /swapfile 2>/dev/null || true
+                if mkswap /swapfile 2>/dev/null && swapon /swapfile 2>/dev/null; then
+                  echo "Swap file created and activated successfully"
+                else
+                  echo "Warning: Could not activate swap file (insufficient privileges)"
+                  rm -f /swapfile 2>/dev/null || true
+                fi
+              else
+                echo "Warning: Could not create swap file (insufficient privileges)"
+              fi
             fi
 
             # Update package lists
