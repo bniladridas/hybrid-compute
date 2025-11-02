@@ -705,9 +705,15 @@ jobs:
             genhtml coverage.info --output-directory coverage
 
       - run:
-          name: Upload coverage reports to Codecov
+          name: Install Node.js and upload coverage reports to Codecov
           shell: bash
-          command: npx codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" -t $CODECOV_TOKEN
+          command: |
+            # Install Node.js
+            curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+            apt-get install -y nodejs
+
+            # Upload coverage report
+            npx codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" -t $CODECOV_TOKEN
 
       - store_artifacts:
           path: build/coverage/
