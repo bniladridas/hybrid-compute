@@ -155,6 +155,7 @@ python3 scripts/e2e.py
 - **CUDA Build Check**: Run `scripts/check_cuda_build.sh` on a CUDA-enabled system to verify `upscale.cu` compiles without errors.
 - **Local E2E Testing**: The `scripts/run.sh` script simulates the full pipeline (tiling → copy tiles → stitching) without actual upscaling or GPU hardware. `scripts/e2e.py` provides additional end-to-end validation.
 - **Code Review**: Manually inspect `cloud_gpu/upscale.cu` for CUDA best practices and logic correctness.
+- **Troubleshooting**: If you encounter build or test issues, see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)[^4] for common problems and solutions.
   **Git Commit Standards**
 This project enforces conventional commit standards for clean history:
 
@@ -218,3 +219,5 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 [^2]: [DEVELOPMENT.md](https://github.com/bniladridas/hybrid-compute/blob/main/DEVELOPMENT.md) - Development setup, architecture, and contribution guidelines.
 
 [^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
+
+[^4]: [TROUBLESHOOTING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/TROUBLESHOOTING.md) - Common issues and solutions for build and test problems.
