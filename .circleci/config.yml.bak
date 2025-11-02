@@ -788,12 +788,10 @@ jobs:
           shell: bash
           command: |
             if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_PASSWORD" ]; then
-              echo "$DOCKERHUB_PASSWORD" | \
-                docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+              echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             else
               echo "Warning: Docker Hub credentials not found. Skipping push to registry."
-              echo "Set DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD environment variables" \
-                "in CircleCI."
+              echo "Set DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD environment variables in CircleCI."
               exit 0
             fi
 
@@ -807,7 +805,7 @@ jobs:
                 shell: bash
                 command: |
                   # Use DOCKERHUB_USERNAME or fallback to a default namespace
-                  DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-harpertoken}"
+                  DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-yourusername}"
                   TAG="${DOCKER_NAMESPACE}/hybrid-compute-gpu:${CIRCLE_SHA1}"
                   LATEST_TAG="${DOCKER_NAMESPACE}/hybrid-compute-gpu:latest"
 
@@ -831,7 +829,7 @@ jobs:
                 name: Test CUDA container
                 shell: bash
                 command: |
-                  DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-harpertoken}"
+                  DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-yourusername}"
                   TAG="${DOCKER_NAMESPACE}/hybrid-compute-gpu:${CIRCLE_SHA1}"
                   docker run --rm $TAG ls -la /app/
       - when:
@@ -843,7 +841,7 @@ jobs:
                 shell: bash
                 command: |
                   # Use DOCKERHUB_USERNAME or fallback to a default namespace
-                  DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-harpertoken}"
+                  DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-yourusername}"
                   TAG="${DOCKER_NAMESPACE}/hybrid-compute-cpu:${CIRCLE_SHA1}"
                   LATEST_TAG="${DOCKER_NAMESPACE}/hybrid-compute-cpu:latest"
 
@@ -867,7 +865,7 @@ jobs:
                 name: Test CPU container
                 shell: bash
                 command: |
-                  DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-harpertoken}"
+                  DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-yourusername}"
                   TAG="${DOCKER_NAMESPACE}/hybrid-compute-cpu:${CIRCLE_SHA1}"
                   docker run --rm $TAG ls -la /app/
 
@@ -885,10 +883,8 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | \
-              sudo apt-key add -
-            echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
-              sudo tee -a /etc/apt/sources.list.d/trivy.list
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+            echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
             sudo apt-get update
             sudo apt-get install -y trivy
 
@@ -896,11 +892,9 @@ jobs:
           name: Scan CUDA image
           shell: bash
           command: |
-            DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-harpertoken}"
-            if docker image inspect "${DOCKER_NAMESPACE}/hybrid-compute-gpu:${CIRCLE_SHA1}" \
-                >/dev/null 2>&1; then
-              trivy image --format sarif --output cuda-scan.sarif \
-                "${DOCKER_NAMESPACE}/hybrid-compute-gpu:${CIRCLE_SHA1}"
+            DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-yourusername}"
+            if docker image inspect "${DOCKER_NAMESPACE}/hybrid-compute-gpu:${CIRCLE_SHA1}" >/dev/null 2>&1; then
+              trivy image --format sarif --output cuda-scan.sarif "${DOCKER_NAMESPACE}/hybrid-compute-gpu:${CIRCLE_SHA1}"
             else
               echo "CUDA image not found, skipping scan"
               echo '{"runs": [{"results": []}]}' > cuda-scan.sarif
@@ -910,11 +904,9 @@ jobs:
           name: Scan CPU image
           shell: bash
           command: |
-            DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-harpertoken}"
-            if docker image inspect "${DOCKER_NAMESPACE}/hybrid-compute-cpu:${CIRCLE_SHA1}" \
-                >/dev/null 2>&1; then
-              trivy image --format sarif --output cpu-scan.sarif \
-                "${DOCKER_NAMESPACE}/hybrid-compute-cpu:${CIRCLE_SHA1}"
+            DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-yourusername}"
+            if docker image inspect "${DOCKER_NAMESPACE}/hybrid-compute-cpu:${CIRCLE_SHA1}" >/dev/null 2>&1; then
+              trivy image --format sarif --output cpu-scan.sarif "${DOCKER_NAMESPACE}/hybrid-compute-cpu:${CIRCLE_SHA1}"
             else
               echo "CPU image not found, skipping scan"
               echo '{"runs": [{"results": []}]}' > cpu-scan.sarif
