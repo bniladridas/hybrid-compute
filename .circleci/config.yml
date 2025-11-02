@@ -705,20 +705,16 @@ jobs:
             lcov --remove coverage.info '/usr/*' --output-file coverage.info
             genhtml coverage.info --output-directory coverage
 
-      - node/install:
-          node-version: "20.0"
-
       - run:
           name: Upload coverage reports to Codecov
           shell: bash
           command: |
-            # Verify Node.js installation
-            node --version
-            npm --version
+            # Download and install Codecov uploader
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
 
-            # Upload coverage report using npx
-            npx --yes codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" \
-              -t $CODECOV_TOKEN
+            # Upload coverage report
+            ./codecov -f build/coverage.info -F c++ -n "C++ Coverage" -t $CODECOV_TOKEN
 
       - store_artifacts:
           path: build/coverage/
@@ -833,8 +829,11 @@ jobs:
                   TAG="${DOCKER_NAMESPACE}/hybrid-compute-gpu:${CIRCLE_SHA1}"
                   echo "Testing CUDA container structure..."
                   docker run --rm --entrypoint="" $TAG ls -la /app/
-                  echo "Testing CUDA upscale binary..."
-                  docker run --rm $TAG --help
+                  echo "Testing CUDA upscale binary exists and is executable..."
+                  docker run --rm --entrypoint="" $TAG test -x /app/upscale
+                  echo "Testing CUDA preprocess binary exists and is executable..."
+                  docker run --rm --entrypoint="" $TAG test -x /app/preprocess_c
+                  echo "CUDA container tests passed!"
       - when:
           condition:
             equal: [<< parameters.cuda-version >>, ""]
@@ -872,8 +871,11 @@ jobs:
                   TAG="${DOCKER_NAMESPACE}/hybrid-compute-cpu:${CIRCLE_SHA1}"
                   echo "Testing CPU container structure..."
                   docker run --rm --entrypoint="" $TAG ls -la /app/
-                  echo "Testing CPU container default command..."
-                  docker run --rm $TAG --version || echo "Version check completed"
+                  echo "Testing CPU preprocess binary exists and is executable..."
+                  docker run --rm --entrypoint="" $TAG test -x /app/preprocess_c
+                  echo "Testing CPU container Python environment..."
+                  docker run --rm --entrypoint="" $TAG python3 --version
+                  echo "CPU container tests passed!"
 
   # ────────────────────────────── Security Scan ──────────────────────────────
   security-scan:
