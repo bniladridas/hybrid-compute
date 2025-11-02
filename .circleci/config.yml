@@ -934,7 +934,7 @@ jobs:
   # ────────────────────────────── Release ──────────────────────────────
   release:
     docker:
-      - image: cimg/node:18
+      - image: cimg/node:20.0
     resource_class: medium
     steps:
       - checkout
