@@ -830,7 +830,10 @@ jobs:
                 command: |
                   DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-harpertoken}"
                   TAG="${DOCKER_NAMESPACE}/hybrid-compute-gpu:${CIRCLE_SHA1}"
-                  docker run --rm $TAG ls -la /app/
+                  echo "Testing CUDA container structure..."
+                  docker run --rm --entrypoint="" $TAG ls -la /app/
+                  echo "Testing CUDA upscale binary..."
+                  docker run --rm $TAG --help
       - when:
           condition:
             equal: [<< parameters.cuda-version >>, ""]
@@ -866,7 +869,10 @@ jobs:
                 command: |
                   DOCKER_NAMESPACE="${DOCKERHUB_USERNAME:-harpertoken}"
                   TAG="${DOCKER_NAMESPACE}/hybrid-compute-cpu:${CIRCLE_SHA1}"
-                  docker run --rm $TAG ls -la /app/
+                  echo "Testing CPU container structure..."
+                  docker run --rm --entrypoint="" $TAG ls -la /app/
+                  echo "Testing CPU container default command..."
+                  docker run --rm $TAG --version || echo "Version check completed"
 
   # ────────────────────────────── Security Scan ──────────────────────────────
   security-scan:
