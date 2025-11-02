@@ -48,7 +48,10 @@ runs:
         Write-Host "Verifying vcpkg installation..."
         if (Test-Path ".\vcpkg.exe") {
           Write-Host "vcpkg.exe found successfully"
+          Write-Host "Testing vcpkg version command..."
           .\vcpkg.exe version
+          Write-Host "Testing vcpkg help command..."
+          .\vcpkg.exe help
         } else {
           Write-Error "vcpkg.exe not found after bootstrap"
           exit 1
@@ -66,18 +69,30 @@ runs:
         $packages = "${{ inputs.packages }}"
         Write-Host "Installing packages: $packages"
 
+        # Determine the default triplet for Windows
+        $triplet = "x64-windows"
+        Write-Host "Using triplet: $triplet"
+
         # Split packages and install each one
         $packageList = $packages -split '\s+'
         foreach ($package in $packageList) {
           if ($package.Trim()) {
-            Write-Host "Installing package: $package"
-            Write-Host "Running: .\vcpkg.exe install $($package.Trim())"
-            .\vcpkg.exe install $package.Trim()
+            $packageName = $package.Trim()
+            Write-Host "Installing package: $packageName"
+            Write-Host "Running: .\vcpkg.exe install ${packageName}:${triplet}"
+
+            # Install with explicit triplet
+            .\vcpkg.exe install "${packageName}:${triplet}"
+
             if ($LASTEXITCODE -ne 0) {
-              Write-Error "Failed to install package: $package"
-              exit 1
-            } else {
-              Write-Host "Successfully installed: $package"
+              Write-Host "Install failed, trying without triplet..."
+              .\vcpkg.exe install $packageName
+              if ($LASTEXITCODE -ne 0) {
+                Write-Error "Failed to install package: $packageName"
+                exit 1
+              }
             }
+
+            Write-Host "Successfully installed: $packageName"
           }
         }
