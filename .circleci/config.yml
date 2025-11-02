@@ -704,23 +704,20 @@ jobs:
             lcov --remove coverage.info '/usr/*' --output-file coverage.info
             genhtml coverage.info --output-directory coverage
 
+      - node/install:
+          node-version: "20.0"
+
       - run:
-          name: Install Node.js and upload coverage reports to Codecov
+          name: Upload coverage reports to Codecov
           shell: bash
           command: |
-            # Install curl first
-            apt-get update && apt-get install -y curl
-
-            # Install Node.js and npm
-            curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-            apt-get install -y nodejs npm
-
-            # Verify installations
+            # Verify Node.js installation
             node --version
             npm --version
 
-            # Upload coverage report
-            npx codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" -t $CODECOV_TOKEN
+            # Upload coverage report using npx
+            npx --yes codecov@5 -f build/coverage.info -F c++ -n "C++ Coverage" \
+              -t $CODECOV_TOKEN
 
       - store_artifacts:
           path: build/coverage/
