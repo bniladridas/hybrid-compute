@@ -37,10 +37,38 @@ runs:
         }
 
         # Bootstrap vcpkg
+        Write-Host "Bootstrapping vcpkg..."
         .\bootstrap-vcpkg.bat
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "vcpkg bootstrap failed"
+          exit 1
+        }
+
+        # Verify vcpkg is working
+        Write-Host "Verifying vcpkg installation..."
+        .\vcpkg version
 
         # Integrate with CMake
+        Write-Host "Integrating vcpkg with CMake..."
         .\vcpkg integrate install
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "vcpkg integration failed"
+          exit 1
+        }
 
         # Install packages
-        .\vcpkg install ${{ inputs.packages }}
+        $packages = "${{ inputs.packages }}"
+        Write-Host "Installing packages: $packages"
+
+        # Split packages and install each one
+        $packageList = $packages -split '\s+'
+        foreach ($package in $packageList) {
+          if ($package.Trim()) {
+            Write-Host "Installing package: $package"
+            .\vcpkg install $package.Trim()
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Failed to install package: $package"
+              exit 1
+            }
+          }
+        }
