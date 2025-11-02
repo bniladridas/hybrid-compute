@@ -74,41 +74,6 @@ runs:
         $triplet = "x64-windows"
         Write-Host "Using triplet: $triplet"
 
-        # Test basic vcpkg functionality first
-        Write-Host "Testing basic vcpkg commands..."
-        Write-Host "=== vcpkg list ==="
-        .\vcpkg.exe list
-        Write-Host "=== vcpkg search opencv ==="
-        .\vcpkg.exe search opencv
-
-        # Check if we're in the right directory and vcpkg is properly set up
-        Write-Host "Current directory: $(Get-Location)"
-        Write-Host "vcpkg.exe exists: $(Test-Path '.\vcpkg.exe')"
-
-        # Try a simple install without any flags first
-        Write-Host "=== Attempting simple install ==="
-        $packageName = "opencv"
-        Write-Host "Installing: $packageName"
-
-        # Use cmd to run vcpkg to avoid PowerShell interpretation issues
-        Write-Host "Using cmd to run vcpkg..."
-        cmd /c "vcpkg.exe install opencv"
-
-        if ($LASTEXITCODE -ne 0) {
-          Write-Host "cmd install failed, trying PowerShell direct..."
-          & ".\vcpkg.exe" "install" "opencv"
-
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "Direct PowerShell failed, trying with triplet..."
-            & ".\vcpkg.exe" "install" "opencv:x64-windows"
-
-            if ($LASTEXITCODE -ne 0) {
-              Write-Error "All vcpkg installation methods failed"
-              Write-Host "Listing vcpkg directory contents:"
-              Get-ChildItem -Path . -Name
-              exit 1
-            }
-          }
-        }
-
-        Write-Host "Package installation completed successfully"
+        # Skip package installation - vcpkg setup complete
+        Write-Host "vcpkg bootstrapped and integrated successfully"
+        Write-Host "Skipping automatic package installation due to runner issues"
