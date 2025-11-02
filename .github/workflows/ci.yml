@@ -294,9 +294,9 @@ jobs:
           path: |
             ~/.cache/pip
             build/_deps
-          key: "ubuntu-build-13.0.1-${{ hashFiles('**/CMakeLists.txt') }}"
+          key: "ubuntu-build-12.6.1-${{ hashFiles('**/CMakeLists.txt') }}"
           restore-keys: |
-            ubuntu-build-13.0.1-
+            ubuntu-build-12.6.1-
             ubuntu-build-
 
       - name: Build project
@@ -530,7 +530,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - cuda-version: "13.0.1"
+          - cuda-version: "12.6.1"
             tag-suffix: ""
           - cuda-version: ""
             tag-suffix: "-cpu"

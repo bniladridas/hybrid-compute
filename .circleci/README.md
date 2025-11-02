@@ -43,7 +43,7 @@ CODECOV_TOKEN=<token>
 
 | Executor | Image | Resources |
 |----------|-------|-----------|
-| ubuntu-cuda | nvidia/cuda:13.0.1-devel-ubuntu24.04 | gpu.nvidia.small |
+| ubuntu-cuda | nvidia/cuda:12.6.1-devel-ubuntu22.04 | gpu.nvidia.small |
 | ubuntu-cpu | ubuntu:24.04 | large |
 | macos-metal | Xcode 15.0 | macos.m1.medium.gen1 |
 | windows-cuda | Windows Server 2022 | windows.medium |
