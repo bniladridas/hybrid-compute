@@ -10,6 +10,11 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      # Limit parallel compilation to avoid memory issues
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      CTEST_PARALLEL_LEVEL: 2
+      MAKEFLAGS: "-j2"
     strategy:
       matrix:
         cpp: ["20"]
@@ -55,9 +60,9 @@ jobs:
             cmake \
             build-essential
 
-          # Add larger swap space to prevent OOM
+          # Add moderate swap space to prevent OOM
           echo "Setting up swap space..."
-          sudo fallocate -l 8G /swapfile
+          sudo fallocate -l 2G /swapfile
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
           sudo swapon /swapfile
@@ -117,13 +122,19 @@ jobs:
         run: |
           BUILD_DIR="build-${{ matrix.cuda }}-${{ matrix.python-version }}"
           cd $BUILD_DIR
-          make -j$(nproc)
+          echo "Memory usage before build:"
+          free -h
+          # Use limited parallelism to avoid memory issues
+          make -j2
+          echo "Memory usage after build:"
+          free -h
 
       - name: Run tests
         run: |
           BUILD_DIR="build-${{ matrix.cuda }}-${{ matrix.python-version }}"
           cd $BUILD_DIR
-          ctest --output-on-failure
+          # Use limited parallelism for tests to avoid memory issues
+          ctest --output-on-failure --parallel 2
 
   codeql-analysis:
     needs: build-and-test
@@ -187,10 +198,10 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_CUDA=OFF \
             -DBUILD_TESTS=OFF \
-            -DCMAKE_CXX_STANDARD=${{ matrix.cpp }} \
+            -DCMAKE_CXX_STANDARD=20 \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
             -DOpenCV_DIR="${OpenCV_DIR}" \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-          # Build with CodeQL
-          cmake --build . --config Release
+          # Build with CodeQL using limited parallelism
+          cmake --build . --config Release -- -j2
