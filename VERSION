@@ -1,22 +1,22 @@
 # Project version
-0.2.0
+0.2.1
 
 # Language Versions
-- Python: 3.12+
+- Python: 3.9+ (tested: 3.9, 3.10, 3.11, 3.12)
 - C++: 20 (required)
-- CUDA: 12.6+ (optional, for GPU acceleration)
+- CUDA: 12.0+ (optional, for GPU acceleration, tested: 12.4, 12.6)
 - Objective-C++: 17 (macOS Metal support)
 - Metal: 3.0+ (for macOS Metal acceleration)
 
 # Build Tools
-- CMake: 3.21+ (required, for proper CUDA and Metal support)
-- CUDA Toolkit: 11.8+ (optional, for CUDA support)
+- CMake: 3.10+ (required, 3.21+ recommended for CUDA and Metal support)
+- CUDA Toolkit: 12.0+ (optional, for CUDA support)
 - Xcode: 14.0+ (for macOS Metal development)
 - Ninja: 1.10+ (recommended build system)
 - Make: 4.3+ (alternative build system)
 
 # Core Dependencies
-- OpenCV: 4.5.0+ (required, with CUDA support optional)
+- OpenCV: 4.0+ (required, 4.5.0+ recommended, with CUDA support optional)
 - Eigen: 3.4.0+ (required for linear algebra)
 - GTest: 1.12.0+ (for unit testing)
 - pybind11: 2.10.0+ (for Python bindings)
@@ -25,11 +25,11 @@
 # Platform-Specific
 ## Linux
 ### Ubuntu
-- Ubuntu 24.04 LTS (Noble Numbat) - Primary development and test environment
+- Ubuntu 22.04+ LTS (tested on 22.04 and 24.04)
 - GCC: 11.0+ or Clang: 14.0+
 - libtbb12 (TBB 2021.0+)
-- CUDA: 12.6+ (for GPU support)
-- OpenCV: 4.5.0+ (with CUDA support recommended)
+- CUDA: 12.0+ (for GPU support, tested: 12.4, 12.6)
+- OpenCV: 4.0+ (4.5.0+ recommended, with CUDA support recommended)
 
 ### Other Linux Distributions
 - GCC: 11.0+ or Clang: 14.0+
