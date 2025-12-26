@@ -941,7 +941,10 @@ workflows:
   # Main CI workflow
   ci:
     when:
-      not: << pipeline.parameters.run-nightly >>
+      and:
+        - not: << pipeline.parameters.run-nightly >>
+        - not:
+            equal: [<< pipeline.git.branch >>, "gh-pages"]
     jobs:
       - code-quality
 
