@@ -17,6 +17,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>
+#include "../include/cuda_utils.hpp"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -98,16 +99,7 @@ __global__ void bicubicUpscaleKernel(uchar *input, uchar *output, int in_w,
   }
 }
 
-// Macro for CUDA error checking
-#define CUDA_CHECK(call)                                                       \
-  do {                                                                         \
-    cudaError_t err = call;                                                    \
-    if (err != cudaSuccess) {                                                  \
-      std::cerr << "CUDA error in " << __FILE__ << " at line " << __LINE__     \
-                << ": " << cudaGetErrorString(err) << std::endl;               \
-      return -1;                                                               \
-    }                                                                          \
-  } while (0)
+
 
 // Main function: performs bicubic upscaling using CUDA if available, else CPU
 int main(int argc, char **argv) {
