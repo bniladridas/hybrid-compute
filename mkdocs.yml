@@ -2,6 +2,7 @@
 site_name: Hybrid Compute
 nav:
   - Home: index.md
-  - Onboarding: docs/ONBOARDING.md
-  - Testing: docs/TESTING.md
+  - Onboarding: ONBOARDING.md
+  - Testing: TESTING.md
+  - Troubleshooting: TROUBLESHOOTING.md
 theme: readthedocs
