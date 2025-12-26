@@ -47,7 +47,7 @@ executors:
   macos-metal:
     macos:
       xcode: 15.0
-    resource_class: macos.m1.medium.gen1
+    resource_class: m4pro.medium
 
   windows-cuda:
     machine:
