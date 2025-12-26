@@ -6,4 +6,5 @@ Welcome to the Hybrid Compute project documentation. This project provides image
 
 - [Onboarding Guide](ONBOARDING.md)
 - [Testing](TESTING.md)
+- [CI/CD Pipeline](CI.md)
 - [Troubleshooting](TROUBLESHOOTING.md)
