@@ -4,5 +4,6 @@ nav:
   - Home: index.md
   - Onboarding: ONBOARDING.md
   - Testing: TESTING.md
+  - CI: CI.md
   - Troubleshooting: TROUBLESHOOTING.md
 theme: readthedocs
