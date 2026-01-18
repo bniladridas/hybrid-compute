@@ -1,7 +1,6 @@
 #include "utils.hpp" // Helper functions
 #include <exception>
 #include <filesystem>
-#include <format>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>
@@ -49,7 +48,7 @@ int main(int argc, char **argv) {
 
       // Save tiles to output folder
       for (size_t i = 0; i < tiles.size(); ++i) {
-        const std::string filename = std::format("{}_tile_{}.jpg", entry.path().stem().string(), i);
+        const std::string filename = entry.path().stem().string() + "_tile_" + std::to_string(i) + ".jpg";
         const fs::path output_path = fs::path(output_folder) / filename;
         if (!cv::imwrite(output_path.string(), tiles[i])) {
           std::cerr << "Error saving tile " << i << " to " << output_path.string() << "\n";
