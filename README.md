@@ -189,7 +189,7 @@ type(scope): short description (≤60 chars)
 feat(api): add user authentication
 - implement jwt token generation
 - add login endpoint
-ix(ci): resolve build failures
+fix(ci): resolve build failures
 - update cmake minimum version
 - fix opencv linking
 

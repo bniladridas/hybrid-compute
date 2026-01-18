@@ -1,6 +1,7 @@
 #include "utils.hpp" // Helper functions
 #include <exception>
 #include <filesystem>
+#include <system_error>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>
@@ -32,12 +33,16 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  // Create output folder if it does not exist
-  if (!fs::exists(output_folder)) {
-    fs::create_directories(output_folder);
-  }
+   // Create output folder if it does not exist
+   std::error_code ec;
+   fs::create_directories(output_folder, ec);
+   if (ec) {
+     std::cerr << "Error creating output directory: " << ec.message() << "\n";
+     return -1;
+   }
 
-  for (const auto &entry : fs::directory_iterator(input_folder)) {
+   try {
+     for (const auto &entry : fs::directory_iterator(input_folder)) {
     if (entry.is_regular_file()) {
       cv::Mat image = cv::imread(entry.path().string());
       if (image.empty()) {
@@ -48,18 +53,22 @@ int main(int argc, char **argv) {
 
       // Save tiles to output folder
       for (size_t i = 0; i < tiles.size(); ++i) {
-        std::string path = output_folder + "/" + entry.path().stem().string() +
-                           "_tile_" + std::to_string(i) + ".jpg";
-        if (!cv::imwrite(path, tiles[i])) {
-          std::cerr << "Error saving tile " << i << " to " << path << "\n";
-          return -1;
+        const std::string filename = entry.path().stem().string() + "_tile_" + std::to_string(i) + ".jpg";
+        const fs::path output_path = fs::path(output_folder) / filename;
+        if (!cv::imwrite(output_path.string(), tiles[i])) {
+          std::cerr << "Error saving tile " << i << " to " << output_path.string() << "\n";
+          continue;
         }
       }
 
       std::cout << "Processed " << entry.path() << " and saved " << tiles.size()
                 << " tiles!\n";
     }
-  }
+   }
+   } catch (const std::exception &e) {
+     std::cerr << "Error accessing input directory: " << e.what() << "\n";
+     return -1;
+   }
 
-  return 0;
+   return 0;
 }
