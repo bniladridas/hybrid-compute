@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
         const fs::path output_path = fs::path(output_folder) / filename;
         if (!cv::imwrite(output_path.string(), tiles[i])) {
           std::cerr << "Error saving tile " << i << " to " << output_path.string() << "\n";
-          return -1;
+          continue;
         }
       }
 
