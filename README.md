@@ -1,5 +1,7 @@
 <div align="center">
   <h1>🧸</h1>
+
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/bniladridas/hybrid-compute/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/bniladridas/hybrid-compute/tree/main)
 </div>
 
 **`Hybrid-compute`** is a cross-platform GPU-accelerated image processing framework with a CUDA-to-Metal compatibility shim. It enables CUDA-based operations on macOS (Apple Silicon) via Metal, supporting various image processing tasks including upscaling, filtering, color space conversion, morphology, thresholding, edge detection, and blending. Includes CPU preprocessing for tiling/stitching and utilities.
