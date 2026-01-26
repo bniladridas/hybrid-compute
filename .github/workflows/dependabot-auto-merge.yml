@@ -13,6 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Wait for CI checks to pass
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-regexp: '^(build-and-test|codeql|lint-and-polish|python-tests|coverage|docker|build-cuda|build-metal).*'
+          wait-interval: 30
+          repo-token: ${{ secrets.DEPENDABOT_MERGE_TOKEN }}
+          allowed-conclusions: success,skipped
+
       - name: Enable auto-merge for Dependabot PRs
         env:
           GH_TOKEN: ${{ secrets.DEPENDABOT_MERGE_TOKEN }}
