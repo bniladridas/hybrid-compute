@@ -33,4 +33,4 @@ Thank you for helping keep hybrid-compute secure!
 
 ---
 
-© 2025 bniladridas; BSD 3-Clause license, see [LICENSE](LICENSE)
+© 2026 bniladridas; BSD 3-Clause license, see [LICENSE](LICENSE)
