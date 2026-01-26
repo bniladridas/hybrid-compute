@@ -1,0 +1,37 @@
+name: Auto CUDA Releases
+
+on:
+  push:
+    paths:
+      - 'Dockerfile.cuda'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  create-cuda-releases:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup GitHub CLI
+        run: |
+          gh --version
+          
+      - name: Run CUDA release automation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/create_cuda_releases.sh
+          
+      - name: Summary
+        run: |
+          echo "🎉 CUDA releases automated successfully!"
+          echo "📦 Check releases at: ${{ github.server_url }}/${{ github.repository }}/releases"
