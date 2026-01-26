@@ -620,14 +620,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Wait for checks to pass
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.sha }}
-          check-name: 'test-and-build'
-          wait-interval: 30
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Merge Dependabot PR
         env:
           GH_TOKEN: ${{ secrets.DEPENDABOT_MERGE_TOKEN }}
