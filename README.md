@@ -137,20 +137,33 @@ python3 scripts/e2e.py
    ```bash
    ./preprocess_c path/to/input_images/ path/to/tiles/
    ```
-2. **Transfer tiles to cloud** (update script with your cloud details):
+2. **Transfer tiles to cloud** (configurable via environment variables):
    ```bash
+   # Set your cloud configuration
+   export CLOUD_IP="your.cloud.ip"
+   export CLOUD_USER="ubuntu"
+   export CLOUD_PROJECT_PATH="/home/ubuntu/HybridCompute"
    ./scripts/transfer_tiles.sh
    ```
 3. **Upscale tiles on cloud**:
    ```bash
-   cd cloud_gpu && ./upscaler input_tile.jpg output_tile.jpg
+   # Single tile
+   cd cloud_gpu && ./upscaler input_tile.jpg output_tile.jpg 2
+
+   # Batch process all tiles
+   ./scripts/batch_upscale.sh tiles upscaled 2 "*.jpg"
    ```
-   (Replace with actual tile filenames; defaults to input_tile.jpg/output_tile.jpg if no args provided)
-4. **Stitch upscaled tiles** (currently hardcoded for 4x4 grid):
+4. **Stitch upscaled tiles** with flexible grid dimensions:
    ```bash
+   # Auto-detect square grid
    python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg
+
+   # Specify custom grid dimensions
+   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg --rows 2 --cols 8
+
+   # Use custom file pattern
+   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg --pattern "upscaled_*.png"
    ```
-   _Note: Scripts are currently hardcoded for specific file names and grid sizes. Modify as needed for your use case._
    **Verification**
    To ensure the project components work correctly:
 
