@@ -83,7 +83,8 @@ jobs:
           echo "[INFO] Testing git user configuration..."
           git_user=$(git config user.name)
           git_email=$(git config user.email)
-          if [ "$git_user" = "github-actions[bot]" ] && [ "$git_email" = "github-actions[bot]@users.noreply.github.com" ]; then
+          expected_email="github-actions[bot]@users.noreply.github.com"
+          if [ "$git_user" = "github-actions[bot]" ] && [ "$git_email" = "$expected_email" ]; then
             echo "[PASS] Git user configured as github-actions[bot]"
           else
             echo "[FAIL] Git user not properly configured: $git_user <$git_email>"
