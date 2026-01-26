@@ -2,19 +2,24 @@
 name: Dependabot Auto-Merge
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
 
 jobs:
   dependabot-auto-merge:
     runs-on: ubuntu-24.04
-    if: github.actor == 'dependabot[bot]' && github.event.workflow_run.conclusion == 'success'
+    if: github.actor == 'dependabot[bot]'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Wait for CI checks
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'test-and-build'
+          wait-interval: 30
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge Dependabot PR
         env:
