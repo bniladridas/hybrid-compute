@@ -613,12 +613,20 @@ jobs:
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
   dependabot-auto-merge:
-    needs: docker
+    needs: [test-and-build, docker]
     runs-on: ubuntu-24.04
     if: github.actor == 'dependabot[bot]'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Wait for checks to pass
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'build-and-test'
+          wait-interval: 30
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge Dependabot PR
         env:
