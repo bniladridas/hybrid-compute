@@ -38,7 +38,7 @@ jobs:
           echo "🔍 Checking GitHub Actions workflows..."
           workflow_count=$(find .github/workflows -name "*.yml" -o -name "*.yaml" | wc -l)
           echo "📊 Found $workflow_count workflow files"
-          
+
           for workflow in .github/workflows/*.yml .github/workflows/*.yaml; do
             if [ -f "$workflow" ]; then
               echo "✅ $(basename "$workflow")"
