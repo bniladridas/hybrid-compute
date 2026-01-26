@@ -19,7 +19,7 @@ jobs:
       - name: Add to Project
         uses: actions/add-to-project@v0.5.0
         with:
-          project-url: PVT_kwHOB3yUM84BLYu1
+          project-url: https://github.com/users/bniladridas/projects/14
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log Assignment
