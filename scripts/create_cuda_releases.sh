@@ -4,6 +4,8 @@
 
 set -e
 
+echo "[INFO] Starting automated CUDA release creation..."
+
 # Function to extract CUDA version from Dockerfile
 get_cuda_version() {
     local commit=$1
@@ -17,32 +19,53 @@ create_cuda_release() {
     local branch_name="cuda-$cuda_version"
     local tag_name="v1.0.0-cuda-$cuda_version"
 
-    echo "Processing CUDA $cuda_version from commit $commit"
+    echo "[INFO] Processing CUDA $cuda_version from commit $commit"
 
     # Check if branch already exists
-    if git show-ref --verify --quiet "refs/heads/$branch_name"; then
-        echo "Branch $branch_name already exists, skipping..."
-        return
+    if git show-ref --verify --quiet "refs/heads/$branch_name" 2>/dev/null; then
+        echo "[SKIP] Branch $branch_name already exists"
+        return 0
+    fi
+
+    # Check if remote branch exists
+    if git ls-remote --heads origin "$branch_name" | grep -q "$branch_name"; then
+        echo "[SKIP] Remote branch $branch_name already exists"
+        return 0
     fi
 
     # Create branch from commit
+    echo "[INFO] Creating branch $branch_name from commit $commit"
     git checkout "$commit" -b "$branch_name" 2>/dev/null || {
-        git checkout "$branch_name"
+        echo "[WARN] Could not create branch, may already exist locally"
+        git checkout "$branch_name" 2>/dev/null || return 1
     }
 
     # Push branch
-    git push -u origin "$branch_name" || echo "Branch already pushed"
+    echo "[INFO] Pushing branch $branch_name"
+    git push -u origin "$branch_name" || echo "[WARN] Branch push failed or already exists"
 
-    # Create tag
-    git tag -a "$tag_name" -m "Release v1.0.0 with CUDA $cuda_version support" || echo "Tag already exists"
+    # Check if tag already exists
+    if git tag -l | grep -q "^$tag_name$"; then
+        echo "[SKIP] Tag $tag_name already exists"
+    else
+        # Create tag
+        echo "[INFO] Creating tag $tag_name"
+        git tag -a "$tag_name" -m "Release v1.0.0 with CUDA $cuda_version support" || echo "[WARN] Tag creation failed"
 
-    # Push tag
-    git push origin "$tag_name" || echo "Tag already pushed"
+        # Push tag
+        echo "[INFO] Pushing tag $tag_name"
+        git push origin "$tag_name" || echo "[WARN] Tag push failed or already exists"
+    fi
 
-    # Create GitHub release
-    gh release create "$tag_name" \
-        --title "v1.0.0 - CUDA $cuda_version" \
-        --notes "Release v1.0.0 with CUDA $cuda_version support
+    # Check if release already exists
+    if gh release view "$tag_name" >/dev/null 2>&1; then
+        echo "[SKIP] Release $tag_name already exists"
+    else
+        # Create GitHub release
+        echo "[INFO] Creating GitHub release $tag_name"
+        gh release create "$tag_name" \
+            --title "v1.0.0 - CUDA $cuda_version" \
+            --notes "Release v1.0.0 with CUDA $cuda_version support
 
 **CUDA Version:** $cuda_version
 **Ubuntu Version:** 24.04
@@ -50,16 +73,20 @@ create_cuda_release() {
 **Docker Usage:**
 \`\`\`bash
 docker build -f Dockerfile.cuda -t hybrid-compute-cuda:$cuda_version .
-\`\`\`" || echo "Release already exists"
+\`\`\`" || echo "[WARN] Release creation failed or already exists"
+    fi
+
+    echo "[PASS] Completed processing CUDA $cuda_version"
 }
 
 # Main script
-echo "🚀 Automating CUDA version releases..."
+echo "[INFO] Scanning git history for CUDA versions..."
 
 # Get commits that modified Dockerfile.cuda
 commits=$(git log --oneline --follow Dockerfile.cuda | awk '{print $1}')
 
 declare -A seen_versions
+processed_count=0
 
 for commit in $commits; do
     cuda_version=$(get_cuda_version "$commit")
@@ -67,11 +94,12 @@ for commit in $commits; do
     if [[ -n "$cuda_version" && -z "${seen_versions[$cuda_version]}" ]]; then
         seen_versions[$cuda_version]=1
         create_cuda_release "$commit" "$cuda_version"
+        processed_count=$((processed_count + 1))
     fi
 done
 
 # Return to main branch
-git checkout main
+git checkout main >/dev/null 2>&1
 
-echo "✅ CUDA release automation complete!"
-echo "📋 Created releases for versions: ${!seen_versions[*]}"
+echo "[PASS] CUDA release automation complete!"
+echo "[INFO] Processed $processed_count unique CUDA versions: ${!seen_versions[*]}"
