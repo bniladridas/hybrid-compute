@@ -8,6 +8,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
 
 jobs:
   create-cuda-releases:
@@ -31,13 +33,14 @@ jobs:
         run: |
           gh --version
 
-      - name: Run CUDA release automation
+      - name: Auto-scan and create missing releases
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "[INFO] Auto-scanning for missing CUDA version releases..."
           ./scripts/create_cuda_releases.sh
 
       - name: Summary
         run: |
-          echo "🎉 CUDA releases automated successfully!"
-          echo "📦 Check releases at: ${{ github.server_url }}/${{ github.repository }}/releases"
+          echo "[PASS] CUDA release automation completed successfully!"
+          echo "Check releases at: ${{ github.server_url }}/${{ github.repository }}/releases"
