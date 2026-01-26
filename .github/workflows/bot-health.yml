@@ -22,26 +22,26 @@ jobs:
 
       - name: Check Dependabot Config
         run: |
-          echo "🔍 Checking Dependabot configuration..."
+          echo "[INFO] Checking Dependabot configuration..."
           if [ -f ".github/dependabot.yml" ]; then
-            echo "✅ Dependabot config exists"
+            echo "[PASS] Dependabot config exists"
             # Validate YAML syntax
             python3 -c "import yaml; yaml.safe_load(open('.github/dependabot.yml'))"
-            echo "✅ Dependabot YAML is valid"
+            echo "[PASS] Dependabot YAML is valid"
           else
-            echo "❌ Dependabot config missing"
+            echo "[FAIL] Dependabot config missing"
             exit 1
           fi
 
       - name: Check Workflows
         run: |
-          echo "🔍 Checking GitHub Actions workflows..."
+          echo "[INFO] Checking GitHub Actions workflows..."
           workflow_count=$(find .github/workflows -name "*.yml" -o -name "*.yaml" | wc -l)
-          echo "📊 Found $workflow_count workflow files"
+          echo "[INFO] Found $workflow_count workflow files"
 
           for workflow in .github/workflows/*.yml .github/workflows/*.yaml; do
             if [ -f "$workflow" ]; then
-              echo "✅ $(basename "$workflow")"
+              echo "[PASS] $(basename "$workflow")"
               # Validate YAML syntax
               python3 -c "import yaml; yaml.safe_load(open('$workflow'))"
             fi
@@ -49,50 +49,50 @@ jobs:
 
       - name: Check Pre-commit Config
         run: |
-          echo "🔍 Checking pre-commit configuration..."
+          echo "[INFO] Checking pre-commit configuration..."
           if [ -f ".pre-commit-config.yaml" ]; then
-            echo "✅ Pre-commit config exists"
+            echo "[PASS] Pre-commit config exists"
             python3 -c "import yaml; yaml.safe_load(open('.pre-commit-config.yaml'))"
-            echo "✅ Pre-commit YAML is valid"
+            echo "[PASS] Pre-commit YAML is valid"
           else
-            echo "❌ Pre-commit config missing"
+            echo "[FAIL] Pre-commit config missing"
           fi
 
       - name: Check CircleCI Config
         run: |
-          echo "🔍 Checking CircleCI configuration..."
+          echo "[INFO] Checking CircleCI configuration..."
           if [ -f ".circleci/config.yml" ]; then
-            echo "✅ CircleCI config exists"
+            echo "[PASS] CircleCI config exists"
             python3 -c "import yaml; yaml.safe_load(open('.circleci/config.yml'))"
-            echo "✅ CircleCI YAML is valid"
+            echo "[PASS] CircleCI YAML is valid"
           else
-            echo "⚠️ CircleCI config not found (optional)"
+            echo "[WARN] CircleCI config not found (optional)"
           fi
 
       - name: Check Git Hooks
         run: |
-          echo "🔍 Checking Git hooks..."
+          echo "[INFO] Checking Git hooks..."
           if [ -f "scripts/commit-msg" ]; then
-            echo "✅ Commit message hook exists"
+            echo "[PASS] Commit message hook exists"
             if [ -x "scripts/commit-msg" ]; then
-              echo "✅ Commit hook is executable"
+              echo "[PASS] Commit hook is executable"
             else
-              echo "⚠️ Commit hook not executable"
+              echo "[WARN] Commit hook not executable"
             fi
           else
-            echo "❌ Commit message hook missing"
+            echo "[FAIL] Commit message hook missing"
           fi
 
       - name: Bot Status Summary
         run: |
-          echo "## 🤖 Bot Health Status" >> $GITHUB_STEP_SUMMARY
+          echo "## Bot Health Status" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Bot/Service | Status | Config File |" >> $GITHUB_STEP_SUMMARY
           echo "|-------------|--------|-------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Dependabot | ✅ Active | .github/dependabot.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| GitHub Actions | ✅ Active | .github/workflows/ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Pre-commit | ✅ Active | .pre-commit-config.yaml |" >> $GITHUB_STEP_SUMMARY
-          echo "| CircleCI | ✅ Active | .circleci/config.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Git Hooks | ✅ Active | scripts/commit-msg |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependabot | [PASS] Active | .github/dependabot.yml |" >> $GITHUB_STEP_SUMMARY
+          echo "| GitHub Actions | [PASS] Active | .github/workflows/ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-commit | [PASS] Active | .pre-commit-config.yaml |" >> $GITHUB_STEP_SUMMARY
+          echo "| CircleCI | [PASS] Active | .circleci/config.yml |" >> $GITHUB_STEP_SUMMARY
+          echo "| Git Hooks | [PASS] Active | scripts/commit-msg |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ All bots and automation are properly configured!"
+          echo "[PASS] All bots and automation are properly configured!"
