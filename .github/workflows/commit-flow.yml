@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  align-commit-flow:
+  align-flow:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -19,118 +19,85 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 50
+          fetch-depth: 30
 
       - name: Setup Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Analyze Commit Patterns
-        id: analysis
+      - name: Analyze Flow
+        id: flow
         run: |
-          echo "[INFO] Analyzing commit flow patterns..."
+          echo "[INFO] Analyzing commit flow..."
 
-          commits=$(git log --oneline -20 --pretty=format:"%h|%s" --date=short)
-          total=0; conventional=0; noise=0
+          total=0; aligned=0
+          pattern="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)\("
 
-          while IFS='|' read -r hash subject; do
+          while read -r subject; do
             total=$((total + 1))
-            pattern="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)\([a-z-]+\):"
             if [[ "$subject" =~ $pattern ]]; then
-              conventional=$((conventional + 1))
-              echo "[ALIGN] $hash: ${subject:0:50}..."
-            else
-              noise=$((noise + 1))
-              echo "[NOISE] $hash: ${subject:0:50}..."
+              aligned=$((aligned + 1))
             fi
-          done <<< "$commits"
+          done < <(git log --oneline -20 --pretty=format:"%s")
 
-          alignment=$(( total > 0 ? (conventional * 100) / total : 0 ))
+          score=$(( total > 0 ? (aligned * 100) / total : 0 ))
 
-          echo "total_commits=$total" >> $GITHUB_OUTPUT
-          echo "conventional_commits=$conventional" >> $GITHUB_OUTPUT
-          echo "noise_commits=$noise" >> $GITHUB_OUTPUT
-          echo "alignment_score=$alignment" >> $GITHUB_OUTPUT
+          echo "score=$score" >> $GITHUB_OUTPUT
+          echo "aligned=$aligned" >> $GITHUB_OUTPUT
+          echo "total=$total" >> $GITHUB_OUTPUT
 
-          echo "[INFO] Flow alignment: $alignment% ($conventional/$total)"
+          echo "[INFO] Flow score: $score% ($aligned/$total aligned)"
 
-      - name: Generate Flow Report
+      - name: Flow Report
         run: |
-          alignment=${{ steps.analysis.outputs.alignment_score }}
-          conventional=${{ steps.analysis.outputs.conventional_commits }}
-          total=${{ steps.analysis.outputs.total_commits }}
-          noise=${{ steps.analysis.outputs.noise_commits }}
+          score=${{ steps.flow.outputs.score }}
+          aligned=${{ steps.flow.outputs.aligned }}
+          total=${{ steps.flow.outputs.total }}
 
-          if [ $alignment -ge 90 ]; then
-            status="HARMONIZED"; icon="[====]"
-          elif [ $alignment -ge 75 ]; then
-            status="ALIGNED"; icon="[===.]"
-          elif [ $alignment -ge 50 ]; then
-            status="STABILIZING"; icon="[==..]"
+          if [ $score -ge 80 ]; then
+            status="HARMONIZED"
+          elif [ $score -ge 60 ]; then
+            status="ALIGNED"
           else
-            status="FRAGMENTING"; icon="[=...]"
+            status="FRAGMENTING"
           fi
 
           cat >> $GITHUB_STEP_SUMMARY << EOF
-          ## Commit Flow Analysis
-
-          ### Status: $status ($alignment%)
-          \`\`\`
-          $icon Flow Depth: $alignment%
-          \`\`\`
+          ## Commit Flow: $status ($score%)
 
           | Metric | Value |
           |--------|-------|
-          | Total | $total |
-          | Aligned | $conventional |
-          | Fragmented | $noise |
+          | Aligned | $aligned/$total |
+          | Score | $score% |
+          | Status | $status |
 
-          ### Guidance
-          $([ $alignment -lt 90 ] && echo "- Pattern: \`type(scope): description\`")
-          $([ $noise -gt 2 ] && echo "- Focus: Clear, structured messages")
-          $([ $alignment -ge 75 ] && echo "- Flow: Well maintained" || echo "- Flow: Needs strengthening")
+          ### Flow Pattern
+          \`type(scope): description\`
 
-          *Persistent clarity through consistent patterns*
+          *Maintains persistent clarity through structured commits*
           EOF
 
-      - name: Gentle Alignment
-        if: steps.analysis.outputs.alignment_score < 50
+      - name: Gentle Correction
+        if: steps.flow.outputs.score < 40
         run: |
-          echo "[INFO] Applying gentle flow alignment..."
-          alignment=${{ steps.analysis.outputs.alignment_score }}
+          echo "[INFO] Applying gentle flow correction..."
 
-          if [ $alignment -lt 30 ]; then
-            echo "# Commit Flow Guide
+          echo "# Flow Alignment
 
-Maintains development consistency through structured patterns.
+Structured commit patterns for consistent development flow.
 
-## Pattern
-\`type(scope): clear description\`
+Pattern: \`type(scope): clear description\`
 
-## Types
-- feat: new features
-- fix: bug fixes  
-- docs: documentation
-- style: formatting
-- refactor: code restructure
-- test: testing
-- chore: maintenance
+Generated: $(date)" > .github/FLOW.md
 
-Generated: $(date)" > .github/FLOW_GUIDE.md
+          git add .github/FLOW.md
+          git commit -m "docs(flow): maintain alignment patterns" || true
 
-            git add .github/FLOW_GUIDE.md
-            git commit -m "docs(flow): add alignment guide" || echo "[INFO] No changes"
-          fi
-
-      - name: Flow Persistence
+      - name: Verify Persistence
         run: |
-          echo "[INFO] Verifying flow persistence..."
-
           if [ -f "scripts/commit-msg" ] && [ -x "scripts/commit-msg" ]; then
-            echo "[PASS] Commit validation active"
+            echo "[PASS] Flow validation active"
           else
-            echo "[WARN] Validation needs attention"
+            echo "[WARN] Flow validation inactive"
           fi
-
-          echo "[PASS] Flow persistence maintained"
