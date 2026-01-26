@@ -24,5 +24,6 @@ jobs:
 
       - name: Log Assignment
         run: |
-          echo "[INFO] Added ${{ github.event.pull_request.number || github.event.issue.number }} to Forge project"
+          item_num="${{ github.event.pull_request.number || github.event.issue.number }}"
+          echo "[INFO] Added #$item_num to Forge project"
           echo "[INFO] Project: https://github.com/users/bniladridas/projects/14"
