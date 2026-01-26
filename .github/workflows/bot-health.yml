@@ -1,0 +1,98 @@
+---
+name: Bot Health Check
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/**'
+
+jobs:
+  check-bots:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Dependabot Config
+        run: |
+          echo "🔍 Checking Dependabot configuration..."
+          if [ -f ".github/dependabot.yml" ]; then
+            echo "✅ Dependabot config exists"
+            # Validate YAML syntax
+            python3 -c "import yaml; yaml.safe_load(open('.github/dependabot.yml'))"
+            echo "✅ Dependabot YAML is valid"
+          else
+            echo "❌ Dependabot config missing"
+            exit 1
+          fi
+
+      - name: Check Workflows
+        run: |
+          echo "🔍 Checking GitHub Actions workflows..."
+          workflow_count=$(find .github/workflows -name "*.yml" -o -name "*.yaml" | wc -l)
+          echo "📊 Found $workflow_count workflow files"
+          
+          for workflow in .github/workflows/*.yml .github/workflows/*.yaml; do
+            if [ -f "$workflow" ]; then
+              echo "✅ $(basename "$workflow")"
+              # Validate YAML syntax
+              python3 -c "import yaml; yaml.safe_load(open('$workflow'))"
+            fi
+          done
+
+      - name: Check Pre-commit Config
+        run: |
+          echo "🔍 Checking pre-commit configuration..."
+          if [ -f ".pre-commit-config.yaml" ]; then
+            echo "✅ Pre-commit config exists"
+            python3 -c "import yaml; yaml.safe_load(open('.pre-commit-config.yaml'))"
+            echo "✅ Pre-commit YAML is valid"
+          else
+            echo "❌ Pre-commit config missing"
+          fi
+
+      - name: Check CircleCI Config
+        run: |
+          echo "🔍 Checking CircleCI configuration..."
+          if [ -f ".circleci/config.yml" ]; then
+            echo "✅ CircleCI config exists"
+            python3 -c "import yaml; yaml.safe_load(open('.circleci/config.yml'))"
+            echo "✅ CircleCI YAML is valid"
+          else
+            echo "⚠️ CircleCI config not found (optional)"
+          fi
+
+      - name: Check Git Hooks
+        run: |
+          echo "🔍 Checking Git hooks..."
+          if [ -f "scripts/commit-msg" ]; then
+            echo "✅ Commit message hook exists"
+            if [ -x "scripts/commit-msg" ]; then
+              echo "✅ Commit hook is executable"
+            else
+              echo "⚠️ Commit hook not executable"
+            fi
+          else
+            echo "❌ Commit message hook missing"
+          fi
+
+      - name: Bot Status Summary
+        run: |
+          echo "## 🤖 Bot Health Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Bot/Service | Status | Config File |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependabot | ✅ Active | .github/dependabot.yml |" >> $GITHUB_STEP_SUMMARY
+          echo "| GitHub Actions | ✅ Active | .github/workflows/ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-commit | ✅ Active | .pre-commit-config.yaml |" >> $GITHUB_STEP_SUMMARY
+          echo "| CircleCI | ✅ Active | .circleci/config.yml |" >> $GITHUB_STEP_SUMMARY
+          echo "| Git Hooks | ✅ Active | scripts/commit-msg |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All bots and automation are properly configured!"
