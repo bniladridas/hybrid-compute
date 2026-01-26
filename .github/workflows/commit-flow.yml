@@ -83,13 +83,13 @@ jobs:
         run: |
           echo "[INFO] Applying gentle flow correction..."
 
-          echo "# Flow Alignment
+          cat > .github/FLOW.md << 'EOF'
+          # Flow Alignment
 
-Structured commit patterns for consistent development flow.
+          Structured commit patterns for consistent development flow.
 
-Pattern: \`type(scope): clear description\`
-
-Generated: $(date)" > .github/FLOW.md
+          Pattern: `type(scope): clear description`
+          EOF
 
           git add .github/FLOW.md
           git commit -m "docs(flow): maintain alignment patterns" || true
