@@ -622,7 +622,7 @@ jobs:
 
       - name: Merge Dependabot PR
         env:
-          GH_TOKEN: ${{ secrets.DEPENDABOT_MERGE_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge ${{ github.event.pull_request.number }} --squash --delete-branch=false
 
   # ────────────────────────────── Automated Release ──────────────────────────────
