@@ -1,0 +1,46 @@
+---
+name: Auto Version Bump
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'Dockerfile*'
+  workflow_dispatch:
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump Version
+        run: |
+          current_version=$(grep "^[0-9]" VERSION | head -1)
+          IFS='.' read -r major minor patch <<< "$current_version"
+          new_patch=$((patch + 1))
+          new_version="$major.$minor.$new_patch"
+          
+          sed -i "1s/.*/$new_version/" VERSION
+          echo "Updated version to $new_version"
+
+      - name: Commit Version Bump
+        run: |
+          if git diff --quiet VERSION; then
+            echo "No version changes"
+          else
+            git add VERSION
+            git commit -m "chore(version): bump to $(head -1 VERSION)"
+            git push
+          fi
