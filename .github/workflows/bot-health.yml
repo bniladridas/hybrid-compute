@@ -79,6 +79,17 @@ jobs:
         run: |
           echo "[INFO] Running end-to-end bot tests..."
 
+          # Test git user configuration
+          echo "[INFO] Testing git user configuration..."
+          git_user=$(git config user.name)
+          git_email=$(git config user.email)
+          if [ "$git_user" = "github-actions[bot]" ] && [ "$git_email" = "github-actions[bot]@users.noreply.github.com" ]; then
+            echo "[PASS] Git user configured as github-actions[bot]"
+          else
+            echo "[FAIL] Git user not properly configured: $git_user <$git_email>"
+            exit 1
+          fi
+
           # Test commit message hook
           echo "[INFO] Testing commit message validation..."
           echo "feat(test): valid commit message" > /tmp/test_commit
