@@ -16,29 +16,29 @@ create_cuda_release() {
     local cuda_version=$2
     local branch_name="cuda-$cuda_version"
     local tag_name="v1.0.0-cuda-$cuda_version"
-    
+
     echo "Processing CUDA $cuda_version from commit $commit"
-    
+
     # Check if branch already exists
     if git show-ref --verify --quiet "refs/heads/$branch_name"; then
         echo "Branch $branch_name already exists, skipping..."
         return
     fi
-    
+
     # Create branch from commit
     git checkout "$commit" -b "$branch_name" 2>/dev/null || {
         git checkout "$branch_name"
     }
-    
+
     # Push branch
     git push -u origin "$branch_name" || echo "Branch already pushed"
-    
+
     # Create tag
     git tag -a "$tag_name" -m "Release v1.0.0 with CUDA $cuda_version support" || echo "Tag already exists"
-    
+
     # Push tag
     git push origin "$tag_name" || echo "Tag already pushed"
-    
+
     # Create GitHub release
     gh release create "$tag_name" \
         --title "v1.0.0 - CUDA $cuda_version" \
@@ -63,7 +63,7 @@ declare -A seen_versions
 
 for commit in $commits; do
     cuda_version=$(get_cuda_version "$commit")
-    
+
     if [[ -n "$cuda_version" && -z "${seen_versions[$cuda_version]}" ]]; then
         seen_versions[$cuda_version]=1
         create_cuda_release "$commit" "$cuda_version"

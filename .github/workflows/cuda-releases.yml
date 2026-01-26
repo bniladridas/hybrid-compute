@@ -1,3 +1,4 @@
+---
 name: Auto CUDA Releases
 
 on:
@@ -14,23 +15,23 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup GitHub CLI
         run: |
           gh --version
-          
+
       - name: Run CUDA release automation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./scripts/create_cuda_releases.sh
-          
+
       - name: Summary
         run: |
           echo "🎉 CUDA releases automated successfully!"
