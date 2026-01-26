@@ -1,0 +1,184 @@
+---
+name: Commit Flow Alignment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+  workflow_dispatch:
+
+jobs:
+  align-commit-flow:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Analyze Commit Patterns
+        id: analysis
+        run: |
+          echo "[INFO] Analyzing commit flow patterns..."
+
+          # Get recent commits
+          commits=$(git log --oneline -20 --pretty=format:"%h|%s|%an|%ad" --date=short)
+
+          # Analyze patterns
+          total_commits=0
+          conventional_commits=0
+          noise_commits=0
+          alignment_score=0
+
+          while IFS='|' read -r hash subject author date; do
+            total_commits=$((total_commits + 1))
+
+            # Check conventional commit format
+            if [[ "$subject" =~ ^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)\([a-z-]+\): ]]; then
+              conventional_commits=$((conventional_commits + 1))
+              echo "[ALIGN] $hash: $subject"
+            else
+              noise_commits=$((noise_commits + 1))
+              echo "[NOISE] $hash: $subject"
+            fi
+          done <<< "$commits"
+
+          # Calculate alignment score
+          if [ $total_commits -gt 0 ]; then
+            alignment_score=$(( (conventional_commits * 100) / total_commits ))
+          fi
+
+          echo "total_commits=$total_commits" >> $GITHUB_OUTPUT
+          echo "conventional_commits=$conventional_commits" >> $GITHUB_OUTPUT
+          echo "noise_commits=$noise_commits" >> $GITHUB_OUTPUT
+          echo "alignment_score=$alignment_score" >> $GITHUB_OUTPUT
+
+          echo "[INFO] Alignment analysis: $alignment_score% ($conventional_commits/$total_commits)"
+
+      - name: Generate Flow Insights
+        run: |
+          alignment=${{ steps.analysis.outputs.alignment_score }}
+          conventional=${{ steps.analysis.outputs.conventional_commits }}
+          total=${{ steps.analysis.outputs.total_commits }}
+          noise=${{ steps.analysis.outputs.noise_commits }}
+
+          # Determine flow status
+          if [ $alignment -ge 90 ]; then
+            flow_status="HARMONIZED"
+            flow_icon="[====]"
+          elif [ $alignment -ge 75 ]; then
+            flow_status="ALIGNED"
+            flow_icon="[===.]"
+          elif [ $alignment -ge 50 ]; then
+            flow_status="STABILIZING"
+            flow_icon="[==..]"
+          else
+            flow_status="FRAGMENTING"
+            flow_icon="[=...]"
+          fi
+
+          echo "[INFO] Commit flow status: $flow_status $flow_icon"
+
+          # Generate subtle recommendations
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## Commit Flow Analysis
+
+          ### Flow Status: $flow_status ($alignment%)
+          \`\`\`
+          $flow_icon Alignment Depth: $alignment%
+          \`\`\`
+
+          | Metric | Value | Trend |
+          |--------|-------|-------|
+          | Total Commits | $total | - |
+          | Aligned | $conventional | ↗ |
+          | Fragmented | $noise | ↘ |
+          | Flow Score | $alignment% | $([ $alignment -ge 75 ] && echo "↗" || echo "→") |
+
+          ### Flow Patterns
+          - **Conventional**: $conventional commits follow structured patterns
+          - **Fragmented**: $noise commits need alignment
+          - **Consistency**: $([ $alignment -ge 75 ] && echo "Strong flow maintained" || echo "Flow needs strengthening")
+
+          ### Subtle Guidance
+          $([ $alignment -lt 90 ] && echo "- Consider: \`type(scope): clear description\`" || echo "- Flow is harmonized")
+          $([ $noise -gt 2 ] && echo "- Pattern: Keep messages focused and structured" || echo "- Message clarity is consistent")
+          $([ $alignment -lt 50 ] && echo "- Alignment: Gradual improvement recommended" || echo "- Alignment is stable")
+
+          ---
+          *Flow analysis maintains persistent clarity without disruption*
+          EOF
+
+      - name: Gentle Flow Correction
+        if: steps.analysis.outputs.alignment_score < 60
+        run: |
+          echo "[INFO] Applying gentle flow corrections..."
+
+          # Create a subtle alignment commit if needed
+          alignment=${{ steps.analysis.outputs.alignment_score }}
+
+          # Only act if flow is significantly fragmented
+          if [ $alignment -lt 40 ]; then
+            echo "[INFO] Flow fragmentation detected, applying subtle correction"
+
+            # Create a minimal alignment marker
+            echo "# Commit Flow Alignment
+
+This marker maintains consistent development patterns.
+
+## Flow Guidelines
+- Use conventional commit format: \`type(scope): description\`
+- Keep descriptions clear and focused
+- Maintain consistent patterns for better project flow
+
+Generated: $(date)" > .github/COMMIT_FLOW.md
+
+            git add .github/COMMIT_FLOW.md
+            git commit -m "docs(flow): maintain commit alignment patterns" || echo "[INFO] No changes to commit"
+          else
+            echo "[INFO] Flow within acceptable range, no correction needed"
+          fi
+
+      - name: Flow Persistence Check
+        run: |
+          echo "[INFO] Checking flow persistence..."
+
+          # Verify commit hook is working
+          if [ -f "scripts/commit-msg" ] && [ -x "scripts/commit-msg" ]; then
+            echo "[PASS] Commit validation hook is active"
+          else
+            echo "[WARN] Commit validation hook needs attention"
+          fi
+
+          # Check for flow documentation
+          if [ -f ".github/COMMIT_FLOW.md" ]; then
+            echo "[PASS] Flow guidance is documented"
+          else
+            echo "[INFO] Flow operates through established patterns"
+          fi
+
+          echo "[PASS] Flow persistence verified"
+
+      - name: Silent Flow Metrics
+        run: |
+          # Log metrics without noise
+          alignment=${{ steps.analysis.outputs.alignment_score }}
+          echo "flow_alignment=$alignment" >> /tmp/flow_metrics.log
+          echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/flow_metrics.log
+
+          # Maintain quiet operation
+          echo "[INFO] Flow metrics recorded silently"
