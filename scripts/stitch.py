@@ -13,7 +13,7 @@ sys.stdout.flush()
 
 def natural_sort_key(path: Path) -> list[int | str]:
     """Natural sorting key that handles numbers correctly."""
-    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', path.stem)]
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", path.stem)]
 
 
 def determine_grid_dimensions(tile_count: int, rows: int | None, cols: int | None) -> tuple[int, int]:
@@ -22,19 +22,19 @@ def determine_grid_dimensions(tile_count: int, rows: int | None, cols: int | Non
         if rows * cols != tile_count:
             raise ValueError(f"Grid {rows}x{cols} doesn't match tile count {tile_count}")
         return rows, cols
-    
+
     if rows:
         cols = tile_count // rows
         if rows * cols != tile_count:
             raise ValueError(f"Cannot arrange {tile_count} tiles in {rows} rows")
         return rows, cols
-    
+
     if cols:
         rows = tile_count // cols
         if rows * cols != tile_count:
             raise ValueError(f"Cannot arrange {tile_count} tiles in {cols} columns")
         return rows, cols
-    
+
     # Auto-detect square grid
     grid_size = int(np.sqrt(tile_count))
     if grid_size * grid_size != tile_count:
@@ -70,9 +70,7 @@ def stitch_tiles(
     rows, cols = determine_grid_dimensions(tile_count, rows, cols)
 
     tiles_array = np.array(tiles)
-    stitched = cv2.vconcat(
-        [cv2.hconcat(list(tiles_row)) for tiles_row in np.array_split(tiles_array, rows)]
-    )
+    stitched = cv2.vconcat([cv2.hconcat(list(tiles_row)) for tiles_row in np.array_split(tiles_array, rows)])
 
     print(f"Stitched {tile_count} tiles in {rows}x{cols} grid, shape:", stitched.shape)
     print("About to write to", output_path)
@@ -92,9 +90,7 @@ if __name__ == "__main__":
     parser.add_argument("output_path", help="Output image path")
     parser.add_argument("--rows", type=int, help="Number of rows in grid")
     parser.add_argument("--cols", type=int, help="Number of columns in grid")
-    parser.add_argument(
-        "--pattern", default="tile_*.jpg", help="File pattern for tiles (default: tile_*.jpg)"
-    )
+    parser.add_argument("--pattern", default="tile_*.jpg", help="File pattern for tiles (default: tile_*.jpg)")
 
     args = parser.parse_args()
     stitch_tiles(args.input_dir, args.output_path, args.rows, args.cols, args.pattern)

@@ -12,13 +12,13 @@ UPSCALER_NAME="${UPSCALER_NAME:-upscaler}"
 validate_input() {
     local input="$1"
     local name="$2"
-    
+
     # Check for dangerous characters
     if [[ "$input" =~ [;\|\&\$\`\(\)] ]]; then
         echo "Error: $name contains dangerous characters"
         exit 1
     fi
-    
+
     # Check for option injection (starting with -)
     if [[ "$input" =~ ^- ]]; then
         echo "Error: $name cannot start with '-'"
@@ -29,6 +29,13 @@ validate_input() {
 if [ "$CLOUD_IP" = "YOUR_CLOUD_IP" ]; then
     echo "Error: Please set CLOUD_IP environment variable or update the script"
     echo "Usage: CLOUD_IP=x.x.x.x $0"
+    exit 1
+fi
+
+# Check if local tiles directory exists
+if [ ! -d "$LOCAL_TILES_DIR" ]; then
+    echo "Error: Local tiles directory '$LOCAL_TILES_DIR' does not exist"
+    echo "Please create the directory or set LOCAL_TILES_DIR environment variable"
     exit 1
 fi
 
