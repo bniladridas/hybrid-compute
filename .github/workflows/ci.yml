@@ -613,7 +613,7 @@ jobs:
 
   # ────────────────────────────── Dependabot Auto-Merge ──────────────────────────────
   dependabot-auto-merge:
-    needs: [build-and-test, docker]
+    needs: [test-and-build, docker]
     runs-on: ubuntu-24.04
     if: github.actor == 'dependabot[bot]'
     steps:
