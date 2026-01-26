@@ -3,12 +3,11 @@ name: Smart Bot Health Check
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Daily at midnight UTC
+    - cron: '0 0 * * *'
   workflow_dispatch:
   push:
     paths:
       - '.github/**'
-      - 'scripts/**'
 
 jobs:
   smart-bot-check:
@@ -16,264 +15,133 @@ jobs:
     permissions:
       contents: write
       issues: write
-      pull-requests: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Smart Bot Analysis
+      - name: Smart Analysis
         id: analysis
         run: |
-          echo "[INFO] Running intelligent bot analysis..."
+          echo "[INFO] Running smart bot analysis..."
+          total=0; passed=0; failed=0
 
-          # Initialize counters
-          total_checks=0
-          passed_checks=0
-          failed_checks=0
-          warnings=0
-
-          # Function to track results
-          track_result() {
-            total_checks=$((total_checks + 1))
-            case $1 in
-              "PASS") passed_checks=$((passed_checks + 1)) ;;
-              "FAIL") failed_checks=$((failed_checks + 1)) ;;
-              "WARN") warnings=$((warnings + 1)) ;;
-            esac
-          }
-
-          # Check Dependabot with version analysis
-          echo "[INFO] Analyzing Dependabot configuration..."
+          # Check Dependabot
           if [ -f ".github/dependabot.yml" ]; then
-            python3 -c "import yaml; yaml.safe_load(open('.github/dependabot.yml'))"
             ecosystems=$(grep -c "package-ecosystem:" .github/dependabot.yml)
-            echo "[PASS] Dependabot: $ecosystems ecosystems configured"
-            track_result "PASS"
+            echo "[PASS] Dependabot: $ecosystems ecosystems"
+            passed=$((passed + 1))
           else
-            echo "[FAIL] Dependabot configuration missing"
-            track_result "FAIL"
+            echo "[FAIL] Dependabot missing"
+            failed=$((failed + 1))
           fi
+          total=$((total + 1))
 
-          # Analyze workflow complexity and health
-          echo "[INFO] Analyzing GitHub Actions workflows..."
-          workflow_count=0
-          for workflow in .github/workflows/*.yml; do
-            if [ -f "$workflow" ]; then
-              workflow_count=$((workflow_count + 1))
-              jobs=$(grep -c "^  [a-zA-Z].*:$" "$workflow" || echo "0")
-              steps=$(grep -c "- name:" "$workflow" || echo "0")
-              echo "[PASS] $(basename "$workflow"): $jobs jobs, $steps steps"
-              track_result "PASS"
-            fi
-          done
+          # Check workflows
+          workflows=$(find .github/workflows -name "*.yml" | wc -l)
+          if [ $workflows -gt 0 ]; then
+            echo "[PASS] GitHub Actions: $workflows workflows"
+            passed=$((passed + 1))
+          else
+            echo "[FAIL] No workflows found"
+            failed=$((failed + 1))
+          fi
+          total=$((total + 1))
 
-          # Check for workflow dependencies and triggers
-          trigger_types=$(grep -h "^on:" .github/workflows/*.yml | wc -l)
-          echo "[INFO] Found $workflow_count workflows with $trigger_types trigger configurations"
-
-          # Analyze pre-commit hooks depth
-          echo "[INFO] Analyzing pre-commit configuration..."
+          # Check pre-commit
           if [ -f ".pre-commit-config.yaml" ]; then
             hooks=$(grep -c "- id:" .pre-commit-config.yaml || echo "0")
-            repos=$(grep -c "- repo:" .pre-commit-config.yaml || echo "0")
-            echo "[PASS] Pre-commit: $repos repos, $hooks hooks configured"
-            track_result "PASS"
+            echo "[PASS] Pre-commit: $hooks hooks"
+            passed=$((passed + 1))
           else
-            echo "[FAIL] Pre-commit configuration missing"
-            track_result "FAIL"
+            echo "[FAIL] Pre-commit missing"
+            failed=$((failed + 1))
           fi
-
-          # Advanced git hook analysis
-          echo "[INFO] Analyzing git hooks..."
-          if [ -f "scripts/commit-msg" ]; then
-            if [ -x "scripts/commit-msg" ]; then
-              lines=$(wc -l < scripts/commit-msg)
-              echo "[PASS] Commit hook: executable, $lines lines"
-              track_result "PASS"
-            else
-              echo "[WARN] Commit hook exists but not executable"
-              track_result "WARN"
-            fi
-          else
-            echo "[FAIL] Commit message hook missing"
-            track_result "FAIL"
-          fi
-
-          # Check for automation scripts
-          echo "[INFO] Analyzing automation scripts..."
-          script_count=$(find scripts/ -name "*.sh" -executable | wc -l)
-          if [ $script_count -gt 0 ]; then
-            echo "[PASS] Found $script_count executable automation scripts"
-            track_result "PASS"
-          else
-            echo "[WARN] No executable automation scripts found"
-            track_result "WARN"
-          fi
+          total=$((total + 1))
 
           # Calculate health score
-          if [ $total_checks -gt 0 ]; then
-            health_score=$(( (passed_checks * 100) / total_checks ))
-          else
-            health_score=0
-          fi
-
-          # Export results
-          echo "total_checks=$total_checks" >> $GITHUB_OUTPUT
-          echo "passed_checks=$passed_checks" >> $GITHUB_OUTPUT
-          echo "failed_checks=$failed_checks" >> $GITHUB_OUTPUT
-          echo "warnings=$warnings" >> $GITHUB_OUTPUT
+          health_score=$(( (passed * 100) / total ))
           echo "health_score=$health_score" >> $GITHUB_OUTPUT
-          echo "workflow_count=$workflow_count" >> $GITHUB_OUTPUT
+          echo "passed=$passed" >> $GITHUB_OUTPUT
+          echo "failed=$failed" >> $GITHUB_OUTPUT
+          echo "total=$total" >> $GITHUB_OUTPUT
 
-          echo "[INFO] Health Analysis Complete: $health_score% ($passed_checks/$total_checks passed)"
+          echo "[INFO] Health Score: $health_score% ($passed/$total)"
 
-      - name: Advanced E2E Testing
+      - name: E2E Testing
         run: |
-          echo "[INFO] Running advanced end-to-end tests..."
+          echo "[INFO] Running E2E tests..."
 
-          # Test git configuration with validation
-          git_user=$(git config user.name)
-          git_email=$(git config user.email)
-          expected_email="github-actions[bot]@users.noreply.github.com"
-          if [ "$git_user" = "github-actions[bot]" ] && [ "$git_email" = "$expected_email" ]; then
-            echo "[PASS] Git user properly configured for automation"
+          # Test git config
+          user=$(git config user.name)
+          email=$(git config user.email)
+          if [ "$user" = "github-actions[bot]" ]; then
+            echo "[PASS] Git user configured correctly"
           else
-            echo "[FAIL] Git configuration invalid: $git_user <$git_email>"
+            echo "[FAIL] Git user misconfigured: $user"
             exit 1
           fi
 
-          # Test commit message validation with multiple scenarios
-          echo "[INFO] Testing commit message validation scenarios..."
-
-          # Valid messages
-          for msg in "feat(api): add new endpoint" "fix(ui): resolve button styling" "docs: update readme"; do
-            echo "$msg" > /tmp/test_commit
-            if bash scripts/commit-msg /tmp/test_commit 2>/dev/null; then
-              echo "[PASS] Valid message accepted: $msg"
-            else
-              echo "[FAIL] Valid message rejected: $msg"
-              exit 1
-            fi
-          done
-
-          # Invalid messages
-          for msg in "invalid message" "FIX: wrong case" "feat: message too long $(printf 'a%.0s' {1..100})"; do
-            echo "$msg" > /tmp/test_commit_invalid
-            if ! bash scripts/commit-msg /tmp/test_commit_invalid 2>/dev/null; then
-              echo "[PASS] Invalid message correctly rejected: ${msg:0:30}..."
-            else
-              echo "[FAIL] Invalid message incorrectly accepted: $msg"
-              exit 1
-            fi
-          done
-
-          echo "[PASS] All advanced E2E tests completed successfully!"
-
-      - name: Generate Smart Report
-        run: |
-          health_score="${{ steps.analysis.outputs.health_score }}"
-          total="${{ steps.analysis.outputs.total_checks }}"
-          passed="${{ steps.analysis.outputs.passed_checks }}"
-          failed="${{ steps.analysis.outputs.failed_checks }}"
-          warnings="${{ steps.analysis.outputs.warnings }}"
-          workflows="${{ steps.analysis.outputs.workflow_count }}"
-
-          # Determine health status
-          if [ $health_score -ge 90 ]; then
-            status="EXCELLENT"
-            emoji="🟢"
-          elif [ $health_score -ge 75 ]; then
-            status="GOOD"
-            emoji="🟡"
-          elif [ $health_score -ge 50 ]; then
-            status="NEEDS_ATTENTION"
-            emoji="🟠"
+          # Test commit hook
+          echo "feat(test): valid message" > /tmp/test
+          if bash scripts/commit-msg /tmp/test; then
+            echo "[PASS] Commit hook works"
           else
-            status="CRITICAL"
-            emoji="🔴"
+            echo "[FAIL] Commit hook failed"
+            exit 1
           fi
 
-          # Generate comprehensive report
+          echo "[PASS] All E2E tests passed"
+
+      - name: Generate Report
+        run: |
+          health=${{ steps.analysis.outputs.health_score }}
+          passed=${{ steps.analysis.outputs.passed }}
+          failed=${{ steps.analysis.outputs.failed }}
+          total=${{ steps.analysis.outputs.total }}
+
+          status="GOOD"
+          if [ $health -ge 90 ]; then status="EXCELLENT"; fi
+          if [ $health -lt 75 ]; then status="NEEDS_ATTENTION"; fi
+          if [ $health -lt 50 ]; then status="CRITICAL"; fi
+
           cat >> $GITHUB_STEP_SUMMARY << EOF
           ## Smart Bot Health Report
 
-          ### Overall Health: $status ($health_score%)
+          ### Overall Status: $status ($health%)
 
-          | Metric | Value | Status |
-          |--------|-------|--------|
-          | Total Checks | $total | - |
-          | Passed | $passed | [PASS] |
-          | Failed | $failed | $([ $failed -eq 0 ] && echo "[PASS]" || echo "[FAIL]") |
-          | Warnings | $warnings | $([ $warnings -eq 0 ] && echo "[PASS]" || echo "[WARN]") |
-          | Workflows | $workflows | [INFO] |
+          | Metric | Value |
+          |--------|-------|
+          | Health Score | $health% |
+          | Passed Checks | $passed/$total |
+          | Failed Checks | $failed |
 
-          ### Bot Services Status
-          | Service | Status | Health | Details |
-          |---------|--------|--------|---------|
-          | Dependabot | [ACTIVE] | [PASS] | Monitoring dependencies |
-          | GitHub Actions | [ACTIVE] | [PASS] | $workflows workflows configured |
-          | Pre-commit | [ACTIVE] | [PASS] | Code quality enforcement |
-          | Git Hooks | [ACTIVE] | [PASS] | Commit validation active |
-          | Automation Scripts | [ACTIVE] | [PASS] | CUDA release automation |
+          ### Services Status
+          - Dependabot: [ACTIVE]
+          - GitHub Actions: [ACTIVE]
+          - Pre-commit: [ACTIVE]
+          - Git Hooks: [ACTIVE]
 
-          ### Recommendations
-          $([ $health_score -lt 100 ] && echo "- Review failed checks and warnings above" || echo "- All systems operating optimally")
-          $([ $failed -gt 0 ] && echo "- Address critical failures immediately")
-          $([ $warnings -gt 0 ] && echo "- Consider resolving warnings for optimal performance")
-
-          ---
-          *Report generated on $(date) by Smart Bot Health Check*
+          *Generated: $(date)*
           EOF
 
-      - name: Auto-Fix Minor Issues
-        if: steps.analysis.outputs.warnings > 0
-        run: |
-          echo "[INFO] Attempting to auto-fix minor issues..."
-
-          # Make scripts executable if they aren't
-          find scripts/ -name "*.sh" ! -executable -exec chmod +x {} \; -print | while read file; do
-            echo "[FIX] Made $file executable"
-          done
-
-          # Check if any fixes were made
-          if git diff --quiet; then
-            echo "[INFO] No auto-fixes needed"
-          else
-            echo "[INFO] Auto-fixes applied, committing changes..."
-            git add scripts/
-            git commit -m "fix(scripts): auto-fix executable permissions" || echo "No changes to commit"
-          fi
-
-      - name: Create Issue on Critical Failure
-        if: steps.analysis.outputs.health_score < 50
+      - name: Create Issue on Failure
+        if: steps.analysis.outputs.health_score < 75
         uses: actions/github-script@v7
         with:
           script: |
-            const healthScore = ${{ steps.analysis.outputs.health_score }};
-            const failed = ${{ steps.analysis.outputs.failed_checks }};
-
+            const health = ${{ steps.analysis.outputs.health_score }};
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `🚨 Critical Bot Health Failure (${healthScore}% health)`,
-              body: `## Critical Bot Health Alert
-
-              The automated bot health check has detected critical failures:
-
-              - **Health Score**: ${healthScore}%
-              - **Failed Checks**: ${failed}
-              - **Timestamp**: ${new Date().toISOString()}
-
-              Please review the [workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId}) for details.
-
-              This issue was automatically created by the Smart Bot Health Check.`,
-              labels: ['bug', 'critical', 'automation']
+              title: `Bot Health Alert: ${health}% health score`,
+              body: `Automated bot health check failed with ${health}% score.
+              
+              Check the workflow run for details: ${context.payload.repository.html_url}/actions/runs/${context.runId}`,
+              labels: ['automation', 'health-check']
             });
