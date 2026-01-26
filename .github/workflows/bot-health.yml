@@ -140,8 +140,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `Bot Health Alert: ${health}% health score`,
-              body: `Automated bot health check failed with ${health}% score.
-
-              Check the workflow run for details: ${context.payload.repository.html_url}/actions/runs/${context.runId}`,
+              body: `Bot health check failed: ${health}% score. Check workflow run.`,
               labels: ['automation', 'health-check']
             });
