@@ -623,7 +623,7 @@ jobs:
       - name: Wait for checks to pass
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
           check-name: 'test-and-build'
           wait-interval: 30
           repo-token: ${{ secrets.GITHUB_TOKEN }}
