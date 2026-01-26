@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Merge Dependabot PR
+      - name: Enable auto-merge for Dependabot PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh pr merge ${{ github.event.pull_request.number }} --squash --delete-branch=false
+        run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash
