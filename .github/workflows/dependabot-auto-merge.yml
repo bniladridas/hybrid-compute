@@ -17,7 +17,8 @@ jobs:
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          check-regexp: '^(build-and-test|codeql|lint-and-polish|python-tests|coverage|docker|build-cuda|build-metal).*'
+          check-regexp: >-
+            ^(build-and-test|codeql|lint-and-polish|python-tests|coverage|docker|build-cuda|build-metal).*
           wait-interval: 30
           repo-token: ${{ secrets.DEPENDABOT_MERGE_TOKEN }}
           allowed-conclusions: success,skipped
