@@ -28,7 +28,8 @@ echo "Processing tiles from $INPUT_DIR to $OUTPUT_DIR with scale $SCALE"
 echo "Pattern: $PATTERN"
 
 count=0
-for file in "$INPUT_DIR"/$PATTERN; do
+# Use find with while read loop for robust file handling
+find "$INPUT_DIR" -maxdepth 1 -name "$PATTERN" -type f -print0 | while IFS= read -r -d '' file; do
     if [ -f "$file" ]; then
         basename=$(basename "$file")
         output_file="$OUTPUT_DIR/$basename"
