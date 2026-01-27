@@ -32,7 +32,7 @@ executors:
   # Standard Linux executor
   linux:
     docker:
-      - image: nvidia/cuda:12.6.1-devel-ubuntu22.04
+      - image: nvidia/cuda:13.1.1-devel-ubuntu22.04
     resource_class: large
     environment:
       DEBIAN_FRONTEND: noninteractive
@@ -988,7 +988,7 @@ workflows:
       - docker-build:
           matrix:
             parameters:
-              cuda-version: ["12.6.1", ""]
+              cuda-version: ["13.1.1", ""]
           requires:
             - build-linux-cuda
             - build-linux-cpu
