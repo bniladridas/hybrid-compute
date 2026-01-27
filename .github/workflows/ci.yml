@@ -305,6 +305,8 @@ jobs:
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           CTEST_PARALLEL_LEVEL: 2
         run: |
+          rm -rf build
+          mkdir -p build
           cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
