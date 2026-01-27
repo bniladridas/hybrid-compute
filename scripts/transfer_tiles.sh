@@ -13,9 +13,9 @@ validate_input() {
     local input="$1"
     local name="$2"
 
-    # Check for dangerous characters including spaces
-    if [[ "$input" =~ [;\|\&\$\`\(\)\ ] ]]; then
-        echo "Error: $name contains dangerous characters (spaces, semicolons, etc.)"
+    # Check for dangerous characters including spaces, quotes, and redirection operators
+    if [[ "$input" =~ [;\|\&\$\`\(\)\ \'\"\<\>\*\?\[\]\\] ]]; then
+        echo "Error: $name contains dangerous characters (spaces, quotes, redirection, etc.)"
         exit 1
     fi
 
