@@ -418,6 +418,8 @@ jobs:
 
       - name: Build with coverage
         run: |
+          rm -rf build
+          mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Debug -DUSE_CUDA=ON \
             -DWITH_OPENCV=ON -DCOVERAGE=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES
