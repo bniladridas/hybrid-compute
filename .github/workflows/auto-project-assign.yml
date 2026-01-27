@@ -18,12 +18,14 @@ jobs:
 
     steps:
       - name: Add to Project
+        if: github.event_name == 'pull_request' || github.event_name == 'issues'
         uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/users/bniladridas/projects/14
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log Assignment
+        if: github.event_name == 'pull_request' || github.event_name == 'issues'
         run: |
           item_num="${{ github.event.pull_request.number || github.event.issue.number }}"
           echo "[INFO] Added #$item_num to Forge project"
