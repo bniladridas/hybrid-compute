@@ -559,7 +559,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - cuda-version: "12.6"
+          - cuda-version: "13.1"
             tag-suffix: ""
           - cuda-version: ""
             tag-suffix: "-cpu"
