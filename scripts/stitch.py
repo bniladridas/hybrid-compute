@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import argparse
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 import cv2
 import numpy as np
@@ -11,12 +13,12 @@ print("Starting stitch")
 sys.stdout.flush()
 
 
-def natural_sort_key(path: Path) -> list[int | str]:
+def natural_sort_key(path: Path) -> list[Union[int, str]]:
     """Natural sorting key that handles numbers correctly."""
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", path.stem)]
 
 
-def determine_grid_dimensions(tile_count: int, rows: int | None, cols: int | None) -> tuple[int, int]:
+def determine_grid_dimensions(tile_count: int, rows: Union[int, None], cols: Union[int, None]) -> tuple[int, int]:
     """Determine grid dimensions for tiles."""
     if rows and cols:
         if rows * cols != tile_count:
@@ -45,8 +47,8 @@ def determine_grid_dimensions(tile_count: int, rows: int | None, cols: int | Non
 def stitch_tiles(
     input_dir: str,
     output_path: str,
-    rows: int | None = None,
-    cols: int | None = None,
+    rows: Union[int, None] = None,
+    cols: Union[int, None] = None,
     pattern: str = "tile_*.jpg",
 ) -> None:
     tiles: list[np.ndarray[Any, np.dtype[Any]]] = []
