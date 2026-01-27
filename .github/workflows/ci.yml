@@ -107,6 +107,7 @@ jobs:
           CXX: ${{ matrix.env.CXX }}
         run: |
           # Create build directory and configure with OpenCV
+          rm -rf build
           mkdir -p build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
@@ -366,6 +367,8 @@ jobs:
 
       - name: Build project
         run: |
+          rm -rf build
+          mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=OFF -DWITH_OPENCV=ON
           make -j$(sysctl -n hw.ncpu)
@@ -487,6 +490,7 @@ jobs:
             bash scripts/install_cuda.sh
             python3 -m pip install --upgrade pip
             pip install -r requirements.txt
+            rm -rf build
             mkdir build
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON \
