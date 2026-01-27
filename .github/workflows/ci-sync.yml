@@ -19,7 +19,7 @@ jobs:
       matrix:
         cpp: ["20"]
         cuda: ["12.4", "12.6"]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - name: Checkout repository
