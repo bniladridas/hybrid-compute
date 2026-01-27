@@ -16,6 +16,12 @@ if [ ! -d "$INPUT_DIR" ]; then
     exit 1
 fi
 
+# Validate INPUT_DIR doesn't start with hyphen to prevent command injection
+if [[ "$INPUT_DIR" =~ ^- ]]; then
+    echo "Error: Input directory cannot start with '-'"
+    exit 1
+fi
+
 mkdir -p "$OUTPUT_DIR"
 
 if [ ! -f "$UPSCALER" ]; then
@@ -27,8 +33,8 @@ fi
 echo "Processing tiles from $INPUT_DIR to $OUTPUT_DIR with scale $SCALE"
 echo "Pattern: $PATTERN"
 
-# Use find to get file list and check if any files exist
-files=$(find "$INPUT_DIR" -maxdepth 1 -name "$PATTERN" -type f)
+# Use find to get file list and check if any files exist (prevent command injection)
+files=$(find "./$INPUT_DIR" -maxdepth 1 -name "$PATTERN" -type f)
 
 if [ -z "$files" ]; then
     echo "Warning: No files found matching pattern '$PATTERN' in $INPUT_DIR"
