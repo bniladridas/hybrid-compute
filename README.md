@@ -26,7 +26,7 @@
 - CMake
 - OpenCV (for C++ version) or stb_image (for C version)
 - NumPy
-- Python 3.10+ with pip
+- Python 3.9+ with pip
 - Cloud instance with NVIDIA GPU and CUDA toolkit (for GPU upscaling)
   _Note: Conda is installed automatically on macOS via the setup script. The C version has no external dependencies beyond stb_image (header-only)._
   **Setup**
