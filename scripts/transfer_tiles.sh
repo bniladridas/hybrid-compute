@@ -46,10 +46,6 @@ validate_input "$CLOUD_PROJECT_PATH" "CLOUD_PROJECT_PATH"
 validate_input "$LOCAL_TILES_DIR" "LOCAL_TILES_DIR"
 validate_input "$REMOTE_TILES_DIR" "REMOTE_TILES_DIR"
 validate_input "$UPSCALER_NAME" "UPSCALER_NAME"
-if [ ! -d "$LOCAL_TILES_DIR" ]; then
-    echo "Error: Local tiles directory '$LOCAL_TILES_DIR' does not exist."
-    exit 1
-fi
 
 echo "Transferring tiles from $LOCAL_TILES_DIR to $CLOUD_USER@$CLOUD_IP:$CLOUD_PROJECT_PATH/$REMOTE_TILES_DIR"
 
