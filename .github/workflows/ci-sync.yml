@@ -109,6 +109,7 @@ jobs:
       - name: Configure CMake
         run: |
           BUILD_DIR="build-${{ matrix.cuda }}-${{ matrix.python-version }}"
+          rm -rf $BUILD_DIR
           mkdir -p $BUILD_DIR
           cd $BUILD_DIR
 
@@ -205,6 +206,7 @@ jobs:
 
       - name: Build with CodeQL
         run: |
+          rm -rf build
           mkdir -p build
           cd build
           cmake .. \
