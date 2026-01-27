@@ -23,7 +23,8 @@ jobs:
 
       - name: Update Timestamps
         run: |
-          echo "last_maintenance: $(date -u +%Y-%m-%dT%H:%M:%SZ)" > .github/MAINTENANCE.yml
+          echo "---" > .github/MAINTENANCE.yml
+          echo "last_maintenance: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> .github/MAINTENANCE.yml
           echo "build_number: ${{ github.run_number }}" >> .github/MAINTENANCE.yml
 
       - name: Commit Maintenance
