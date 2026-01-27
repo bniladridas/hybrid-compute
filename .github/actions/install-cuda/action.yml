@@ -9,7 +9,7 @@ inputs:
   cuda-version:
     description: 'CUDA version to install (e.g., 12.6)'
     required: true
-    default: '12.6'
+    default: '13.1'
   cuda-architectures:
     description: 'Comma-separated list of CUDA architectures to target (e.g., "75,80,86")'
     required: false
