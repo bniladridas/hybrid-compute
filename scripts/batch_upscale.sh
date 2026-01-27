@@ -37,7 +37,7 @@ echo "Pattern: $PATTERN"
 files=$(find "./$INPUT_DIR" -maxdepth 1 -name "$PATTERN" -type f)
 
 if [ -z "$files" ]; then
-    echo "Warning: No files found matching pattern '$PATTERN' in $INPUT_DIR"
+    echo "Error: No files found matching pattern '$PATTERN' in $INPUT_DIR"
     exit 1
 fi
 
