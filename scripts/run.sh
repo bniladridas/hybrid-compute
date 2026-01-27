@@ -74,8 +74,8 @@ for i in {0..15}; do
 	fi
 done
 
-# Stitch tiles
-python3 scripts/stitch.py test_images/upscaled test_images/final_output.jpg
+# Stitch tiles with flexible parameters
+python3 scripts/stitch.py test_images/upscaled test_images/final_output.jpg --rows 4 --cols 4 --pattern "tile_*.jpg"
 
 # Verify output
 if [ -f test_images/final_output.jpg ]; then
