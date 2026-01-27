@@ -295,9 +295,9 @@ jobs:
           path: |
             ~/.cache/pip
             build/_deps
-          key: "ubuntu-build-12.6.1-${{ hashFiles('**/CMakeLists.txt') }}"
+          key: "ubuntu-build-cuda-${{ hashFiles('**/CMakeLists.txt') }}"
           restore-keys: |
-            ubuntu-build-12.6.1-
+            ubuntu-build-cuda-
             ubuntu-build-
 
       - name: Build project
