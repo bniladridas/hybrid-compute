@@ -19,7 +19,7 @@ This GitHub Action installs the CUDA toolkit and sets up the necessary environme
 - name: Install CUDA
   uses: ./.github/actions/install-cuda
   with:
-    cuda-version: '12.6'  # Optional, defaults to 12.6
+    cuda-version: '13.1'  # Optional, defaults to 13.1
     cuda-architectures: '75,80,86'  # Optional, defaults to '75,80,86'
     install-dependencies: 'true'  # Optional, defaults to true
 ```
@@ -36,7 +36,7 @@ jobs:
       - name: Install CUDA with specific version
         uses: ./.github/actions/install-cuda
         with:
-          cuda-version: '12.6'
+          cuda-version: '13.1'
           cuda-architectures: '70,75,80,86,89,90'
           install-dependencies: 'true'
 
@@ -51,7 +51,7 @@ jobs:
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `cuda-version` | No | '12.6' | Version of CUDA to install (e.g., '12.6') |
+| `cuda-version` | No | '13.1' | Version of CUDA to install (e.g., '13.1') |
 | `cuda-architectures` | No | '75,80,86' | Comma-separated list of CUDA architectures to target |
 | `install-dependencies` | No | 'true' | Whether to install build dependencies |
 
