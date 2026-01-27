@@ -20,7 +20,7 @@ if command -v convert >/dev/null 2>&1; then
     for i in {0..3}; do
         convert -size 100x100 xc:red "test_tiles/tile_$i.jpg"
     done
-    
+
     # Test with custom parameters
     if python3 scripts/stitch.py test_tiles test_output.jpg --rows 2 --cols 2 --pattern "tile_*.jpg" 2>/dev/null; then
         if [ -f test_output.jpg ]; then
@@ -79,6 +79,6 @@ echo "✓ Integration tests completed!"
 echo ""
 echo "Key improvements verified:"
 echo "  - stitch.py: Supports flexible grid dimensions and patterns"
-echo "  - batch_upscale.sh: Validates inputs and handles missing files gracefully"  
+echo "  - batch_upscale.sh: Validates inputs and handles missing files gracefully"
 echo "  - transfer_tiles.sh: Prevents command injection and validates directories"
 echo "  - All scripts now handle edge cases and provide meaningful error messages"
