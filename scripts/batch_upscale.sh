@@ -27,9 +27,16 @@ fi
 echo "Processing tiles from $INPUT_DIR to $OUTPUT_DIR with scale $SCALE"
 echo "Pattern: $PATTERN"
 
+# Use find to get file list and check if any files exist
+files=$(find "$INPUT_DIR" -maxdepth 1 -name "$PATTERN" -type f)
+
+if [ -z "$files" ]; then
+    echo "Warning: No files found matching pattern '$PATTERN' in $INPUT_DIR"
+    exit 1
+fi
+
 count=0
-# Use find with while read loop for robust file handling
-find "$INPUT_DIR" -maxdepth 1 -name "$PATTERN" -type f -print0 | while IFS= read -r -d '' file; do
+echo "$files" | while IFS= read -r file; do
     if [ -f "$file" ]; then
         basename=$(basename "$file")
         output_file="$OUTPUT_DIR/$basename"
