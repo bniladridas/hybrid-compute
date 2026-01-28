@@ -221,7 +221,7 @@ jobs:
         run: mkdir -p build
 
       - name: Cache build dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
@@ -290,7 +290,7 @@ jobs:
         run: mkdir -p build
 
       - name: Cache build dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
@@ -356,7 +356,7 @@ jobs:
         run: mkdir -p build
 
       - name: Cache build dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
@@ -412,7 +412,7 @@ jobs:
         run: mkdir -p build
 
       - name: Cache build dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
