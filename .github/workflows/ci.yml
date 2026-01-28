@@ -328,7 +328,7 @@ jobs:
         run: python scripts/e2e.py
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-cuda-artifacts
           path: build/
@@ -380,7 +380,7 @@ jobs:
           ctest --output-on-failure --timeout 300 --parallel 2
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-metal-artifacts
           path: build/
