@@ -132,7 +132,7 @@ jobs:
 
       - name: Create Issue on Failure
         if: steps.analysis.outputs.health_score < 75
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const health = ${{ steps.analysis.outputs.health_score }};
