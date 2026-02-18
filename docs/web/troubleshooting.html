@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshooting - Hybrid Compute</title>
+    <style>
+        :root {
+            --text: #111;
+            --text-secondary: #555;
+            --text-muted: #888;
+            --bg: #fff;
+            --border: #ddd;
+            --pre-bg: #f5f5f5;
+        }
+
+        [data-theme="dark"] {
+            --text: #e5e5e5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b6b6b;
+            --bg: #1a1a1a;
+            --border: #333;
+            --pre-bg: #252525;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+        nav { padding: 20px 0; border-bottom: 1px solid var(--border); }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-weight: 600; font-size: 15px; text-decoration: none; color: var(--text); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; }
+        .nav-links a:hover { color: var(--text); }
+        .theme-toggle { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted); font-size: 16px; }
+        .theme-toggle:hover { color: var(--text); }
+
+        main { padding: 48px 0; }
+        h1 { font-size: 28px; font-weight: 600; margin-bottom: 16px; }
+        h2 { font-size: 20px; font-weight: 600; margin: 32px 0 16px; }
+        h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+        p { color: var(--text-secondary); margin-bottom: 16px; }
+        pre { background: var(--pre-bg); padding: 16px; border-radius: 6px; font-size: 13px; font-family: 'SF Mono', Menlo, monospace; overflow-x: auto; line-height: 1.5; margin: 16px 0; }
+        code { background: var(--pre-bg); padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+        ul, ol { color: var(--text-secondary); margin: 0 0 16px 24px; }
+        li { margin-bottom: 6px; }
+
+        .issue { border-left: 3px solid var(--border); padding-left: 16px; margin: 24px 0; }
+        .issue h3 { margin-top: 0; }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); }
+        footer .container { display: flex; justify-content: space-between; align-items: center; }
+        footer p { font-size: 13px; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 8px; }
+        footer a { color: var(--text-muted); text-decoration: none; font-size: 13px; margin-left: 16px; }
+        footer a:hover { color: var(--text); }
+        footer img { width: 20px; height: 20px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="nav-brand">Hybrid Compute</a>
+            <div class="nav-links">
+                <a href="api-design.html">API Design</a>
+                <a href="testing.html">Testing</a>
+                <a href="onboarding.html">Onboarding</a>
+                <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1>Troubleshooting</h1>
+            <p>Solutions to common issues when building and testing Hybrid Compute.</p>
+
+            <div class="issue">
+                <h3>Missing cv2 Module</h3>
+                <p><strong>Error:</strong> <code>ModuleNotFoundError: No module named 'cv2'</code></p>
+                <p><strong>Solution:</strong></p>
+                <pre>pip install --break-system-packages opencv-python numpy
+python3 -c "import cv2; print('cv2 works:', cv2.__version__)"</pre>
+            </div>
+
+            <div class="issue">
+                <h3>OpenCV Version Warnings</h3>
+                <p><strong>Warning:</strong> Building for macOS-11.0 but linking with newer dylib</p>
+                <p><strong>Solution:</strong> Add to CMakeLists.txt:</p>
+                <pre>set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0")</pre>
+            </div>
+
+            <div class="issue">
+                <h3>Missing Dependencies</h3>
+                <p><strong>OpenMP Support:</strong></p>
+                <pre>brew install libomp</pre>
+                <p><strong>CUDA Support:</strong></p>
+                <pre>export CUDAToolkit_ROOT=/usr/local/cuda</pre>
+            </div>
+
+            <div class="issue">
+                <h3>Build Fails</h3>
+                <p><strong>Clean Build:</strong></p>
+                <pre>rm -rf build
+mkdir build && cd build
+cmake ..
+make -j$(sysctl -n hw.logicalcpu)</pre>
+            </div>
+
+            <div class="issue">
+                <h3>Python Environment Conflicts</h3>
+                <p>Use a virtual environment:</p>
+                <pre>python3 -m venv venv
+source venv/bin/activate
+pip install opencv-python numpy</pre>
+            </div>
+
+            <h2>Quick Fix</h2>
+            <pre>pip install --break-system-packages opencv-python numpy && ctest --test-dir build --output-on-failure</pre>
+
+            <h2>Verification</h2>
+            <pre>python3 -c "import cv2; print('cv2 works:', cv2.__version__)"
+ctest --test-dir build --output-on-failure</pre>
+
+            <h2>Expected Results</h2>
+            <ul>
+                <li>All 79 tests pass (100% success rate)</li>
+                <li><code>test_preprocess</code> no longer fails</li>
+                <li>cv2 module imports successfully</li>
+                <li>Build completes without errors</li>
+            </ul>
+
+            <h2>Platform Notes</h2>
+            <p><strong>macOS:</strong> Use Homebrew, Xcode Command Line Tools required, Metal shaders compile automatically.</p>
+            <p><strong>Linux:</strong> Use apt/yum, CUDA toolkit available, OpenMP typically available by default.</p>
+            <p><strong>Windows:</strong> Use Chocolatey, Visual Studio Build Tools required, Google Benchmark disabled.</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p><img src="startup/avatar.png" alt="libnudget"> BSD 3-Clause License · libnudget</p>
+            <div>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="https://github.com/bniladridas/hybrid-compute">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</body>
+</html>
