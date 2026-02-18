@@ -1,9 +1,9 @@
 import os
-import uuid
 import subprocess
-import json
+import uuid
 from datetime import datetime
-from flask import Flask, request, jsonify, send_file
+
+from flask import Flask, jsonify, request, send_file
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -68,22 +68,25 @@ def upload_image():
     filepath = os.path.join(UPLOAD_FOLDER, f"{image_id}_{filename}")
     file.save(filepath)
 
-    return jsonify(
-        hal_response(
-            {
-                "id": image_id,
-                "filename": filename,
-                "format": filename.rsplit(".", 1)[1].lower(),
-                "size": os.path.getsize(filepath),
-                "created_at": datetime.utcnow().isoformat() + "Z",
-            },
-            {
-                "self": {"href": f"/{API_VERSION}/images/{image_id}"},
-                "tiles": {"href": f"/{API_VERSION}/images/{image_id}/tiles"},
-                "upscale": {"href": f"/{API_VERSION}/images/{image_id}/upscale"},
-            },
-        )
-    ), 201
+    return (
+        jsonify(
+            hal_response(
+                {
+                    "id": image_id,
+                    "filename": filename,
+                    "format": filename.rsplit(".", 1)[1].lower(),
+                    "size": os.path.getsize(filepath),
+                    "created_at": datetime.utcnow().isoformat() + "Z",
+                },
+                {
+                    "self": {"href": f"/{API_VERSION}/images/{image_id}"},
+                    "tiles": {"href": f"/{API_VERSION}/images/{image_id}/tiles"},
+                    "upscale": {"href": f"/{API_VERSION}/images/{image_id}/upscale"},
+                },
+            )
+        ),
+        201,
+    )
 
 
 @app.route(f"/{API_VERSION}/images", methods=["GET"])
@@ -174,7 +177,11 @@ def create_tiles(image_id):
 
     try:
         result = subprocess.run(
-            ["./preprocess", os.path.dirname(source_file) + "/", tiles_dir + "/"], capture_output=True, text=True, timeout=60
+            ["./preprocess", os.path.dirname(source_file) + "/", tiles_dir + "/"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
         )
     except subprocess.TimeoutExpired:
         return error_response("timeout", "Processing timeout", "Image tiling took too long", 504)
@@ -261,23 +268,30 @@ def upscale_tile(tile_id):
 
     try:
         result = subprocess.run(
-            ["./cloud_gpu/upscaler", source_file, output_file, str(scale)], capture_output=True, text=True, timeout=120
+            ["./cloud_gpu/upscaler", source_file, output_file, str(scale)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
         )
     except subprocess.TimeoutExpired:
         return error_response("timeout", "Processing timeout", "Upscaling took too long", 504)
     except FileNotFoundError:
         return error_response("not_available", "Upscaler not available", "Please build the CUDA upscaler", 501)
 
-    return jsonify(
-        hal_response(
-            {"id": tile_id, "scale": scale, "output_file": f"upscaled_{tile_id}.png"},
-            {
-                "self": {"href": f"/{API_VERSION}/tiles/{tile_id}/upscale"},
-                "tile": {"href": f"/{API_VERSION}/tiles/{tile_id}"},
-                "download": {"href": f"/{API_VERSION}/tiles/{tile_id}/upscaled"},
-            },
-        )
-    ), 202
+    return (
+        jsonify(
+            hal_response(
+                {"id": tile_id, "scale": scale, "output_file": f"upscaled_{tile_id}.png"},
+                {
+                    "self": {"href": f"/{API_VERSION}/tiles/{tile_id}/upscale"},
+                    "tile": {"href": f"/{API_VERSION}/tiles/{tile_id}"},
+                    "download": {"href": f"/{API_VERSION}/tiles/{tile_id}/upscaled"},
+                },
+            )
+        ),
+        202,
+    )
 
 
 @app.route(f"/{API_VERSION}/tiles/<tile_id>/upscaled", methods=["GET"])
@@ -304,12 +318,15 @@ def stitch_tiles():
 
     job_id = generate_squuid()
 
-    return jsonify(
-        hal_response(
-            {"job_id": job_id, "status": "processing", "tile_count": len(tile_ids), "rows": rows, "cols": cols},
-            {"self": {"href": f"/{API_VERSION}/stitch/{job_id}"}, "status": {"href": f"/{API_VERSION}/jobs/{job_id}"}},
-        )
-    ), 202
+    return (
+        jsonify(
+            hal_response(
+                {"job_id": job_id, "status": "processing", "tile_count": len(tile_ids), "rows": rows, "cols": cols},
+                {"self": {"href": f"/{API_VERSION}/stitch/{job_id}"}, "status": {"href": f"/{API_VERSION}/jobs/{job_id}"}},
+            )
+        ),
+        202,
+    )
 
 
 @app.route(f"/{API_VERSION}/jobs/<job_id>", methods=["GET"])
@@ -323,7 +340,7 @@ def get_job_status(job_id):
     )
 
 
-@app.route(f"/health", methods=["GET"])
+@app.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "version": API_VERSION})
