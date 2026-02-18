@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>PROJECT README - Hybrid Compute</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "PROJECT README";
+        var mkdocs_page_input_path = "PROJECT_README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Hybrid Compute
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../ONBOARDING/">Onboarding</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../TESTING/">Testing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../CI/">CI</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../TROUBLESHOOTING/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Hybrid Compute</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">PROJECT README</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <div align="center">
+  <h1>🧸</h1>
+
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/bniladridas/hybrid-compute/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/bniladridas/hybrid-compute/tree/main)
+</div>
+
+<p><strong><code>Hybrid-compute</code></strong> is a cross-platform GPU-accelerated image processing framework with a CUDA-to-Metal compatibility shim. It enables CUDA-based operations on macOS (Apple Silicon) via Metal, supporting various image processing tasks including upscaling, filtering, color space conversion, morphology, thresholding, edge detection, and blending. Includes CPU preprocessing for tiling/stitching and utilities.</p>
+<p><strong>Features</strong></p>
+<ul>
+<li><strong>Cross-Platform GPU Support</strong>: CUDA-to-Metal shim for macOS, native CUDA on Linux/Windows, enabling GPU-accelerated image processing.</li>
+<li><strong>Image Processing Operations</strong>: Supports upscaling, filtering, color space conversion, morphology, thresholding, edge detection, blending, and more.</li>
+<li><strong>Local Preprocessing</strong>: CPU-based image tiling and stitching using OpenCV (C++) or stb_image (C) on macOS/Linux/Windows.</li>
+<li><strong>GPU Acceleration</strong>: Optimized Metal shaders on macOS and CUDA kernels on Linux/Windows for high-performance processing.</li>
+<li><strong>Comprehensive Testing</strong>: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].</li>
+<li><strong>CI/CD</strong>: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.</li>
+<li><strong>Notes</strong>: Google Benchmark is enabled by default on macOS/Linux, but disabled on Windows due to linking issues (set in WindowsConfig.cmake). Modify ENABLE_BENCHMARK option in benchmark.cmake to adjust on other platforms. CI runs with parallel testing, non-interactive prompts, and containerized builds.</li>
+<li><strong>Development Documentation</strong>: Detailed setup, architecture, onboarding, and compatibility guides[^2][^3].</li>
+<li><strong>API Design Guide</strong>: REST API design standards and best practices[^5].</li>
+</ul>
+<p><strong>Workflow</strong></p>
+<ol>
+<li><strong>Split</strong>: Process input images locally to create tiles.</li>
+<li>Transfer and upscale tiles in the cloud.</li>
+<li>Stitch upscaled tiles into the final image.</li>
+</ol>
+<p><strong>Prerequisites</strong></p>
+<ul>
+<li>macOS with Homebrew, Linux (Ubuntu) with apt, or Windows with Chocolatey</li>
+<li>CMake</li>
+<li>OpenCV (for C++ version) or stb_image (for C version)</li>
+<li>NumPy</li>
+<li>Python 3.9+ with pip</li>
+<li>Cloud instance with NVIDIA GPU and CUDA toolkit (for GPU upscaling)</li>
+</ul>
+<p><em>Note: Conda is installed automatically on macOS via the setup script. The C version has no external dependencies beyond stb_image (header-only).</em></p>
+<p><strong>Setup</strong></p>
+<p><strong>Quick Setup</strong>
+Run the setup script to install all dependencies:</p>
+<pre><code class="language-bash">./scripts/setup.sh
+</code></pre>
+<p><strong>Docker Setup</strong>
+For containerized environments:</p>
+<ul>
+<li><strong>Local CPU components</strong>:
+  <code>bash
+  docker build -t hybrid-compute .
+  docker run --rm hybrid-compute</code></li>
+<li><strong>CUDA GPU components</strong> (requires NVIDIA GPU):
+  <code>bash
+  docker build -f Dockerfile.cuda -t hybrid-compute-cuda .
+  docker run --rm --gpus all -v /path/to/tiles:/app/tiles hybrid-compute-cuda ./cloud_gpu/upscaler tiles/input_tile.jpg tiles/output_tile.jpg</code></li>
+</ul>
+<p><strong>Manual Setup</strong></p>
+<p><strong>macOS</strong></p>
+<pre><code class="language-bash"># Install dependencies
+brew install --cask miniforge
+eval &quot;$(&quot;$(brew --prefix)/Caskroom/miniforge/base/bin/conda&quot; shell.bash hook)&quot;
+conda init bash
+mamba install -c conda-forge opencv cmake imagemagick -y
+# Install Python dependencies
+pip install -r requirements.txt --user
+# Test cv2 import
+python3 -c &quot;import cv2; print('cv2 works:', cv2.__version__)&quot;
+# Build local tools
+mkdir build &amp;&amp; cd build
+cmake ..
+make -j$(sysctl -n hw.logicalcpu)
+</code></pre>
+<p><strong>Ubuntu</strong></p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get install -y cmake libopencv-dev build-essential imagemagick wget
+# Install CUDA (optional)
+wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
+sudo dpkg -i /tmp/cuda-keyring.deb
+sudo apt-get update
+sudo apt-get install -y cuda-toolkit-11-8 || echo &quot;CUDA installation skipped&quot;
+pip install -r requirements.txt
+</code></pre>
+<p><strong>Windows</strong></p>
+<pre><code class="language-bash"># Install dependencies
+choco install cmake opencv imagemagick -y
+# Install Python dependencies
+pip install -r requirements.txt --user
+# Build local tools
+mkdir build &amp;&amp; cd build
+cmake ..
+cmake --build . --config Release
+</code></pre>
+<p><strong>Cloud GPU</strong></p>
+<pre><code class="language-bash"># On cloud instance with CUDA
+cd cloud_gpu
+nvcc upscale.cu -o upscaler -I/usr/include/opencv4 -lopencv_core -lopencv_imgcodecs
+</code></pre>
+<p><strong>Usage</strong></p>
+<p><strong>Quick Run</strong>
+To build, test, and run e2e locally:</p>
+<pre><code class="language-bash">./scripts/run.sh
+</code></pre>
+<p><strong>Testing</strong>
+For detailed testing instructions, see TESTING.md[^1].</p>
+<p>To run unit tests (parallel execution enabled for faster runs):</p>
+<pre><code class="language-bash"># Python tests (parallel with pytest-xdist)
+python3 -m pytest tests/
+# C/C++ tests (parallel with ctest)
+cd build &amp;&amp; ctest -j$(nproc)
+# Run benchmark test specifically (verbose output, tests Metal shim performance)
+cd build &amp;&amp; ctest -R user_counters_tabular_test -V
+# End-to-end tests
+python3 scripts/e2e.py
+</code></pre>
+<p><strong>Manual Usage</strong></p>
+<ol>
+<li><strong>Split images into tiles</strong> (C++ version with OpenCV):
+   <code>bash
+   ./preprocess path/to/input_images/ path/to/tiles/</code>
+   Or (C version with stb_image, no OpenCV required):
+   <code>bash
+   ./preprocess_c path/to/input_images/ path/to/tiles/</code></li>
+<li><strong>Transfer tiles to cloud</strong> (configurable via environment variables):
+   <code>bash
+   # Set your cloud configuration
+   export CLOUD_IP="your.cloud.ip"
+   export CLOUD_USER="ubuntu"
+   export CLOUD_PROJECT_PATH="/home/ubuntu/HybridCompute"
+   ./scripts/transfer_tiles.sh</code></li>
+<li><strong>Upscale tiles on cloud</strong>:
+   ```bash
+   # Single tile
+   cd cloud_gpu &amp;&amp; ./upscaler input_tile.jpg output_tile.jpg 2</li>
+</ol>
+<p># Batch process all tiles
+   ./scripts/batch_upscale.sh tiles upscaled 2 "*.jpg"
+   <code>4. **Stitch upscaled tiles** with flexible grid dimensions:</code>bash
+   # Auto-detect square grid
+   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg</p>
+<p># Specify custom grid dimensions
+   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg --rows 2 --cols 8</p>
+<p># Use custom file pattern
+   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg --pattern "upscaled_*.png"
+   ```</p>
+<p><strong>Verification</strong>
+To ensure the project components work correctly:</p>
+<ul>
+<li><strong>CUDA Build Check</strong>: Run <code>scripts/check_cuda_build.sh</code> on a CUDA-enabled system to verify <code>upscale.cu</code> compiles without errors.</li>
+<li><strong>Local E2E Testing</strong>: The <code>scripts/run.sh</code> script simulates the full pipeline (tiling -&gt; copy tiles -&gt; stitching) without actual upscaling or GPU hardware. <code>scripts/e2e.py</code> provides additional end-to-end validation.</li>
+<li><strong>Code Review</strong>: Manually inspect <code>cloud_gpu/upscale.cu</code> for CUDA best practices and logic correctness.</li>
+<li><strong>Troubleshooting</strong>: If you encounter build or test issues, see <a href="../TROUBLESHOOTING/">TROUBLESHOOTING.md</a>[^4] for common problems and solutions.</li>
+</ul>
+<p><strong>Git Commit Standards</strong>
+This project enforces conventional commit standards for clean history:</p>
+<h3 id="commit-message-format">Commit Message Format</h3>
+<pre><code>type(scope): short description (&lt;=60 chars)
+- optional bullet point 1 (&lt;=72 chars)
+- optional bullet point 2
+</code></pre>
+<h3 id="rules">Rules</h3>
+<ul>
+<li><strong>Type</strong>: Must be one of:</li>
+<li><code>feat</code>: New feature</li>
+<li><code>fix</code>: Bug fix</li>
+<li><code>docs</code>: Documentation changes</li>
+<li><code>style</code>: Code style/formatting</li>
+<li><code>refactor</code>: Code change that neither fixes a bug nor adds a feature</li>
+<li><code>perf</code>: Performance improvements</li>
+<li><code>test</code>: Adding or modifying tests</li>
+<li><code>chore</code>: Maintenance tasks</li>
+<li><code>ci</code>: CI/CD related changes</li>
+<li><code>build</code>: Build system changes</li>
+<li><code>revert</code>: Revert a previous commit</li>
+<li><strong>Scope</strong>: Lowercase with hyphens (e.g., <code>ci</code>, <code>api</code>, <code>ui</code>)</li>
+<li><strong>Description</strong>: Short summary in lowercase (no period at the end)</li>
+<li><strong>Bullet Points</strong>: Optional, each starting with <code>-</code> and &lt;=72 characters</li>
+<li><strong>All text must be in lowercase</strong></li>
+</ul>
+<h3 id="examples">Examples</h3>
+<pre><code>feat(api): add user authentication
+- implement jwt token generation
+- add login endpoint
+fix(ci): resolve build failures
+- update cmake minimum version
+- fix opencv linking
+
+docs(readme): update contribution guidelines
+- add commit message format
+- include code style requirements
+</code></pre>
+<p>To enable enforcement, copy the hook:</p>
+<pre><code class="language-bash">cp scripts/commit-msg .git/hooks/commit-msg
+chmod +x .git/hooks/commit-msg
+</code></pre>
+<p>To clean up existing commit messages in history:</p>
+<pre><code class="language-bash">git filter-branch --msg-filter 'bash scripts/rewrite_msg.sh' -- --all
+git push --force origin main  # if needed
+</code></pre>
+<p><strong>License</strong>
+Copyright (c) 2026, bniladridas. All rights reserved.</p>
+<p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions
+are met:
+  * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the distribution.
+  * Neither the name of bniladridas nor the names of its contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.</p>
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+<hr />
+<p>This software links to the following components which are not licensed under the above license text.
+For details on the specific licenses please refer to the provided links.</p>
+<ul>
+<li>OpenCV: https://opencv.org/license/</li>
+<li>stb_image: https://github.com/nothings/stb/blob/master/LICENSE</li>
+</ul>
+<p>[^1]: <a href="../TESTING/">TESTING.md</a> - Comprehensive testing procedures and guidelines.</p>
+<p>[^2]: <a href="../DEVELOPMENT.md">DEVELOPMENT.md</a> - Development setup, architecture, and contribution guidelines.</p>
+<p>[^3]: <a href="../ONBOARDING/">ONBOARDING.md</a> - Contributor onboarding and compatibility policy.</p>
+<p>[^4]: <a href="../TROUBLESHOOTING/">TROUBLESHOOTING.md</a> - Common issues and solutions for build and test problems.</p>
+<p>[^5]: <a href="../README.md">README.md</a> - API design standards and REST best practices.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
