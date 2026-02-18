@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Design Guide - Hybrid Compute</title>
+    <style>
+        :root {
+            --text: #111;
+            --text-secondary: #555;
+            --text-muted: #888;
+            --bg: #fff;
+            --border: #ddd;
+            --pre-bg: #f5f5f5;
+        }
+
+        [data-theme="dark"] {
+            --text: #e5e5e5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b6b6b;
+            --bg: #1a1a1a;
+            --border: #333;
+            --pre-bg: #252525;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+        nav { padding: 20px 0; border-bottom: 1px solid var(--border); }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-weight: 600; font-size: 15px; text-decoration: none; color: var(--text); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; }
+        .nav-links a:hover { color: var(--text); }
+        .theme-toggle { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted); font-size: 16px; }
+        .theme-toggle:hover { color: var(--text); }
+
+        main { padding: 48px 0; }
+        h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+        h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; border-top: 1px solid var(--border); padding-top: 32px; }
+        h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+        h4 { font-size: 14px; font-weight: 600; margin: 20px 0 10px; color: var(--text-secondary); }
+        p { color: var(--text-secondary); margin-bottom: 16px; }
+        pre { background: var(--pre-bg); padding: 16px; border-radius: 6px; font-size: 13px; font-family: 'SF Mono', Menlo, monospace; overflow-x: auto; line-height: 1.5; margin: 16px 0; }
+        code { background: var(--pre-bg); padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+        th { font-weight: 500; color: var(--text-muted); font-size: 12px; text-transform: uppercase; }
+        ul, ol { color: var(--text-secondary); margin: 0 0 16px 24px; }
+        li { margin-bottom: 6px; }
+        .version { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); }
+        footer .container { display: flex; justify-content: space-between; align-items: center; }
+        footer p { font-size: 13px; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 8px; }
+        footer a { color: var(--text-muted); text-decoration: none; font-size: 13px; margin-left: 16px; }
+        footer a:hover { color: var(--text); }
+        footer img { width: 20px; height: 20px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="nav-brand">Hybrid Compute</a>
+            <div class="nav-links">
+                <a href="testing.html">Testing</a>
+                <a href="test-results.html">Test Results</a>
+                <a href="onboarding.html">Onboarding</a>
+                <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1>API Design Guide</h1>
+            <p class="version">Version 1.0.0 · Published 2026 Feb 19</p>
+
+            <h2>Purpose</h2>
+            <p>Standards and best practices for REST API components within this project.</p>
+
+            <h2>Guiding Principles</h2>
+            <ul>
+                <li>Use commonly accepted web standards (HTTP, JSON)</li>
+                <li>Be consistent with accepted practices</li>
+                <li>Simple to consume and test</li>
+                <li>Pragmatic and performant</li>
+            </ul>
+
+            <h2>Requests</h2>
+
+            <h3>URIs/Paths</h3>
+            <ul>
+                <li>URIs should be intuitive (affordance)</li>
+                <li>Keep URIs simple and short</li>
+                <li>Use plural resource names: <code>/images</code></li>
+                <li>Use nouns, not verbs: <code>/images/4</code> not <code>/get_images_by_id</code></li>
+            </ul>
+
+            <h3>HTTP Verbs</h3>
+            <table>
+                <thead><tr><th>Method</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td>GET</td><td>Read</td></tr>
+                    <tr><td>POST</td><td>Create</td></tr>
+                    <tr><td>PUT</td><td>Update (full)</td></tr>
+                    <tr><td>PATCH</td><td>Update (partial)</td></tr>
+                    <tr><td>DELETE</td><td>Delete</td></tr>
+                </tbody>
+            </table>
+
+            <h2>Resource Identifiers</h2>
+            <p>Use Sequential UUIDs (SQUUIDs). Never expose database row IDs.</p>
+
+            <h2>Versioning</h2>
+            <p>Two methods supported:</p>
+            <pre>GET /images/4
+Accept: application/vnd.hybrid-compute.v1+json</pre>
+            <p>Or in URI:</p>
+            <pre>GET /v1/images/4</pre>
+            <p>Format: Major.Minor (x.y). Change Major for multiple breaking changes, Minor for 1+ breaking changes.</p>
+
+            <h2>Pagination</h2>
+            <p>Use offset and limit with HAL links:</p>
+            <pre>{
+  "_links": {
+    "self": { "href": "/images?offset=543&limit=25" },
+    "next": { "href": "/images?offset=768&limit=25" },
+    "prev": { "href": "/images?offset=123&limit=25" }
+  },
+  "items": []
+}</pre>
+
+            <h2>Security</h2>
+            <ul>
+                <li>Always use HTTPS</li>
+                <li>Authentication validates consumer</li>
+                <li>Authorization ensures permission</li>
+            </ul>
+
+            <h2>Responses</h2>
+
+            <h3>HTTP Status Codes</h3>
+            <table>
+                <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+                <tbody>
+                    <tr><td>200</td><td>OK</td></tr>
+                    <tr><td>201</td><td>Created</td></tr>
+                    <tr><td>400</td><td>Bad Request</td></tr>
+                    <tr><td>401</td><td>Unauthorized</td></tr>
+                    <tr><td>403</td><td>Forbidden</td></tr>
+                    <tr><td>404</td><td>Not Found</td></tr>
+                    <tr><td>500</td><td>Internal Server Error</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Error Format</h3>
+            <pre>{
+  "errors": [
+    {
+      "code": "not_found",
+      "title": "Image not found",
+      "details": "No image found with ID: abc123"
+    }
+  ]
+}</pre>
+
+            <h2>JSON Formatting</h2>
+            <ul>
+                <li>Dates: RFC 3339 UTC format (<code>2008-09-08T22:47:31Z</code>)</li>
+                <li>UTF-8 encoding</li>
+                <li>Currency with code, value, exponent</li>
+            </ul>
+
+            <h2>Performance</h2>
+            <ul>
+                <li>Use pagination for large result sets</li>
+                <li>Enable HTTP compression (60-80% reduction)</li>
+                <li>Use ETag for caching</li>
+            </ul>
+
+            <h2>REST API Reference</h2>
+
+            <h3>Images</h3>
+            <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>POST</td><td>/v1/images</td><td>Upload image</td></tr>
+                    <tr><td>GET</td><td>/v1/images</td><td>List images</td></tr>
+                    <tr><td>GET</td><td>/v1/images/:id</td><td>Get image</td></tr>
+                    <tr><td>POST</td><td>/v1/images/:id/tiles</td><td>Split into tiles</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Tiles</h3>
+            <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>GET</td><td>/v1/tiles</td><td>List tiles</td></tr>
+                    <tr><td>POST</td><td>/v1/tiles/:id/upscale</td><td>Upscale tile</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Jobs</h3>
+            <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>POST</td><td>/v1/stitch</td><td>Stitch tiles</td></tr>
+                    <tr><td>GET</td><td>/v1/jobs/:id</td><td>Job status</td></tr>
+                </tbody>
+            </table>
+
+            <h2>Commit Standards</h2>
+            <pre>type(scope): short description (≤60 chars)
+- optional bullet point</pre>
+            <p>Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p><img src="startup/avatar.png" alt="libnudget"> BSD 3-Clause License · libnudget</p>
+            <div>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="https://github.com/bniladridas/hybrid-compute">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</body>
+</html>
