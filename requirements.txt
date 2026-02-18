@@ -3,3 +3,5 @@ numpy
 coverage
 pytest
 pytest-cov
+flask
+werkzeug

@@ -1,180 +1,720 @@
-<div align="center">
-  <h1>🧸</h1>
+# Hybrid Compute API Design Guide
 
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/bniladridas/hybrid-compute/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/bniladridas/hybrid-compute/tree/main)
-</div>
+## Version 1.0.0 - Published 2026 Feb 19
 
-**`Hybrid-compute`** is a cross-platform GPU-accelerated image processing framework with a CUDA-to-Metal compatibility shim. It enables CUDA-based operations on macOS (Apple Silicon) via Metal, supporting various image processing tasks including upscaling, filtering, color space conversion, morphology, thresholding, edge detection, and blending. Includes CPU preprocessing for tiling/stitching and utilities.
-**Features**
+_Internal version published 2026 Feb 1_
 
-- **Cross-Platform GPU Support**: CUDA-to-Metal shim for macOS, native CUDA on Linux/Windows, enabling GPU-accelerated image processing.
-- **Image Processing Operations**: Supports upscaling, filtering, color space conversion, morphology, thresholding, edge detection, blending, and more.
-- **Local Preprocessing**: CPU-based image tiling and stitching using OpenCV (C++) or stb_image (C) on macOS/Linux/Windows.
-- **GPU Acceleration**: Optimized Metal shaders on macOS and CUDA kernels on Linux/Windows for high-performance processing.
-- **Comprehensive Testing**: Includes unit tests, performance benchmarks, and end-to-end integration tests with parallel execution for faster CI/CD[^1].
-- **CI/CD**: Automated builds and tests across macOS, Linux, and Windows with Docker image publishing and security scanning.
-- **Notes**: Google Benchmark is enabled by default on macOS/Linux, but disabled on Windows due to linking issues (set in WindowsConfig.cmake). Modify ENABLE_BENCHMARK option in benchmark.cmake to adjust on other platforms. CI runs with parallel testing, non-interactive prompts, and containerized builds.
-- **Development Documentation**: Detailed setup, architecture, onboarding, and compatibility guides[^2][^3].
-  **Workflow**
+- [Quick Reference](QUICK.md)
+- [FAQ](FAQ.md)
+- [API Test Results](api/TEST_RESULTS.md)
 
-1. **Split**: Process input images locally to create tiles.
-2. Transfer and upscale tiles in the cloud.
-3. Stitch upscaled tiles into the final image.
-   **Prerequisites**
+## Contents
+- [Purpose](#purpose)
+- [Overview](#overview)
+    - [Why Have an API Design Guide?](#why-have-an-api-design-guide)
+    - [Guiding Principles](#guiding-principles)
+- [API Design Essentials](#api-design-essentials)
+    - [Requests](#requests)
+        - [URIs/Paths](#urispaths)
+            - [Use Plural Resource Names](#use-plural-resource-names)
+            - [Use Nouns, Not Verbs in the Base URI](#use-nouns-not-verbs-in-the-base-uri)
+            - [Shorten Associations in the URI - Hide Dependencies in the Parameter List](#shorten-associations-in-the-uri---hide-dependencies-in-the-parameter-list)
+        - [Uniform Interface with HTTP Verbs/Methods](#uniform-interface-with-http-verbsmethods)
+    - [Resource Identifiers](#resource-identifiers)
+        - [Do Not Use Database Table Row IDs as Resource IDs](#do-not-use-database-table-row-ids-as-resource-ids)
+        - [SQUUID Implementations](#squuid-implementations)
+    - [Versioning](#versioning)
+        - [Why Versioning?](#why-versioning)
+        - [Versioning Methods](#versioning-methods)
+            - [Version in the HTTP `Accept` Header](#version-in-the-http-accept-header)
+            - [Version in the URI](#version-in-the-uri)
+            - [Versioning Schemes](#versioning-schemes)
+            - [Breaking Changes](#breaking-changes)
+            - [Non-Breaking Changes](#non-breaking-changes)
+        - [API Versioning Summary](#api-versioning-summary)
+    - [Pagination](#pagination)
+        - [Why Pagination?](#why-pagination)
+        - [Pagination - Summary](#pagination---summary)
+        - [Pagination Method](#pagination-method)
+        - [Pagination - Leading the Consumer](#pagination---leading-the-consumer)
+        - [Client Use of Pagination URIs](#client-use-of-pagination-uris)
+    - [Filter/Sort/Search](#filtersortsearch)
+    - [Content Negotiation](#content-negotiation)
+    - [Security](#security)
+        - [Transport](#transport)
+        - [Authentication/Authorization](#authenticationauthorization)
+        - [CORS (Cross-Origin Resource Sharing)](#cors-cross-origin-resource-sharing)
+    - [Responses](#responses)
+        - [HTTP Status Codes](#http-status-codes)
+        - [Error Handling / Messages](#error-handling--messages)
+        - [Response Envelopes and Hypermedia](#response-envelopes-and-hypermedia)
+            - [HAL Specification](#hal-specification)
+        - [Response Meta Data](#response-meta-data)
+    - [JSON](#json)
+        - [Data Formatting](#data-formatting)
+            - [Dates and Times](#dates-and-times)
+            - [UTF-8](#utf-8)
+            - [Currency and Fixed-Point Values](#currency-and-fixed-point-values)
+    - [Performance](#performance)
+        - [Consumer-Side](#consumer-side)
+        - [Producer-Side](#producer-side)
+            - [Condense JSON Response with HTTP Compression](#condense-json-response-with-http-compression)
+            - [Conditional `GET` with Caching and `ETag`](#conditional-get-with-caching-and-etag)
+    - [Testing](#testing)
+        - [Improve API Test Performance](#improve-api-test-performance)
+    - [REST API Reference](#rest-api-reference)
+        - [Endpoints](#endpoints)
+            - [Images](#images)
+            - [Tiles](#tiles)
+            - [Jobs](#jobs)
+        - [Example Requests](#example-requests)
+    - [Project Overview](#project-overview)
+        - [Architecture](#architecture)
+        - [Prerequisites](#prerequisites)
+        - [Setup](#setup)
+        - [Usage](#usage)
+    - [Git Commit Standards](#git-commit-standards)
+    - [License](#license)
+
+## Purpose
+
+The purpose of the Hybrid Compute API Design Guide is to provide standards and best practices for any REST API components within this project. This guide helps developers and architects design and implement consistent and well-documented APIs.
+
+A basic knowledge of REST, HTTP, and JSON is assumed. We will provide links to resources for those who want to learn more about the fundamentals of these technologies.
+
+## Overview
+
+API Design has come of age, and has become a first-class citizen in the enterprise. The principles and practices that we follow determine the usability and overall quality of our APIs.
+
+### Why Have an API Design Guide?
+
+An API Design Guide provides us with the following:
+
+- APIs that have a consistent look-and-feel.
+- APIs that act in a predictable/expected manner. Don't surprise the consumer.
+- Take the guesswork out of designing and implementing an API by following the design practices.
+- Streamlined tooling and documentation.
+
+### Guiding Principles
+
+Here are the guiding principles for designing an API and determining the merit of each design practice:
+
+- Use commonly accepted web standards (e.g., HTTP, JSON) when it makes sense to do so.
+- Each API should be consistent with commonly accepted practices leveraged by other good APIs on the Internet.
+- It should be simple to consume and test.
+- It must be pragmatic and performant.
+
+## API Design Essentials
+
+The remaining sections of this page cover the key areas to consider when designing and implementing an API.
+
+### Requests
+
+#### URIs/Paths
+
+The URI (Uniform Resource Indicator) / Path is the path to a resource exposed by an API. Here are the key principles:
+
+- URIs should be intuitive. This property, known as affordance:
+  - Makes an API easy to use and understand.
+  - Reduces the amount of documentation needed for an API.
+- Keep URIs simple and short.
+- Shorten associations/dependencies in the URIs.
+- Use plural resource names.
+- Use Nouns, not Verbs in the Base URI.
+  - Use HTTP Verbs - GET, POST, PUT, DELETE, and PATCH - to indicate the operation on a resource.
+
+##### Use Plural Resource Names
+
+Resource names should be plural, for example if we're exposing Images, then the Base URI should look like:
+
+```
+/images
+```
+
+unless the resource is a singleton, for example, the overall status of the system might be `/status`.
+
+##### Use Nouns, Not Verbs in the Base URI
+
+Never put a Verb in the Base URI. Rather than something like `/get_images_by_id`, we use the following URI with an HTTP GET:
+
+```
+/images/4
+```
+
+##### Shorten Associations in the URI - Hide Dependencies in the Parameter List
+
+Resources are related to one another. Instead of:
+
+```
+users/1/orders/54/images/5900
+```
+
+Use:
+
+```
+users/1/images?order_id=54
+```
+
+#### Uniform Interface with HTTP Verbs/Methods
+
+The following table shows the standard HTTP Verbs/Methods to act on resources:
+
+| HTTP Verb / Method | Action             |
+|:-------------------|:-------------------|
+| `GET`              | Read               |
+| `POST`             | Create             |
+| `PUT`              | Update (full)      |
+| `PATCH`            | Update (partial)  |
+| `DELETE`           | Delete             |
+
+### Resource Identifiers
+
+Resources should use Sequential UUIDs (SQUUIDs).
+
+SQUUIDs are stored as binary(16). SQUUIDs should be represented in string form as lowercase.
+
+#### Do Not Use Database Table Row IDs as Resource IDs
+
+Auto-incrementing integer database row identifiers should not be used as Resource IDs or exposed in any way through the API.
+
+#### SQUUID Implementations
+
+```
+def squuid
+  ary = SecureRandom.random_bytes(16).unpack("NnnnnN")
+  ary[0] = Time.now.to_i
+  ary[2] = (ary[2] & 0x0fff) | 0x4000
+  ary[3] = (ary[3] & 0x3fff) | 0x8000
+  "%08x-%04x-%04x-%04x-%04x%08x" % ary
+end
+```
+
+### Versioning
+
+#### Why Versioning?
+
+API Versioning is an important aspect of API design because it informs the consumer about an API's capabilities and data. Consumers use the version number for compatibility.
+
+#### Versioning Methods
+
+Here are 2 supported methods of API versioning:
+
+- **Version in the HTTP Accept Header.** (this is our preference)
+- Version in the URI.
+
+##### Version in the HTTP `Accept` Header
+
+```
+GET /images/4
+Accept: application/vnd.hybrid-compute.v1+json
+```
+
+Pros:
+- The version is a representation of a resource, and this information goes in the HTTP Accept Header.
+- It leverages a mechanism already provided by the HTTP specification.
+- It supports content-based load balancing.
+
+##### Version in the URI
+
+```
+GET /v1/images/4
+```
+
+Pros:
+- It works well and is widely used.
+- It's simple and easy to read.
+- It supports testing from a web browser.
+
+Cons:
+- A URI identifies the location of resource, and the URI shouldn't change just because the data changes.
+
+#### Versioning Schemes
+
+- We will use a Major and Minor version in the form `x.y`, where `x` >= 1 and represents the Major version number, and `y` >= 0 and represents the Minor version number.
+- We never have a Major version of 0 because it makes the API appear unstable.
+- There is no need to modify either the Major or Minor version for Non-Breaking changes.
+- We change the Major version when there are multiple Breaking Changes.
+- We change the Minor version when there are 1 or more Breaking Changes.
+
+##### Breaking Changes
+
+A Breaking Change is any change to an API that could break a contract:
+
+- Deprecating a feature
+- Refactoring a non-trivial portion of the API implementation
+- When a field's data type changes
+- Changing the Security model
+
+##### Non-Breaking Changes
+
+A Non-Breaking Change is a change that does not break a contract:
+
+- Adding a new feature
+- Upgrading documentation
+
+#### API Versioning Summary
+
+- Every API must have a version.
+- Every API invocation must specify a version number.
+- All new APIs will put the version in the HTTP Accept Header.
+- Version format: `x.y` (Major.Minor)
+
+### Pagination
+
+#### Why Pagination?
+
+An API must be able to control/gate the amount data returned in the response so that the Consumer is able to handle the volume of data.
+
+#### Pagination - Summary
+
+- Use offset and limit: `/images?offset=543&limit=25`
+- Lead the Consumer through the API with links/URIs in the JSON response
+
+#### Pagination Method
+
+The `offset` is semantic - it could be a UUID, ID, a Date, etc. that is sortable.
+
+#### Pagination - Leading the Consumer
+
+```
+GET /images?offset=100&limit=25
+
+{
+   "_links": {
+     "self": { "href": "/images?offset=543&limit=25" },
+     "next": { "href": "/images?offset=768&limit=25" },
+     "prev": { "href": "/images?offset=123&limit=25" }
+   },
+   "items": []
+}
+```
+
+This is an implementation of [HAL (JSON Hypermedia API Language)](https://tools.ietf.org/html/draft-kelly-json-hal-06).
+
+#### Client Use of Pagination URIs
+
+Clients should avoid trying to construct new URLs to the API, but rather depend on the `next` and `previous` links returned by the API.
+
+### Filter/Sort/Search
+
+- Keep it simple - just use HTTP parameters
+- Use a separate field for each filter/sort/search parameter
+- For sort, use an explicit `sort` parameter:
+
+```
+https://api.example.com/images.json?sort=created_at
+```
+
+### Content Negotiation
+
+Content Negotiation is a mechanism that enables an API to serve a document/response in different formats. Based on current industry best practices, we prefer JSON.
+
+```
+Accept: application/json
+```
+
+The HTTP `Content-Type` Header:
+
+```
+Content-Type: application/json
+```
+
+### Security
+
+#### Transport
+
+Always use HTTPS to communicate with and between APIs.
+
+#### Authentication/Authorization
+
+- Authentication validates a service consumer (User, Mobile app, or Service)
+- Authorization ensures a subject has permission to access services and resources
+
+#### CORS (Cross-Origin Resource Sharing)
+
+CORS defines a mechanism in which an API and its Consumers can collaborate to determine if it's safe to allow the cross-origin request.
+
+| HTTP Response Header | Description |
+| -------------------- | ----------- |
+| `Access-Control-Allow-Origin` | Indicates whether a resource can be shared |
+| `Access-Control-Allow-Credentials` | Indicates whether the response can include credentials |
+| `Access-Control-Allow-Methods` | Indicates which HTTP Methods are allowed |
+
+### Responses
+
+When a Consumer invokes an API, one of three things can happen:
+- Success - everything worked properly
+- Consumer Error - The Consumer used bad data
+- API Error - The API had a processing error
+
+#### HTTP Status Codes
+
+| HTTP Status Code | Meaning |
+|:-----------------|:--------|
+| 200 | OK |
+| 201 | Created |
+| 202 | Accepted |
+| 204 | No Content |
+| 301 | Moved Permanently |
+| 304 | Not Modified |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not Found |
+| 409 | Conflict |
+| 410 | Gone |
+| 500 | Internal Server Error |
+| 503 | Service Unavailable |
+
+#### Error Handling / Messages
+
+For consumer-facing APIs:
+
+```json
+{
+  "errors": [
+    {
+      "code": "unrecoverable_error",
+      "title": "The flux capacitor disintegrated",
+      "details": "Hold on, the end is nigh.",
+      "user_message": "OMG, panic!"
+    }
+  ]
+}
+```
+
+#### Response Envelopes and Hypermedia
+
+We prefer [HAL](https://tools.ietf.org/html/draft-kelly-json-hal-06) because it's simple and lightweight.
+
+```json
+{
+  "_links": {
+    "self": { "href": "/images" },
+    "next": { "href": "/images?page=2" }
+  },
+  "_embedded": {
+    "images": []
+  },
+  "count": 25
+}
+```
+
+##### HAL Specification
+
+Requirements for a valid HAL document:
+- Response Header: `application/hal+json`
+- Root object must be a Resource Object with:
+  - `_links` - Optional. Contains links to other resources
+  - `_embedded` - Optional. Contains embedded resources
+
+#### Response Meta Data
+
+Meta-data about a response goes in a top-level `meta` attribute:
+
+```json
+{
+  "meta": {
+    "representation": "thumbnail"
+  },
+  "image": {
+    "id": "abc123"
+  }
+}
+```
+
+### JSON
+
+Our APIs use JSON because it is the format of choice for most modern Web APIs.
+
+#### Data Formatting
+
+##### Dates and Times
+
+We use [RFC 3339](http://tools.ietf.org/html/rfc3339) in UTC format:
+
+```
+2008-09-08T22:47:31Z
+```
+
+Format guidelines:
+- `T` separates the date from the time
+- `Z` indicates UTC
+- `YYYY-MM-DD` for dates
+- `hh:mm:ss:sss` for timestamps
+
+##### UTF-8
+
+Each API should use UTF-8:
+
+```
+Content-Type: application/json; charset=utf-8
+```
+
+##### Currency and Fixed-Point Values
+
+```json
+{
+  "price": {
+    "currency_code": "USD",
+    "value": 1000,
+    "exponent": 2
+  }
+}
+```
+
+### Performance
+
+#### Consumer-Side
+
+The fastest API call is one that isn't made. Consider caching if data can be slightly out of date.
+
+#### Producer-Side
+
+- Use Pagination to manage large result sets
+- Use HTTP Compression
+
+##### Condense JSON Response with HTTP Compression
+
+[GZip](http://en.wikipedia.org/wiki/Gzip) compression typically achieves 60-80% reduction in payload size.
+
+##### Conditional GET with Caching and ETag
+
+Include an `ETag` HTTP Header to identify the specific version of the returned resource:
+
+```
+Cache-Control: 86400
+ETag: "686897696a7c876b7e"
+```
+
+| Header | Description |
+|--------|-------------|
+| `Cache-Control` | Max seconds to cache |
+| `ETag` | Version identifier |
+| `Last-Modified` | Timestamp of last change |
+
+### Testing
+
+Common test aspects:
+- Field validation
+- HTTP status codes
+- Response structure
+
+#### Improve API Test Performance
+
+Consider:
+- Mock Mode: Send back mock objects rather than invoking the service
+- Caching: Pull from cache rather than call the service
+
+---
+
+## REST API Reference
+
+The Hybrid Compute REST API provides endpoints for image processing operations. All responses are formatted using [HAL (Hypermedia Application Language)](https://tools.ietf.org/html/draft-kelly-json-hal-06).
+
+See [API Test Results](api/TEST_RESULTS.md) for test execution details.
+
+### Base URL
+
+```
+http://localhost:5000/v1
+```
+
+### Endpoints
+
+#### Images
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/images` | Upload a new image |
+| GET | `/images` | List all uploaded images |
+| GET | `/images/:id` | Get image details |
+| GET | `/images/:id/file` | Download image file |
+| POST | `/images/:id/tiles` | Split image into tiles |
+
+#### Tiles
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/tiles` | List all tiles |
+| GET | `/tiles/:id` | Get tile details |
+| POST | `/tiles/:id/upscale` | Upscale a tile |
+| GET | `/tiles/:id/upscaled` | Download upscaled tile |
+
+#### Jobs
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/stitch` | Stitch tiles into final image |
+| GET | `/jobs/:id` | Get job status |
+
+#### Health
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+
+### Example Requests
+
+**Upload an image:**
+
+```bash
+curl -X POST http://localhost:5000/v1/images \
+  -F "file=@image.jpg"
+```
+
+**List images with pagination:**
+
+```bash
+curl "http://localhost:5000/v1/images?offset=0&limit=25"
+```
+
+**Response:**
+```json
+{
+  "_links": {
+    "self": { "href": "/v1/images?offset=0&limit=25" },
+    "next": { "href": "/v1/images?offset=25&limit=25" }
+  },
+  "_embedded": {
+    "images": [
+      {
+        "id": "abc123",
+        "filename": "image.jpg",
+        "size": 1024,
+        "created_at": "2026-02-19T10:00:00Z"
+      }
+    ]
+  },
+  "count": 1,
+  "total": 1
+}
+```
+
+**Create tiles from an image:**
+
+```bash
+curl -X POST http://localhost:5000/v1/images/abc123/tiles \
+  -H "Content-Type: application/json" \
+  -d '{"tile_size": 512}'
+```
+
+**Upscale a tile:**
+
+```bash
+curl -X POST http://localhost:5000/v1/tiles/tile123/upscale \
+  -H "Content-Type: application/json" \
+  -d '{"scale": 2}'
+```
+
+**Stitch tiles:**
+
+```bash
+curl -X POST http://localhost:5000/v1/stitch \
+  -H "Content-Type: application/json" \
+  -d '{"tile_ids": ["tile1", "tile2"], "rows": 2, "cols": 1}'
+```
+
+**Error Response:**
+
+```json
+{
+  "errors": [
+    {
+      "code": "not_found",
+      "title": "Image not found",
+      "details": "No image found with ID: abc123"
+    }
+  ]
+}
+```
+
+### Running the API Server
+
+```bash
+# Install dependencies
+pip install flask werkzeug
+
+# Start the server
+python api/server.py
+```
+
+The server will start on `http://localhost:5000`
+
+---
+
+## Project Overview
+
+**Hybrid Compute** is a cross-platform GPU-accelerated image processing framework with a CUDA-to-Metal compatibility shim. It enables CUDA-based operations on macOS (Apple Silicon) via Metal, supporting various image processing tasks.
+
+### Architecture
+
+1. **Split**: Process input images locally to create tiles
+2. **Transfer**: Transfer tiles to cloud
+3. **Upscale**: Upscale tiles on cloud GPU
+4. **Stitch**: Stitch upscaled tiles into final image
+
+### Prerequisites
 
 - macOS with Homebrew, Linux (Ubuntu) with apt, or Windows with Chocolatey
 - CMake
 - OpenCV (for C++ version) or stb_image (for C version)
 - NumPy
-- Python 3.9+ with pip
-- Cloud instance with NVIDIA GPU and CUDA toolkit (for GPU upscaling)
-  _Note: Conda is installed automatically on macOS via the setup script. The C version has no external dependencies beyond stb_image (header-only)._
-  **Setup**
-  **Quick Setup**
-  Run the setup script to install all dependencies:
+- Python 3.9+
+- Cloud instance with NVIDIA GPU and CUDA toolkit
+
+### Setup
+
+**Quick Setup**
 
 ```bash
 ./scripts/setup.sh
 ```
 
-**Docker Setup**
-For containerized environments:
-
-- **Local CPU components**:
-  ```bash
-  docker build -t hybrid-compute .
-  docker run --rm hybrid-compute
-  ```
-- **CUDA GPU components** (requires NVIDIA GPU):
-  ```bash
-  docker build -f Dockerfile.cuda -t hybrid-compute-cuda .
-  docker run --rm --gpus all -v /path/to/tiles:/app/tiles hybrid-compute-cuda ./cloud_gpu/upscaler tiles/input_tile.jpg tiles/output_tile.jpg
-  ```
-  **Manual Setup**
-  **macOS**
+**Docker**
 
 ```bash
-# Install dependencies
-brew install --cask miniforge
-eval "$(\"$(brew --prefix)/Caskroom/miniforge/base/bin/conda\" shell.bash hook)"
-conda init bash
-mamba install -c conda-forge opencv cmake imagemagick -y
-# Install Python dependencies
-pip install -r requirements.txt --user
-# Test cv2 import
-python3 -c "import cv2; print('cv2 works:', cv2.__version__)"
-# Build local tools
-mkdir build && cd build
-cmake ..
-make -j$(sysctl -n hw.logicalcpu)
+docker build -t hybrid-compute .
+docker run --rm hybrid-compute
 ```
 
-**Ubuntu**
+### Usage
 
-```bash
-sudo apt-get update
-sudo apt-get install -y cmake libopencv-dev build-essential imagemagick wget
-# Install CUDA (optional)
-wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
-sudo dpkg -i /tmp/cuda-keyring.deb
-sudo apt-get update
-sudo apt-get install -y cuda-toolkit-11-8 || echo "CUDA installation skipped"
-pip install -r requirements.txt
-```
-
-**Windows**
-
-```bash
-# Install dependencies
-choco install cmake opencv imagemagick -y
-# Install Python dependencies
-pip install -r requirements.txt --user
-# Build local tools
-mkdir build && cd build
-cmake ..
-cmake --build . --config Release
-```
-
-**Cloud GPU**
-
-```bash
-# On cloud instance with CUDA
-cd cloud_gpu
-nvcc upscale.cu -o upscaler -I/usr/include/opencv4 -lopencv_core -lopencv_imgcodecs
-```
-
-**Usage**
 **Quick Run**
-To build, test, and run e2e locally:
 
 ```bash
 ./scripts/run.sh
 ```
 
-**Testing**
-For detailed testing instructions, see TESTING.md[^1].
-
-To run unit tests (parallel execution enabled for faster runs):
-
-```bash
-# Python tests (parallel with pytest-xdist)
-python3 -m pytest tests/
-# C/C++ tests (parallel with ctest)
-cd build && ctest -j$(nproc)
-# Run benchmark test specifically (verbose output, tests Metal shim performance)
-cd build && ctest -R user_counters_tabular_test -V
-# End-to-end tests
-python3 scripts/e2e.py
-```
-
 **Manual Usage**
 
-1. **Split images into tiles** (C++ version with OpenCV):
+1. **Split images into tiles**:
    ```bash
    ./preprocess path/to/input_images/ path/to/tiles/
    ```
-   Or (C version with stb_image, no OpenCV required):
+
+2. **Transfer tiles to cloud**:
    ```bash
-   ./preprocess_c path/to/input_images/ path/to/tiles/
-   ```
-2. **Transfer tiles to cloud** (configurable via environment variables):
-   ```bash
-   # Set your cloud configuration
    export CLOUD_IP="your.cloud.ip"
-   export CLOUD_USER="ubuntu"
-   export CLOUD_PROJECT_PATH="/home/ubuntu/HybridCompute"
    ./scripts/transfer_tiles.sh
    ```
+
 3. **Upscale tiles on cloud**:
    ```bash
-   # Single tile
    cd cloud_gpu && ./upscaler input_tile.jpg output_tile.jpg 2
-
-   # Batch process all tiles
-   ./scripts/batch_upscale.sh tiles upscaled 2 "*.jpg"
    ```
-4. **Stitch upscaled tiles** with flexible grid dimensions:
+
+4. **Stitch upscaled tiles**:
    ```bash
-   # Auto-detect square grid
    python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg
-
-   # Specify custom grid dimensions
-   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg --rows 2 --cols 8
-
-   # Use custom file pattern
-   python3 scripts/stitch.py path/to/upscaled_tiles/ output_image.jpg --pattern "upscaled_*.png"
    ```
-   **Verification**
-   To ensure the project components work correctly:
 
-- **CUDA Build Check**: Run `scripts/check_cuda_build.sh` on a CUDA-enabled system to verify `upscale.cu` compiles without errors.
-- **Local E2E Testing**: The `scripts/run.sh` script simulates the full pipeline (tiling → copy tiles → stitching) without actual upscaling or GPU hardware. `scripts/e2e.py` provides additional end-to-end validation.
-- **Code Review**: Manually inspect `cloud_gpu/upscale.cu` for CUDA best practices and logic correctness.
-- **Troubleshooting**: If you encounter build or test issues, see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)[^4] for common problems and solutions.
-  **Git Commit Standards**
-This project enforces conventional commit standards for clean history:
+---
+
+## Git Commit Standards
 
 ### Commit Message Format
+
 ```
 type(scope): short description (≤60 chars)
 - optional bullet point 1 (≤72 chars)
@@ -182,82 +722,39 @@ type(scope): short description (≤60 chars)
 ```
 
 ### Rules
-- **Type**: Must be one of:
-  - `feat`: New feature
-  - `fix`: Bug fix
-  - `docs`: Documentation changes
-  - `style`: Code style/formatting
-  - `refactor`: Code change that neither fixes a bug nor adds a feature
-  - `perf`: Performance improvements
-  - `test`: Adding or modifying tests
-  - `chore`: Maintenance tasks
-  - `ci`: CI/CD related changes
-  - `build`: Build system changes
-  - `revert`: Revert a previous commit
-- **Scope**: Lowercase with hyphens (e.g., `ci`, `api`, `ui`)
-- **Description**: Short summary in lowercase (no period at the end)
-- **Bullet Points**: Optional, each starting with `- ` and ≤72 characters
-- **All text must be in lowercase**
+
+- **Type**: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+- **Scope**: Lowercase with hyphens
+- **Description**: Short summary in lowercase (no period)
+- **Bullet Points**: Optional, ≤72 characters
 
 ### Examples
+
 ```
 feat(api): add user authentication
 - implement jwt token generation
-- add login endpoint
+
 fix(ci): resolve build failures
 - update cmake minimum version
-- fix opencv linking
-
-docs(readme): update contribution guidelines
-- add commit message format
-- include code style requirements
 ```
 
-To enable enforcement, copy the hook:
+To enable enforcement:
 
 ```bash
 cp scripts/commit-msg .git/hooks/commit-msg
 chmod +x .git/hooks/commit-msg
 ```
-To clean up existing commit messages in history:
-
-```bash
-git filter-branch --msg-filter 'bash scripts/rewrite_msg.sh' -- --all
-git push --force origin main  # if needed
-```
-
-**License**
-Copyright (c) 2026, bniladridas. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions
-are met:
-  * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in
-    the documentation and/or other materials provided with the distribution.
-  * Neither the name of bniladridas nor the names of its contributors may be used to endorse or promote products derived
-    from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
-OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This software links to the following components which are not licensed under the above license text.
-For details on the specific licenses please refer to the provided links.
+## License
 
-- OpenCV: https://opencv.org/license/
-- stb_image: https://github.com/nothings/stb/blob/master/LICENSE
+Copyright (c) 2026, bniladridas. All rights reserved.
 
-[^1]: [TESTING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/TESTING.md) - Comprehensive testing procedures and guidelines.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+- Redistributions of source code must retain the above copyright notice
+- Redistributions in binary form must reproduce the above copyright notice in the documentation
 
-[^2]: [DEVELOPMENT.md](https://github.com/bniladridas/hybrid-compute/blob/main/DEVELOPMENT.md) - Development setup, architecture, and contribution guidelines.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED.
 
-[^3]: [ONBOARDING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/ONBOARDING.md) - Contributor onboarding and compatibility policy.
-
-[^4]: [TROUBLESHOOTING.md](https://github.com/bniladridas/hybrid-compute/blob/main/docs/TROUBLESHOOTING.md) - Common issues and solutions for build and test problems.
-# Test change to trigger version bump
+This software links to [OpenCV](https://opencv.org/license/) and [stb_image](https://github.com/nothings/stb/blob/master/LICENSE).

@@ -2,6 +2,14 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project]
+dependencies = [
+    "opencv-python",
+    "numpy",
+    "flask",
+    "werkzeug",
+]
+
 [tool.black]
 line-length = 127
 
