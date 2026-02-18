@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD - Hybrid Compute</title>
+    <style>
+        :root {
+            --text: #111;
+            --text-secondary: #555;
+            --text-muted: #888;
+            --bg: #fff;
+            --border: #ddd;
+            --pre-bg: #f5f5f5;
+        }
+
+        [data-theme="dark"] {
+            --text: #e5e5e5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b6b6b;
+            --bg: #1a1a1a;
+            --border: #333;
+            --pre-bg: #252525;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+        nav { padding: 20px 0; border-bottom: 1px solid var(--border); }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-weight: 600; font-size: 15px; text-decoration: none; color: var(--text); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; }
+        .nav-links a:hover { color: var(--text); }
+        .theme-toggle { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted); font-size: 16px; }
+        .theme-toggle:hover { color: var(--text); }
+
+        main { padding: 48px 0; }
+        h1 { font-size: 28px; font-weight: 600; margin-bottom: 16px; }
+        h2 { font-size: 20px; font-weight: 600; margin: 32px 0 16px; }
+        h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+        p { color: var(--text-secondary); margin-bottom: 16px; }
+        pre { background: var(--pre-bg); padding: 16px; border-radius: 6px; font-size: 13px; font-family: 'SF Mono', Menlo, monospace; overflow-x: auto; line-height: 1.5; margin: 16px 0; }
+        ul, ol { color: var(--text-secondary); margin: 0 0 16px 24px; }
+        li { margin-bottom: 6px; }
+
+        .workflow { background: var(--pre-bg); padding: 20px; border-radius: 8px; margin: 16px 0; }
+        .workflow h3 { margin-top: 0; margin-bottom: 12px; }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); }
+        footer .container { display: flex; justify-content: space-between; align-items: center; }
+        footer p { font-size: 13px; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 8px; }
+        footer a { color: var(--text-muted); text-decoration: none; font-size: 13px; margin-left: 16px; }
+        footer a:hover { color: var(--text); }
+        footer img { width: 20px; height: 20px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="nav-brand">Hybrid Compute</a>
+            <div class="nav-links">
+                <a href="api-design.html">API Design</a>
+                <a href="testing.html">Testing</a>
+                <a href="troubleshooting.html">Troubleshooting</a>
+                <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1>CI/CD Pipeline</h1>
+            <p>Continuous integration and deployment powered by CircleCI.</p>
+
+            <h2>Overview</h2>
+            <p>The pipeline automates testing, building, and deployment across multiple platforms. It ensures code quality, runs comprehensive tests, and deploys documentation.</p>
+
+            <h2>Workflows</h2>
+
+            <div class="workflow">
+                <h3>Main CI Workflow</h3>
+                <p>Triggered on pushes to <code>main</code> branch.</p>
+                <ul>
+                    <li>Code Quality: Linting, pre-commit hooks, CodeQL analysis</li>
+                    <li>Python Tests: Multiple versions (3.9-3.12)</li>
+                    <li>Build Linux CUDA: Build and test with CUDA support</li>
+                    <li>Build Linux CPU: CPU-only build and test</li>
+                    <li>Build Windows: Build with OpenCV</li>
+                    <li>Code Coverage: Generate and upload reports</li>
+                    <li>Benchmark: Run performance benchmarks on macOS</li>
+                    <li>Docker Build: Build and push CPU/CUDA images</li>
+                    <li>Security Scan: Scan images for vulnerabilities</li>
+                </ul>
+            </div>
+
+            <div class="workflow">
+                <h3>Nightly Workflow</h3>
+                <p>Runs daily at 2 AM UTC. Includes all jobs from main CI for comprehensive testing.</p>
+            </div>
+
+            <h2>Supported Platforms</h2>
+            <ul>
+                <li><strong>Linux:</strong> CUDA and CPU builds with GCC/Clang</li>
+                <li><strong>macOS:</strong> Metal builds with Xcode</li>
+                <li><strong>Windows:</strong> CPU builds with MSVC</li>
+                <li><strong>Docker:</strong> Multi-architecture images for CPU and GPU</li>
+            </ul>
+
+            <h2>Key Features</h2>
+            <ul>
+                <li>Branch filtering: CI runs only on main branch</li>
+                <li>Caching: Build dependencies cached for faster runs</li>
+                <li>Artifacts: Test results, builds, coverage stored</li>
+                <li>Security: Automated vulnerability scanning</li>
+                <li>Documentation: MkDocs deployed to GitHub Pages</li>
+            </ul>
+
+            <h2>Configuration</h2>
+            <p>The pipeline is configured in <code>.circleci/config.yml</code>:</p>
+            <ul>
+                <li><strong>Orbs:</strong> Reusable packages for Python, Docker, Node.js, AWS</li>
+                <li><strong>Executors:</strong> Pre-configured environments per platform</li>
+                <li><strong>Commands:</strong> Reusable build steps</li>
+                <li><strong>Jobs:</strong> Testing, building, deployment tasks</li>
+                <li><strong>Workflows:</strong> Job orchestration with dependencies</li>
+            </ul>
+
+            <h2>Getting Started</h2>
+            <ol>
+                <li>Ensure your branch is based on <code>main</code></li>
+                <li>Push changes to trigger the CI pipeline</li>
+                <li>Monitor the CircleCI dashboard for build status</li>
+                <li>Address any failing checks before merging</li>
+            </ol>
+
+            <p style="margin-top: 24px;"><a href="pipeline.html" style="color: var(--text);">View Pipeline Status →</a></p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p><img src="startup/avatar.png" alt="libnudget"> BSD 3-Clause License · libnudget</p>
+            <div>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="https://github.com/bniladridas/hybrid-compute">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</body>
+</html>

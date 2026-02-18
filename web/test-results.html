@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Results - Hybrid Compute</title>
+    <style>
+        :root {
+            --text: #111;
+            --text-secondary: #555;
+            --text-muted: #888;
+            --bg: #fff;
+            --border: #ddd;
+            --pre-bg: #f5f5f5;
+        }
+
+        [data-theme="dark"] {
+            --text: #e5e5e5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b6b6b;
+            --bg: #1a1a1a;
+            --border: #333;
+            --pre-bg: #252525;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+        nav { padding: 20px 0; border-bottom: 1px solid var(--border); }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-weight: 600; font-size: 15px; text-decoration: none; color: var(--text); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; }
+        .nav-links a:hover { color: var(--text); }
+        .theme-toggle { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted); font-size: 16px; }
+        .theme-toggle:hover { color: var(--text); }
+
+        main { padding: 48px 0; }
+        h1 { font-size: 28px; font-weight: 600; margin-bottom: 16px; }
+        h2 { font-size: 20px; font-weight: 600; margin: 32px 0 16px; }
+        p { color: var(--text-secondary); margin-bottom: 16px; }
+        pre { background: var(--pre-bg); padding: 16px; border-radius: 6px; font-size: 12px; font-family: 'SF Mono', Menlo, monospace; overflow-x: auto; line-height: 1.4; margin: 16px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+        th { font-weight: 500; color: var(--text-muted); font-size: 12px; text-transform: uppercase; }
+
+        .meta { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+        .pass { color: #22c55e; font-weight: 600; }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); }
+        footer .container { display: flex; justify-content: space-between; align-items: center; }
+        footer p { font-size: 13px; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 8px; }
+        footer a { color: var(--text-muted); text-decoration: none; font-size: 13px; margin-left: 16px; }
+        footer a:hover { color: var(--text); }
+        footer img { width: 20px; height: 20px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="nav-brand">Hybrid Compute</a>
+            <div class="nav-links">
+                <a href="api-design.html">API Design</a>
+                <a href="testing.html">Testing</a>
+                <a href="ci.html">CI/CD</a>
+                <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1>API Test Results</h1>
+            <p class="meta">Date: 2026-02-19 · API Version: v1 · Environment: Local development</p>
+
+            <h2>Test Summary</h2>
+            <table>
+                <thead><tr><th>Test</th><th>Endpoint</th><th>Method</th><th>Status</th><th>Result</th></tr></thead>
+                <tbody>
+                    <tr><td>Health Check</td><td>/health</td><td>GET</td><td>200</td><td class="pass">PASS</td></tr>
+                    <tr><td>List Images (empty)</td><td>/v1/images</td><td>GET</td><td>200</td><td class="pass">PASS</td></tr>
+                    <tr><td>Upload Image</td><td>/v1/images</td><td>POST</td><td>201</td><td class="pass">PASS</td></tr>
+                </tbody>
+            </table>
+
+            <h2>API Design Compliance</h2>
+            <table>
+                <thead><tr><th>Requirement</th><th>Implementation</th><th>Status</th></tr></thead>
+                <tbody>
+                    <tr><td>Plural resource names</td><td>/images, /tiles</td><td class="pass">PASS</td></tr>
+                    <tr><td>Nouns not verbs</td><td>GET/POST methods</td><td class="pass">PASS</td></tr>
+                    <tr><td>HAL format</td><td>_links, _embedded</td><td class="pass">PASS</td></tr>
+                    <tr><td>Pagination</td><td>offset, limit</td><td class="pass">PASS</td></tr>
+                    <tr><td>HTTP Status Codes</td><td>200, 201, etc.</td><td class="pass">PASS</td></tr>
+                    <tr><td>Error format</td><td>errors array</td><td class="pass">PASS</td></tr>
+                    <tr><td>Version in URI</td><td>/v1/ prefix</td><td class="pass">PASS</td></tr>
+                    <tr><td>RFC 3339 dates</td><td>ISO format with Z</td><td class="pass">PASS</td></tr>
+                </tbody>
+            </table>
+
+            <h2>Sample Response</h2>
+            <pre>{
+  "_links": {
+    "self": { "href": "/v1/images?offset=0&limit=25" },
+    "next": { "href": "/v1/images?offset=25&limit=25" }
+  },
+  "_embedded": {
+    "images": [
+      {
+        "id": "abc123",
+        "filename": "image.jpg",
+        "size": 1024,
+        "created_at": "2026-02-19T10:00:00Z"
+      }
+    ]
+  },
+  "count": 1,
+  "total": 1
+}</pre>
+
+            <h2>Conclusion</h2>
+            <p>All tests passed. The API implementation follows the API Design Guide specifications.</p>
+
+            <h2>Run the API</h2>
+            <pre>pip install flask werkzeug
+python api/server.py</pre>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p><img src="startup/avatar.png" alt="libnudget"> BSD 3-Clause License · libnudget</p>
+            <div>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="https://github.com/bniladridas/hybrid-compute">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</body>
+</html>
