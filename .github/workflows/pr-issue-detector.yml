@@ -1,0 +1,111 @@
+---
+name: PR Issue Detector & Fixer
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+
+jobs:
+  detect-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    if: github.event_name == 'pull_request'
+    outputs:
+      issues_found: ${{ steps.detect.outputs.issues_found }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Detect issues
+        id: detect
+        run: python3 .github/scripts/detect_issues.py
+
+      - name: Comment issues on PR
+        if: steps.detect.outputs.issues_found == 'true'
+        run: python3 .github/scripts/comment_issues.py
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  apply-fixes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    if: github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != '' &&
+        contains(github.event.comment.body, '/fix') &&
+        (github.event.comment.author_association == 'OWNER' ||
+         github.event.comment.author_association == 'MEMBER' ||
+         github.event.comment.author_association == 'COLLABORATOR')
+    steps:
+      - name: Get PR info
+        id: pr-info
+        run: |
+          PR_URL="${{ github.event.comment.issue_url }}"
+          PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
+          PR_DATA=$(gh pr view $PR_NUM --json headRefName,headRefOid)
+          BRANCH=$(echo "$PR_DATA" | jq -r '.headRefName')
+          SHA=$(echo "$PR_DATA" | jq -r '.headRefOid')
+          echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr-info.outputs.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pyyaml pre-commit
+
+      - name: Apply workflow permissions fix
+        if: >
+            contains(github.event.comment.body, 'fix-workflow-permissions') ||
+            contains(github.event.comment.body, 'fix all')
+        run: python3 .github/scripts/fix_permissions.py
+
+      - name: Apply pre-commit fixes
+        if: >
+            contains(github.event.comment.body, 'fix precommit') ||
+            contains(github.event.comment.body, 'fix all')
+        run: pre-commit run --all-files || true
+
+      - name: Commit and push
+        id: commit
+        run: |
+          if git diff --exit-code --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add -A
+            git commit -m "style: auto-fix PR issues"
+            git push
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment results
+        if: steps.commit.outputs.changed == 'true'
+        run: python3 .github/scripts/comment_fix.py
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
