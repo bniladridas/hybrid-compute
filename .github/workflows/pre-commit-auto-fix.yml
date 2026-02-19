@@ -1,0 +1,91 @@
+---
+name: Auto-fix pre-commit
+
+on:
+  pull_request:
+    branches: [main]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  pre-commit-fix:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    if: github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'issue_comment' &&
+         github.event.issue.pull_request != '' &&
+         contains(github.event.comment.body, '/fix') &&
+         (github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR')) ||
+        github.event_name == 'pull_request'
+    steps:
+      - name: Get PR branch
+        id: pr-info
+        run: |
+          if [ "${{ github.event_name }}" == "issue_comment" ]; then
+            PR_URL="${{ github.event.comment.issue_url }}"
+            PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
+            # Retrieve both the branch name and immutable head commit SHA for the PR
+            BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
+            SHA=$(gh pr view $PR_NUM --json headRefOid -q '.headRefOid')
+            echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+            echo "sha=$SHA" >> $GITHUB_OUTPUT
+            echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
+          else
+            # For pull_request events, use the immutable head SHA directly
+            echo "branch=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+            echo "sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+            echo "pr_num=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.pr-info.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit
+        id: precommit
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          pre-commit run --all-files || true
+
+          if git diff --exit-code --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            git diff --stat
+          fi
+
+      - name: Commit and push fixes
+        if: steps.precommit.outputs.changed == 'true'
+        run: |
+          git add -A
+          git commit -m "style: auto-fix pre-commit issues"
+          git push
+
+      - name: Comment on PR
+        run: |
+          if [ "${{ steps.precommit.outputs.changed }}" == "true" ]; then
+            BODY="✅ Pre-commit fixes have been automatically applied and pushed."
+          else
+            BODY="✅ Pre-commit check ran - no fixes needed."
+          fi
+          gh pr comment ${{ steps.pr-info.outputs.pr_num }} --body "$BODY"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
