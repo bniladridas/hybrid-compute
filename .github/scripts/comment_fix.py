@@ -1,8 +1,26 @@
 import os
+import json
 import subprocess
 
-issue_url = os.environ.get("GITHUB_EVENT_PATH", "")
-pr_num = issue_url.split("/")[-2] if issue_url else ""
+# Get PR number from event file
+event_path = os.environ.get("GITHUB_EVENT_PATH", "")
+pr_num = ""
+
+if event_path and os.path.exists(event_path):
+    with open(event_path) as f:
+        event = json.load(f)
+        if "pull_request" in event:
+            pr_num = str(event["pull_request"]["number"])
+
+# Fallback: try from gh cli
+if not pr_num:
+    result = subprocess.run(
+        ["gh", "pr", "view", os.environ.get("GITHUB_SHA", ""), "--json", "number", "-q", ".number"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    pr_num = result.stdout.strip()
 
 body = """## Fix Applied
 
