@@ -3,12 +3,13 @@ from pathlib import Path
 
 import yaml
 
-changed = False
+any_file_changed = False
 SKIP = ["needs", "if", "runs-on", "environment", "timeout-minutes", "continue-on-error"]
 
 for root, dirs, files in os.walk(".github/workflows"):
     for fname in files:
         if fname.endswith(".yml"):
+            file_changed = False
             fpath = Path(root) / fname
             with fpath.open() as f:
                 workflow = yaml.safe_load(f)
@@ -20,14 +21,15 @@ for root, dirs, files in os.walk(".github/workflows"):
                     if "permissions" in job_config:
                         continue
                     job_config["permissions"] = {"contents": "read"}
-                    changed = True
+                    file_changed = True
+                    any_file_changed = True
                     print(f"Added permissions to job: {job_name}")
 
-                if changed:
+                if file_changed:
                     with fpath.open("w") as f:
                         yaml.dump(workflow, f, default_flow_style=False, sort_keys=False)
 
-if changed:
+if any_file_changed:
     print("WORKFLOW_FIX_DONE")
 else:
     print("WORKFLOW_FIX_SKIPPED")
