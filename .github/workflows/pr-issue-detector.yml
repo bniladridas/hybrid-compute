@@ -1,5 +1,6 @@
 ---
 name: PR Issue Detector & Fixer
+
 on:
   pull_request:
     branches: [main]
@@ -9,7 +10,7 @@ on:
 
 jobs:
   detect-issues:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
@@ -17,105 +18,64 @@ jobs:
     outputs:
       issues_found: ${{ steps.detect.outputs.issues_found }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 1
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Detect issues
         id: detect
-        run: |
-          ISSUES=""
-          for workflow in .github/workflows/*.yml; do
-            if [ -f "$workflow" ]; then
-              job_names=$(grep -oP '^\s+\w+:\s*$' "$workflow" | tr -d ' :' | grep -v "^$" | head -20)
-              for job_name in $job_names; do
-                if [[ "$job_name" == "needs" || "$job_name" == "if" || "$job_name" == "runs-on" || "$job_name" == "environment" || "$job_name" == "timeout-minutes" || "$job_name" == "continue-on-error" ]]; then
-                  continue
-                fi
-                job_start=$(grep -n "^  $job_name:" "$workflow" | head -1 | cut -d: -f1)
-                if [ -n "$job_start" ]; then
-                  if ! sed -n "${job_start},$((job_start + 3))p" "$workflow" | grep -q "permissions:"; then
-                    if [ -n "$ISSUES" ]; then
-                      ISSUES+="\n"
-                    fi
-                    ISSUES+="• Job '$job_name' in '$(basename $workflow)' is missing explicit permissions"
-                  fi
-                fi
-              done
-            fi
-          done
-
-          if [ -z "$ISSUES" ]; then
-            echo "issues_found=false" >> $GITHUB_OUTPUT
-          else
-            echo "issues_found=true" >> $GITHUB_OUTPUT
-            echo "$ISSUES" > /tmp/issues.txt
-          fi
+        run: python3 .github/scripts/detect_issues.py
 
       - name: Comment issues on PR
         if: steps.detect.outputs.issues_found == 'true'
-        run: |
-          PR_NUM=${{ github.event.pull_request.number }}
-          ISSUES=$(cat /tmp/issues.txt)
-          echo "## PR Analysis" > /tmp/body.txt
-          echo "" >> /tmp/body.txt
-          echo "I found the following issues in this PR:" >> /tmp/body.txt
-          echo "" >> /tmp/body.txt
-          echo "$ISSUES" >> /tmp/body.txt
-          echo "" >> /tmp/body.txt
-          echo "### Available Fix Commands" >> /tmp/body.txt
-          echo "" >> /tmp/body.txt
-          echo "To fix these issues, comment with:" >> /tmp/body.txt
-          echo "- /fix-workflow-permissions - Fix missing permissions" >> /tmp/body.txt
-          echo "- /fix precommit - Fix pre-commit issues" >> /tmp/body.txt
-          echo "- /fix all - Apply all fixes" >> /tmp/body.txt
-          gh pr comment $PR_NUM --body-file /tmp/body.txt
+        run: python3 .github/scripts/comment_issues.py
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   apply-fixes:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '/fix')
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
         run: pip install pyyaml pre-commit
 
-      - name: Create fix script
-        run: |
-          echo "aW1wb3J0IHlhbWwKaW1wb3J0IG9zCmNoYW5nZWQgPSBGYWxzZQpmb3Igcm9vdCwgZGlycywgZmlsZXMgaW4gb3Mud2FsaygnLmdpdGh1Yi93b3JrZmxvd3MnKToKICAgIGZvciBmbmFtZSBpbiBmaWxlczoKICAgICAgICBpZiBmbmFtZS5lbmRzd2l0aCgnLnltbCcpOgogICAgICAgICAgICBmcGF0aCA9IG9zLnBhdGguam9pbihyb290LCBmbmFtZSkKICAgICAgICAgICAgd2l0aCBvcGVuKGZwYXRoLCAncicpIGFzIGY6CiAgICAgICAgICAgICAgICB3b3JrZmxvdyA9IHlhbWwuc2FmZV9sb2FkKGYpCiAgICAgICAgICAgIGlmICdqb2JzJyBpbiB3b3JrZmxvdzoKICAgICAgICAgICAgICAgIGZvciBqb2JfbmFtZSwgam9iX2NvbmZpZyBpbiB3b3JrZmxvd1snam9icyddLml0ZW1zKCk6CiAgICAgICAgICAgICAgICAgICAgaWYgJ3Blcm1pc3Npb25zJyBpbiBqb2JfY29uZmlnOgogICAgICAgICAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICAgICAgICAgIGlmIGpvYl9uYW1lIGluIFsnbmVlZHMnLCdpZicsJ3J1bnMtb24nLCdlbnZpcm9ubWVudCcsJ3RpbWVvdXQtbWludXRlcycsJ2NvbnRpbnVlLW9uLWVycm9yJ106CiAgICAgICAgICAgICAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgICAgICAgICAgICAgam9iX2NvbmZpZ1sncGVybWlzc2lvbnMnXSA9IHsnY29udGVudHMnOiAncmVhZCd9CiAgICAgICAgICAgICAgICAgICAgY2hhbmdlZCA9IFRydWUKICAgICAgICAgICAgICAgICAgICBwcmludChmJ0FkZGVkIHBlcm1pc3Npb25zIHRvIGpvYjoge2pvYl9uYW1lfScpCiAgICAgICAgICAgICAgICBpZiBjaGFuZ2VkOgogICAgICAgICAgICAgICAgICAgIHdpdGggb3BlbihmcGF0aCwgJ3cnKSBhcyBmOgogICAgICAgICAgICAgICAgICAgICAgICB5YW1sLmR1bXAod29ya2Zsb3csIGYsIGRlZmF1bHRfZmxvd19zdHlsZT1GYWxzZSwgc29ydF9rZXlzPUZhbHNlKQppZiBjaGFuZ2VkOgogICAgcHJpbnQoJ1dPUktGTE9XX0ZJWF9ET05FJykKZWxzZToKICAgIHByaW50KCdXT1JLRkxPV19GSVhfU0tJUFBFRCcpCg==" | base64 -d > /tmp/fix_permissions.py
-          chmod +x /tmp/fix_permissions.py
-
       - name: Apply workflow permissions fix
-        if: contains(github.event.comment.body, 'fix-workflow-permissions') || contains(github.event.comment.body, 'fix all')
-        run: python3 /tmp/fix_permissions.py
+        if: >
+            contains(github.event.comment.body, 'fix-workflow-permissions') ||
+            contains(github.event.comment.body, 'fix all')
+        run: python3 .github/scripts/fix_permissions.py
 
       - name: Apply pre-commit fixes
-        if: contains(github.event.comment.body, 'fix precommit') || contains(github.event.comment.body, 'fix all')
+        if: >
+            contains(github.event.comment.body, 'fix precommit') ||
+            contains(github.event.comment.body, 'fix all')
         run: pre-commit run --all-files || true
 
       - name: Commit and push
         id: commit
         run: |
           if git diff --exit-code --quiet; then
-            echo "No changes to commit"
             echo "changed=false" >> $GITHUB_OUTPUT
           else
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
             git add -A
             git commit -m "style: auto-fix PR issues"
             git push
@@ -124,15 +84,6 @@ jobs:
 
       - name: Comment results
         if: steps.commit.outputs.changed == 'true'
-        run: |
-          PR_NUM=$(echo "${{ github.event.comment.issue_url }}" | grep -oP '\d+$')
-          echo "## Fix Applied" > /tmp/body.txt
-          echo "" >> /tmp/body.txt
-          echo "Fixed:" >> /tmp/body.txt
-          echo "- Added missing permissions to workflow jobs" >> /tmp/body.txt
-          echo "- Applied pre-commit auto-fixes" >> /tmp/body.txt
-          echo "" >> /tmp/body.txt
-          echo "Changes have been pushed to this PR." >> /tmp/body.txt
-          gh pr comment $PR_NUM --body-file /tmp/body.txt
+        run: python3 .github/scripts/comment_fix.py
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

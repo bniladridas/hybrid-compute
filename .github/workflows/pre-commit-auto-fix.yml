@@ -14,7 +14,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/fix')) || github.event_name == 'pull_request'
+    if: github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'issue_comment' &&
+         contains(github.event.comment.body, '/fix')) ||
+        github.event_name == 'pull_request'
     steps:
       - name: Get PR branch
         id: pr-info
@@ -22,11 +25,11 @@ jobs:
           if [ "${{ github.event_name }}" == "issue_comment" ]; then
             PR_URL="${{ github.event.comment.issue_url }}"
             PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
-            echo "branch=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')" >> $GITHUB_OUTPUT
-            echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
+            echo "branch=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')"
+            echo "pr_num=$PR_NUM"
           else
-            echo "branch=${{ github.head_ref }}" >> $GITHUB_OUTPUT
-            echo "pr_num=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "branch=${{ github.head_ref }}"
+            echo "pr_num=${{ github.event.pull_request.number }}"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +55,6 @@ jobs:
           git config --local user.name "github-actions[bot]"
           pre-commit run --all-files
 
-          # Check if there are any changes
           if git diff --exit-code --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
@@ -70,6 +72,7 @@ jobs:
       - name: Comment on PR
         if: steps.precommit.outputs.changed == 'true'
         run: |
-          gh pr comment ${{ steps.pr-info.outputs.pr_num }} --body "✅ Pre-commit fixes have been automatically applied and pushed to this PR."
+          BODY="Pre-commit fixes have been automatically applied and pushed."
+          gh pr comment ${{ steps.pr-info.outputs.pr_num }} --body "$BODY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
