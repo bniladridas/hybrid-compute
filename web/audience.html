@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who is this for? - Hybrid Compute</title>
+    <style>
+        :root {
+            --text: #111;
+            --text-secondary: #555;
+            --text-muted: #888;
+            --bg: #fff;
+            --border: #ddd;
+            --pre-bg: #f5f5f5;
+        }
+
+        [data-theme="dark"] {
+            --text: #e5e5e5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b6b6b;
+            --bg: #1a1a1a;
+            --border: #333;
+            --pre-bg: #252525;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+        nav { padding: 20px 0; border-bottom: 1px solid var(--border); }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-weight: 600; font-size: 15px; text-decoration: none; color: var(--text); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; }
+        .nav-links a:hover { color: var(--text); }
+        .theme-toggle { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted); font-size: 16px; }
+        .theme-toggle:hover { color: var(--text); }
+
+        main { padding: 48px 0; }
+        h1 { font-size: 28px; font-weight: 600; margin-bottom: 16px; }
+        h2 { font-size: 20px; font-weight: 600; margin: 32px 0 16px; }
+        p { color: var(--text-secondary); margin-bottom: 16px; }
+
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .audience-card {
+            background: var(--pre-bg);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .audience-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .audience-card p {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .use-case {
+            border-left: 3px solid var(--border);
+            padding-left: 16px;
+            margin: 16px 0;
+        }
+
+        .use-case h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .use-case p {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); }
+        footer .container { display: flex; justify-content: space-between; align-items: center; }
+        footer p { font-size: 13px; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 8px; }
+        footer a { color: var(--text-muted); text-decoration: none; font-size: 13px; margin-left: 16px; }
+        footer a:hover { color: var(--text); }
+        footer img { width: 20px; height: 20px; border-radius: 4px; }
+
+        @media (max-width: 600px) {
+            .audience-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="nav-brand">Hybrid Compute</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="api-design.html">Docs</a>
+                <a href="onboarding.html">Onboarding</a>
+                <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1>Who is this for?</h1>
+            <p>Hybrid Compute is built for developers working on GPU-accelerated image processing across platforms.</p>
+
+            <h2>Target Developers</h2>
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <h3>macOS / iOS Developers</h3>
+                    <p>Need CUDA-like GPU compute on Apple Silicon via the Metal compatibility shim.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>GPU / Graphics Engineers</h3>
+                    <p>Working with CUDA, Metal, or building cross-platform GPU compute solutions.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>Image Processing Engineers</h3>
+                    <p>Computer vision, photo/video applications, medical imaging pipelines.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>ML / AI Engineers</h3>
+                    <p>Need GPU-accelerated image preprocessing for machine learning workflows.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>Cross-platform Developers</h3>
+                    <p>Building applications that run on macOS, Linux, and Windows.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>DevOps Engineers</h3>
+                    <p>Hybrid cloud/local GPU processing workflows and CI/CD pipelines.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>Game Developers</h3>
+                    <p>GPU texture processing, visual effects, real-time image manipulation.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>Scientific Computing</h3>
+                    <p>Research image analysis, satellite imagery, microscopy data processing.</p>
+                </div>
+            </div>
+
+            <h2>Use Cases</h2>
+
+            <div class="use-case">
+                <h3>Photo Editing Apps</h3>
+                <p>Real-time filters, upscaling, and color adjustments with GPU acceleration.</p>
+            </div>
+
+            <div class="use-case">
+                <h3>Medical Imaging</h3>
+                <p>Process large DICOM images, CT scans, and X-rays with local privacy.</p>
+            </div>
+
+            <div class="use-case">
+                <h3>Video Processing</h3>
+                <p>Frame-by-frame processing, batch upscaling, and format conversion.</p>
+            </div>
+
+            <div class="use-case">
+                <h3>Satellite Imagery</h3>
+                <p>Large geospatial image processing with hybrid cloud/local workflows.</p>
+            </div>
+
+            <div class="use-case">
+                <h3>E-commerce</h3>
+                <p>Product image optimization, watermarking, and batch resizing.</p>
+            </div>
+
+            <div class="use-case">
+                <h3>Game Development</h3>
+                <p>Texture pipeline tools, asset processing, and real-time effects.</p>
+            </div>
+
+            <h2>Why Developers Choose Hybrid Compute</h2>
+            <p><strong>Cross-platform:</strong> Write CUDA once, run on macOS via Metal, Linux, and Windows.</p>
+            <p><strong>Hybrid workflow:</strong> Split processing between local CPU and cloud GPU.</p>
+            <p><strong>No lock-in:</strong> Open source, BSD licensed, use stb_image or OpenCV.</p>
+            <p><strong>REST API:</strong> Simple HTTP endpoints for integration into any stack.</p>
+
+            <p style="margin-top: 32px;"><a href="https://github.com/bniladridas/hybrid-compute/discussions" style="color: var(--text);">Join the discussion →</a></p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p style="display: flex; align-items: center; gap: 8px;">
+                <img src="startup/avatar.png" alt="libnudget"> BSD 3-Clause License · <a href="https://github.com/libnudget" style="color: var(--text-muted); text-decoration: none;">libnudget</a>
+            </p>
+            <div>
+                <a href="https://github.com/bniladridas/hybrid-compute/discussions">Discussions</a>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="https://github.com/bniladridas/hybrid-compute">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</body>
+</html>
