@@ -47,9 +47,20 @@ jobs:
       pull-requests: write
     if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '/fix')
     steps:
+      - name: Get PR info
+        id: pr-info
+        run: |
+          PR_URL="${{ github.event.comment.issue_url }}"
+          PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
+          BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
+          echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ steps.pr-info.outputs.branch }}
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
