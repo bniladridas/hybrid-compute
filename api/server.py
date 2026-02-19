@@ -2,6 +2,7 @@ import os
 import subprocess
 import uuid
 from datetime import datetime
+import re
 
 from flask import Flask, jsonify, request, send_file
 from werkzeug.utils import secure_filename
@@ -12,6 +13,14 @@ API_VERSION = "v1"
 UPLOAD_FOLDER = "/tmp/hybrid-compute/uploads"
 OUTPUT_FOLDER = "/tmp/hybrid-compute/output"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "bmp", "tiff"}
+
+
+def is_safe_id(value: str) -> bool:
+    """
+    Validate that an identifier used in filesystem paths contains only safe characters.
+    Allows letters, digits, underscore and hyphen.
+    """
+    return bool(re.match(r"^[A-Za-z0-9_-]+$", value))
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
@@ -161,6 +170,14 @@ def download_image(image_id):
 @app.route(f"/{API_VERSION}/images/<image_id>/tiles", methods=["POST"])
 def create_tiles(image_id):
     """Split image into tiles"""
+    if not is_safe_id(image_id):
+        return error_response(
+            "invalid_id",
+            "Invalid image ID",
+            "The provided image ID contains invalid characters.",
+            400,
+        )
+
     source_file = None
     for f in os.listdir(UPLOAD_FOLDER):
         if f.startswith(image_id + "_"):
