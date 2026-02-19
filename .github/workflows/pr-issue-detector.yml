@@ -27,6 +27,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install dependencies
+        run: pip install pyyaml
+
       - name: Detect issues
         id: detect
         run: python3 .github/scripts/detect_issues.py
