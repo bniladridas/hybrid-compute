@@ -607,6 +607,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Debug Docker image tags
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "IMAGE_TAG1=$IMAGE_TAG1"
+          echo "IMAGE_TAG2=$IMAGE_TAG2"
+          docker images | grep hybrid-compute
+
       - name: Test container execution
         if: github.event_name != 'pull_request'
         run: |
@@ -629,7 +636,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'image'
-          scan-ref: 'docker://${{ env.IMAGE_TAG1 }}'
+          scan-ref: '${{ env.IMAGE_TAG1 }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
 
