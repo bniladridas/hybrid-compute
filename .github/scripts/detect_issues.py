@@ -1,3 +1,4 @@
+import base64
 import os
 from pathlib import Path
 
@@ -27,7 +28,8 @@ github_output = Path(os.environ["GITHUB_OUTPUT"])
 with github_output.open("a") as f:
     f.write(f"issues_found={'true' if ISSUES else 'false'}\n")
     if ISSUES:
-        f.write(f"ISSUES<<EOF\n{ISSUES}\nEOF\n")
+        encoded = base64.b64encode(ISSUES.encode()).decode()
+        f.write(f"ISSUES={encoded}\n")
 
 if ISSUES:
     issues_path = Path("/tmp/issues.txt")

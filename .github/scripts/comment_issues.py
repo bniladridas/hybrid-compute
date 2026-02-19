@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import subprocess
@@ -32,7 +33,10 @@ if not pr_num:
 
 issues = ""
 issues_path = Path("/tmp/issues.txt")
-issues = issues_path.read_text() if issues_path.exists() else os.environ.get("ISSUES", "")
+if issues_path.exists():
+    issues = issues_path.read_text()
+elif "ISSUES" in os.environ:
+    issues = base64.b64decode(os.environ["ISSUES"]).decode()
 
 body = f"""## PR Analysis
 
