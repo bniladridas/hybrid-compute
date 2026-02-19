@@ -464,6 +464,8 @@ jobs:
 
   # ────────────────────────────── Performance Benchmarks ──────────────────────────────
   benchmark:
+    permissions:
+      contents: read
     needs: build-metal
     runs-on: macos-latest
     timeout-minutes: 30
