@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-SKIP = ["needs", "if", "runs-on", "environment", "timeout-minutes", "continue-on-error"]
+SKIP_KEYS = ["needs", "if", "runs-on", "environment", "timeout-minutes", "continue-on-error"]
 ISSUES = ""
 
 for root, dirs, files in os.walk(".github/workflows"):
@@ -17,7 +17,7 @@ for root, dirs, files in os.walk(".github/workflows"):
             if "jobs" in workflow:
                 workflow_has_permissions = "permissions" in workflow
                 for job_name, job_config in workflow["jobs"].items():
-                    if job_name in SKIP:
+                    if any(k in job_config for k in SKIP_KEYS):
                         continue
                     if "permissions" in job_config or workflow_has_permissions:
                         continue
