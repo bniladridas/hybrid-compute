@@ -8,7 +8,7 @@ pr_num = (
 )
 
 try:
-    with open("/tmp/issues.txt", "r") as f:
+    with open("/tmp/issues.txt") as f:
         issues = f.read()
 except FileNotFoundError:
     issues = os.environ.get("ISSUES", "")
@@ -18,9 +18,10 @@ if not pr_num:
         ["gh", "pr", "view", os.environ.get("GITHUB_SHA", ""), "--json", "number", "-q", ".number"],
         capture_output=True,
         text=True,
+        check=False,
     ).stdout.strip()
 
-body = """## PR Analysis
+body = f"""## PR Analysis
 
 I found issues in this PR:
 
@@ -31,6 +32,6 @@ I found issues in this PR:
 - /fix-workflow-permissions - Fix permissions
 - /fix precommit - Fix pre-commit issues
 - /fix all - Apply all fixes
-""".format(issues=issues)
+"""
 
 subprocess.run(["gh", "pr", "comment", pr_num, "--body", body], check=True)

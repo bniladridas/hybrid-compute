@@ -1,6 +1,6 @@
-import yaml
 import os
-import sys
+
+import yaml
 
 SKIP = ["needs", "if", "runs-on", "environment", "timeout-minutes", "continue-on-error"]
 ISSUES = ""
@@ -9,7 +9,7 @@ for root, dirs, files in os.walk(".github/workflows"):
     for fname in files:
         if fname.endswith(".yml"):
             fpath = os.path.join(root, fname)
-            with open(fpath, "r") as f:
+            with open(fpath) as f:
                 workflow = yaml.safe_load(f)
 
             if "jobs" in workflow:
