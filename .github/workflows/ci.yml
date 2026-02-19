@@ -271,6 +271,8 @@ jobs:
 
   # ────────────────────────────── Build CUDA ──────────────────────────────
   build-cuda:
+    permissions:
+      contents: read
     needs: lint-and-polish
     runs-on: ubuntu-24.04
     timeout-minutes: 90
