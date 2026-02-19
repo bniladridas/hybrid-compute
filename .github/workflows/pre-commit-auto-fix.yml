@@ -29,7 +29,8 @@ jobs:
           if [ "${{ github.event_name }}" == "issue_comment" ]; then
             PR_URL="${{ github.event.comment.issue_url }}"
             PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
-            echo "branch=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')" >> $GITHUB_OUTPUT
+            BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
+            echo "branch=$BRANCH" >> $GITHUB_OUTPUT
             echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
           else
             echo "branch=${{ github.head_ref }}" >> $GITHUB_OUTPUT
