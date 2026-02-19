@@ -57,15 +57,18 @@ jobs:
         run: |
           PR_URL="${{ github.event.comment.issue_url }}"
           PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
-          BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
+          PR_DATA=$(gh pr view $PR_NUM --json headRefName,headRefOid)
+          BRANCH=$(echo "$PR_DATA" | jq -r '.headRefName')
+          SHA=$(echo "$PR_DATA" | jq -r '.headRefOid')
           echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/checkout@v4
         with:
-          ref: ${{ steps.pr-info.outputs.branch }}
+          ref: ${{ steps.pr-info.outputs.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
