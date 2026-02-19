@@ -29,11 +29,16 @@ jobs:
           if [ "${{ github.event_name }}" == "issue_comment" ]; then
             PR_URL="${{ github.event.comment.issue_url }}"
             PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
+            # Retrieve both the branch name and immutable head commit SHA for the PR
             BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
+            SHA=$(gh pr view $PR_NUM --json headRefOid -q '.headRefOid')
             echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+            echo "sha=$SHA" >> $GITHUB_OUTPUT
             echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
           else
+            # For pull_request events, use the immutable head SHA directly
             echo "branch=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+            echo "sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
             echo "pr_num=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           fi
         env:
@@ -42,7 +47,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          ref: ${{ steps.pr-info.outputs.branch }}
+          ref: ${{ steps.pr-info.outputs.sha }}
           fetch-depth: 0
 
       - name: Set up Python
