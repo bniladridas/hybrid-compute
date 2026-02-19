@@ -80,9 +80,12 @@ jobs:
           git push
 
       - name: Comment on PR
-        if: steps.precommit.outputs.changed == 'true'
         run: |
-          BODY="Pre-commit fixes have been automatically applied and pushed."
+          if [ "${{ steps.precommit.outputs.changed }}" == "true" ]; then
+            BODY="✅ Pre-commit fixes have been automatically applied and pushed."
+          else
+            BODY="✅ Pre-commit check ran - no fixes needed."
+          fi
           gh pr comment ${{ steps.pr-info.outputs.pr_num }} --body "$BODY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
