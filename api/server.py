@@ -28,14 +28,6 @@ def is_safe_id(image_id: str) -> bool:
     return re.fullmatch(r"[A-Za-z0-9_-]+", image_id) is not None
 
 
-def is_safe_id(value: str) -> bool:
-    """
-    Validate that an identifier used in filesystem paths contains only safe characters.
-    Allows letters, digits, underscore and hyphen.
-    """
-    return bool(re.match(r"^[A-Za-z0-9_-]+$", value))
-
-
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
