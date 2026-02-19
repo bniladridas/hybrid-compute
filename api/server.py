@@ -15,6 +15,19 @@ OUTPUT_FOLDER = "/tmp/hybrid-compute/output"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "bmp", "tiff"}
 
 
+def is_safe_id(image_id: str) -> bool:
+    """
+    Validate that an image ID contains only safe characters.
+
+    This prevents directory traversal and path injection when IDs are used
+    in filesystem paths (for example, when creating tiles directories).
+    Allowed characters: ASCII letters, digits, underscore, and hyphen.
+    """
+    if not isinstance(image_id, str) or not image_id:
+        return False
+    return re.fullmatch(r"[A-Za-z0-9_-]+", image_id) is not None
+
+
 def is_safe_id(value: str) -> bool:
     """
     Validate that an identifier used in filesystem paths contains only safe characters.
