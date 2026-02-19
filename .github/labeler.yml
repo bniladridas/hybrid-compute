@@ -1,85 +1,95 @@
 ---
 security:
-  - any-glob-to-any-file:
-      - '**/auth*'
-      - '**/password*'
-      - '**/token*'
-      - '**/credential*'
-      - '**/secret*'
-      - '**/jwt*'
-      - '**/oauth*'
-      - '.env*'
-      - 'secrets/**'
-      - 'credentials/**'
-      - 'SECURITY.md'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/auth*'
+          - '**/password*'
+          - '**/token*'
+          - '**/credential*'
+          - '**/secret*'
+          - '**/jwt*'
+          - '**/oauth*'
+          - '.env*'
+          - 'secrets/**'
+          - 'credentials/**'
+          - 'SECURITY.md'
 
 docs:
-  - any-glob-to-any-file:
-      - '*.md'
-      - 'docs/**'
-      - '*.rst'
-      - '*.txt'
-      - 'mkdocs.yml'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.md'
+          - 'docs/**'
+          - '*.rst'
+          - '*.txt'
+          - 'mkdocs.yml'
 
 ci:
-  - any-glob-to-any-file:
-      - '.github/**'
-      - '.circleci/**'
-      - '**/Dockerfile*'
-      - 'docker-compose*'
-      - '*.yml'
-      - '*.yaml'
-      - 'Makefile'
-      - '.pre-commit-config.yaml'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - '.circleci/**'
+          - '**/Dockerfile*'
+          - 'docker-compose*'
+          - '*.yml'
+          - '*.yaml'
+          - 'Makefile'
+          - '.pre-commit-config.yaml'
 
 config:
-  - any-glob-to-any-file:
-      - '*.json'
-      - '*.toml'
-      - '*.ini'
-      - '*.cfg'
-      - '*.conf'
-      - 'pyproject.toml'
-      - 'vcpkg.json'
-      - '.editorconfig'
-      - '.gitignore'
-      - '.dockerignore'
-      - 'pytest.ini'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.json'
+          - '*.toml'
+          - '*.ini'
+          - '*.cfg'
+          - '*.conf'
+          - 'pyproject.toml'
+          - 'vcpkg.json'
+          - '.editorconfig'
+          - '.gitignore'
+          - '.dockerignore'
+          - 'pytest.ini'
 
 tests:
-  - any-glob-to-any-file:
-      - 'tests/**'
-      - '*.test.*'
-      - '*.spec.*'
-      - 'test_*.py'
-      - '*_test.cpp'
-      - '*_test.cu'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'tests/**'
+          - '*.test.*'
+          - '*.spec.*'
+          - 'test_*.py'
+          - '*_test.cpp'
+          - '*_test.cu'
 
 core:
-  - any-glob-to-any-file:
-      - 'src/**'
-      - 'include/**'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/**'
+          - 'include/**'
 
 gpu:
-  - any-glob-to-any-file:
-      - 'cloud_gpu/**'
-      - 'src/metal/**'
-      - '**/*.cu'
-      - '**/*.cuh'
-      - 'cuda.cmake'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cloud_gpu/**'
+          - 'src/metal/**'
+          - '**/*.cu'
+          - '**/*.cuh'
+          - 'cuda.cmake'
 
 api:
-  - any-glob-to-any-file:
-      - 'api/**'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'api/**'
 
 build:
-  - any-glob-to-any-file:
-      - 'CMakeLists.txt'
-      - 'cmake/**'
-      - '*.cmake'
-      - 'scripts/**'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'CMakeLists.txt'
+          - 'cmake/**'
+          - '*.cmake'
+          - 'scripts/**'
 
 python:
-  - any-glob-to-any-file:
-      - '*.py'
-      - 'requirements.txt'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.py'
+          - 'requirements.txt'
