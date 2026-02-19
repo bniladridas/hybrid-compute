@@ -9,6 +9,8 @@ jobs:
   cla:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'bniladridas'
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
         with:
