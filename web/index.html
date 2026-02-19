@@ -171,11 +171,12 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
+            margin: 16px 0;
         }
 
         th, td {
             text-align: left;
-            padding: 12px 0;
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border);
         }
 
@@ -187,8 +188,12 @@
             letter-spacing: 0.03em;
         }
 
+        th:not(:first-child),
         td:not(:first-child) {
             text-align: right;
+        }
+
+        td:not(:first-child) {
             color: var(--text-secondary);
             font-variant-numeric: tabular-nums;
         }
