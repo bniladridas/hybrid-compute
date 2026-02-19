@@ -1,8 +1,8 @@
 import os
+import re
 import subprocess
 import uuid
 from datetime import datetime
-import re
 
 from flask import Flask, jsonify, request, send_file
 from werkzeug.utils import secure_filename
@@ -34,6 +34,7 @@ def is_safe_id(value: str) -> bool:
     Allows letters, digits, underscore and hyphen.
     """
     return bool(re.match(r"^[A-Za-z0-9_-]+$", value))
+
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
