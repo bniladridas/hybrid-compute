@@ -10,6 +10,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       # Limit parallel compilation to avoid memory issues
       CMAKE_BUILD_PARALLEL_LEVEL: 2
