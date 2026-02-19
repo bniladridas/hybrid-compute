@@ -1,18 +1,17 @@
 import json
 import os
 import subprocess
+from pathlib import Path
 
-# Get PR number from event file
 event_path = os.environ.get("GITHUB_EVENT_PATH", "")
 pr_num = ""
 
 if event_path and os.path.exists(event_path):
-    with open(event_path) as f:
+    with Path(event_path).open() as f:
         event = json.load(f)
         if "pull_request" in event:
             pr_num = str(event["pull_request"]["number"])
 
-# Fallback: try from GITHUB_REF
 if not pr_num:
     github_ref = os.environ.get("GITHUB_REF", "")
     if "pull" in github_ref:
@@ -22,21 +21,18 @@ if not pr_num:
                 pr_num = parts[i + 1]
                 break
 
-# Fallback: try from gh cli
 if not pr_num:
     result = subprocess.run(
-        ["gh", "pr", "view", os.environ.get("GITHUB_SHA", ""), "--json", "number", "-q", ".number"],
+        ["/usr/bin/gh", "pr", "view", os.environ.get("GITHUB_SHA", ""), "--json", "number", "-q", ".number"],
         capture_output=True,
         text=True,
         check=False,
     )
     pr_num = result.stdout.strip()
 
-try:
-    with open("/tmp/issues.txt") as f:
-        issues = f.read()
-except FileNotFoundError:
-    issues = os.environ.get("ISSUES", "")
+issues = ""
+issues_path = Path("/tmp/issues.txt")
+issues = issues_path.read_text() if issues_path.exists() else os.environ.get("ISSUES", "")
 
 body = f"""## PR Analysis
 
@@ -51,4 +47,4 @@ I found issues in this PR:
 - /fix all - Apply all fixes
 """
 
-subprocess.run(["gh", "pr", "comment", pr_num, "--body", body], check=True)
+subprocess.run(["/usr/bin/gh", "pr", "comment", pr_num, "--body", body], check=True)

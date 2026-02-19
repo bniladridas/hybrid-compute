@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import yaml
 
@@ -8,8 +9,8 @@ SKIP = ["needs", "if", "runs-on", "environment", "timeout-minutes", "continue-on
 for root, dirs, files in os.walk(".github/workflows"):
     for fname in files:
         if fname.endswith(".yml"):
-            fpath = os.path.join(root, fname)
-            with open(fpath) as f:
+            fpath = Path(root) / fname
+            with fpath.open() as f:
                 workflow = yaml.safe_load(f)
 
             if "jobs" in workflow:
@@ -23,7 +24,7 @@ for root, dirs, files in os.walk(".github/workflows"):
                     print(f"Added permissions to job: {job_name}")
 
                 if changed:
-                    with open(fpath, "w") as f:
+                    with fpath.open("w") as f:
                         yaml.dump(workflow, f, default_flow_style=False, sort_keys=False)
 
 if changed:
