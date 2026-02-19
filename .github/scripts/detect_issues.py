@@ -15,10 +15,11 @@ for root, dirs, files in os.walk(".github/workflows"):
                 workflow = yaml.safe_load(f)
 
             if "jobs" in workflow:
+                workflow_has_permissions = "permissions" in workflow
                 for job_name, job_config in workflow["jobs"].items():
                     if job_name in SKIP:
                         continue
-                    if "permissions" in job_config:
+                    if "permissions" in job_config or workflow_has_permissions:
                         continue
                     if ISSUES:
                         ISSUES += "\n"
