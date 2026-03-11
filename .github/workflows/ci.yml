@@ -609,7 +609,7 @@ jobs:
           echo "IMAGE_TAG2=$TAG_BASE:latest${{ matrix.tag-suffix }}" >> $GITHUB_ENV
 
       - name: Build & push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ matrix.cuda-version != '' && 'Dockerfile.cuda' || 'Dockerfile' }}
