@@ -4,8 +4,8 @@
 
 _Internal version published 2026 Feb 1_
 
-- [Quick Reference](QUICK.md)
-- [FAQ](FAQ.md)
+- [Documentation Index](docs/index.md)
+- [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 - [API Test Results](api/TEST_RESULTS.md)
 
 ## Contents
@@ -18,7 +18,7 @@ _Internal version published 2026 Feb 1_
         - [URIs/Paths](#urispaths)
             - [Use Plural Resource Names](#use-plural-resource-names)
             - [Use Nouns, Not Verbs in the Base URI](#use-nouns-not-verbs-in-the-base-uri)
-            - [Shorten Associations in the URI - Hide Dependencies in the Parameter List](#shorten-associations-in-the-uri---hide-dependencies-in-the-parameter-list)
+            - [Shorten Associations in the URI - Hide Dependencies in the Parameter List](#shorten-associations-in-the-uri-hide-dependencies-in-the-parameter-list)
         - [Uniform Interface with HTTP Verbs/Methods](#uniform-interface-with-http-verbsmethods)
     - [Resource Identifiers](#resource-identifiers)
         - [Do Not Use Database Table Row IDs as Resource IDs](#do-not-use-database-table-row-ids-as-resource-ids)
@@ -34,9 +34,9 @@ _Internal version published 2026 Feb 1_
         - [API Versioning Summary](#api-versioning-summary)
     - [Pagination](#pagination)
         - [Why Pagination?](#why-pagination)
-        - [Pagination - Summary](#pagination---summary)
+        - [Pagination - Summary](#pagination-summary)
         - [Pagination Method](#pagination-method)
-        - [Pagination - Leading the Consumer](#pagination---leading-the-consumer)
+        - [Pagination - Leading the Consumer](#pagination-leading-the-consumer)
         - [Client Use of Pagination URIs](#client-use-of-pagination-uris)
     - [Filter/Sort/Search](#filtersortsearch)
     - [Content Negotiation](#content-negotiation)
@@ -46,7 +46,7 @@ _Internal version published 2026 Feb 1_
         - [CORS (Cross-Origin Resource Sharing)](#cors-cross-origin-resource-sharing)
     - [Responses](#responses)
         - [HTTP Status Codes](#http-status-codes)
-        - [Error Handling / Messages](#error-handling--messages)
+        - [Error Handling / Messages](#error-handling-messages)
         - [Response Envelopes and Hypermedia](#response-envelopes-and-hypermedia)
             - [HAL Specification](#hal-specification)
         - [Response Meta Data](#response-meta-data)
