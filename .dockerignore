@@ -1,6 +1,7 @@
 # Git
 .git
 .gitignore
+scripts/commit-msg
 
 # Build artifacts
 build/
