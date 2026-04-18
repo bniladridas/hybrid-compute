@@ -82,20 +82,25 @@ jobs:
 
       - name: Commit and push fixes
         if: steps.precommit.outputs.changed == 'true'
+        id: pushfix
         run: |
           git add -A
           git commit -m "style: auto-fix pre-commit issues"
           git push origin HEAD
+          echo "commit_sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Comment on PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ steps.pushfix.outputs.commit_sha }}
         run: |
           MARKER="<!-- pre-commit-auto-fix -->"
           if [ "${{ steps.precommit.outputs.changed }}" == "true" ]; then
+            MESSAGE="☑️ I applied the pre-commit fixes and pushed"
+            MESSAGE="$MESSAGE commit \`$COMMIT_SHA\` to this branch."
             BODY="$(printf '%s\n\n%s\n' \
               "$MARKER" \
-              '☑️ I applied the pre-commit fixes and pushed them to this branch.')"
+              "$MESSAGE")"
           else
             BODY="$(printf '%s\n\n%s\n' \
               "$MARKER" \

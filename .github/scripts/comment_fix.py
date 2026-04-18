@@ -22,11 +22,17 @@ if not pr_num:
     pr_num = result.stdout.strip()
 
 marker = "<!-- pr-issue-fixer -->"
+commit_sha = os.environ.get("FIX_COMMIT_SHA", "").strip()
+commit_line = ""
+if commit_sha:
+    commit_line = f"\nCommit: `{commit_sha}`\n"
+
 body = f"""{marker}
 
 ## Update
 
 ☑️ I applied the requested fixes and pushed them to this PR.
+{commit_line}
 
 What changed:
 - added the missing workflow permissions
