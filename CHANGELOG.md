@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## 1.0.0 (2026-01-28)
 
 Note: historical entries below may reference the earlier `release-please` setup that has since been removed in favor of the current repo-managed release automation.
@@ -321,29 +329,3 @@ Note: historical entries below may reference the earlier `release-please` setup 
 * docker image naming to hybrid-compute-gpu ([a5821e1](https://github.com/bniladridas/hybrid-compute/commit/a5821e1c14794e478dcc84ecb08bb2c630f83c88))
 * dockerfile and ci to state at 4455483 ([71224ed](https://github.com/bniladridas/hybrid-compute/commit/71224edd82ea3335ec96c287970f56101122ecfd))
 * reduce ci noise for benchmark test ([cf7690d](https://github.com/bniladridas/hybrid-compute/commit/cf7690db2e6c06135434ebf7908fe9a4e3f6d873))
-
-## [Unreleased]
-
-### Added
-- GitHub Issue #31: Optimize CUDA build process to prevent memory issues
-- Memory-optimized build configurations for CI/CD pipelines
-- Job pool management for controlled parallel compilation
-
-### Changed
-- Updated CircleCI and GitHub Actions workflows with memory optimizations
-- Limited parallel jobs in build processes to prevent OOM errors
-- Enhanced build output verbosity for better diagnostics
-- Optimized CUDA compiler flags for better memory management
-
-### Fixed
-- Resolved "Killed" and "Segmentation fault" errors during CUDA compilation
-- Fixed memory exhaustion issues in CI/CD pipelines
-- Addressed parallel build race conditions in CI environments
-
-## [0.2.0] - 2025-11-01
-
-### Added
-- Initial project setup with CUDA and Metal support
-- Basic image processing capabilities
-- CI/CD pipeline with GitHub Actions
-- Documentation and testing infrastructure
