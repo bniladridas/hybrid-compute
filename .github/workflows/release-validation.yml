@@ -1,0 +1,38 @@
+---
+name: Release Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'VERSION'
+      - '.github/workflows/release*.yml'
+      - 'scripts/create_release.sh'
+      - 'scripts/create_cuda_releases.sh'
+      - 'scripts/quick_cuda_release.sh'
+      - 'scripts/validate_release_config.sh'
+      - 'docs/COMPATIBILITY.md'
+  push:
+    branches:
+      - main
+    paths:
+      - 'VERSION'
+      - '.github/workflows/release*.yml'
+      - 'scripts/create_release.sh'
+      - 'scripts/create_cuda_releases.sh'
+      - 'scripts/quick_cuda_release.sh'
+      - 'scripts/validate_release_config.sh'
+      - 'docs/COMPATIBILITY.md'
+  workflow_dispatch:
+
+jobs:
+  validate-release-config:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate release files
+        run: ./scripts/validate_release_config.sh

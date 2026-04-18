@@ -661,23 +661,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
-
-  # ────────────────────────────── Automated Release ──────────────────────────────
-  release:
-    needs: docker
-    runs-on: ubuntu-24.04
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: Create release
-        uses: googleapis/release-please-action@v4
-        with:
-          skip-github-pull-request: true
-          token: ${{ secrets.GITHUB_TOKEN }}

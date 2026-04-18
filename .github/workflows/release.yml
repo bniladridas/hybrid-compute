@@ -8,22 +8,32 @@ on:
     paths:
       - 'VERSION'
       - '.github/workflows/release.yml'
-      - 'release-please-config.json'
+      - 'scripts/create_release.sh'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Validate release creation without pushing tag or publishing release'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
-  release-please:
+  create-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run Release Please
-        uses: googleapis/release-please-action@v4
-        with:
-          release-type: "simple"
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+        run: ./scripts/create_release.sh

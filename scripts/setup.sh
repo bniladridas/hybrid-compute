@@ -6,8 +6,8 @@
 set -euo pipefail
 
 # --- Constants ---
-VERSION=$(sed -n '2p' VERSION)
-MIN_PYTHON_VERSION=$(sed -n '4p' VERSION)
+VERSION=$(tr -d '[:space:]' < VERSION)
+MIN_PYTHON_VERSION="3.9"
 MIN_CMAKE_VERSION="3.10"
 
 # --- Colors ---

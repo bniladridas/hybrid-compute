@@ -7,12 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 1.0.0 (2026-01-28)
 
+Note: historical entries below may reference the earlier `release-please` setup that has since been removed in favor of the current repo-managed release automation.
 
 ### Features
 
 * add automated release on major version bumps ([81f9eb2](https://github.com/bniladridas/hybrid-compute/commit/81f9eb20b3d180975496a977814ed6e6f8d3d883))
 * add build caching to ci for faster builds ([0c70876](https://github.com/bniladridas/hybrid-compute/commit/0c70876ba92c831ecc116dac9057eff36a47f755))
-* add cmakelists.txt to release-please extra-files ([7ae6742](https://github.com/bniladridas/hybrid-compute/commit/7ae674284b302ee741130c9e0a9416cd8e13c67e))
+* add cmakelists.txt to automated release inputs ([7ae6742](https://github.com/bniladridas/hybrid-compute/commit/7ae674284b302ee741130c9e0a9416cd8e13c67e))
 * add pip cache to release job ([d198da5](https://github.com/bniladridas/hybrid-compute/commit/d198da5184ace118940d2c4b8761ee9bd0bf9414))
 * add python 3.13-3.14 support ([1285df9](https://github.com/bniladridas/hybrid-compute/commit/1285df944e73b9c0db533d3560753ac67946591c))
 * add test update for ci trigger ([aa62d82](https://github.com/bniladridas/hybrid-compute/commit/aa62d829c21724aa38bf9acdd5064fc700a91946))
@@ -35,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **flow:** add commit alignment workflow ([8e04905](https://github.com/bniladridas/hybrid-compute/commit/8e0490570bf6073f0fbfa1eaa2ddc1762c031dff))
 * minor update for release trigger ([4c23588](https://github.com/bniladridas/hybrid-compute/commit/4c23588ec6860c95d7dd93ee63e74227af1c63dd))
 * **project:** auto assign prs to forge project ([11122b6](https://github.com/bniladridas/hybrid-compute/commit/11122b6c9552c5a8004e277036530a229eb45356))
-* switch to release-please for automated releases ([1858d61](https://github.com/bniladridas/hybrid-compute/commit/1858d61c8a9e873510adc041d4b749fa7ab44fa3))
+* switch to automated GitHub releases ([1858d61](https://github.com/bniladridas/hybrid-compute/commit/1858d61c8a9e873510adc041d4b749fa7ab44fa3))
 * update c++ standard to 20 ([4f9e4fc](https://github.com/bniladridas/hybrid-compute/commit/4f9e4fc0c855efe46b5393feb987c1bd70acfc8e))
 * update cuda to 13.1 ([49a48d6](https://github.com/bniladridas/hybrid-compute/commit/49a48d6b85f300a3106ba9e33ed5888dc4643913))
 * update python target version to 3.12 ([c81d977](https://github.com/bniladridas/hybrid-compute/commit/c81d977f4349bfd4b99c2b19c9123ceee2271d2d))
@@ -60,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * add newline to config ([86db4ff](https://github.com/bniladridas/hybrid-compute/commit/86db4ff2237fe7a0b4b38b2669dfb407f0be4ea1))
 * add newline to end of readme.md ([155d6ea](https://github.com/bniladridas/hybrid-compute/commit/155d6ea55d63ae268d48119eede061a17a5f8028))
 * add pytest-cov to requirements.txt ([4519fca](https://github.com/bniladridas/hybrid-compute/commit/4519fca486eb1d3fc9bd0dceee4eb997e8ea3118))
-* add release-please config file ([bd2e220](https://github.com/bniladridas/hybrid-compute/commit/bd2e22033ef4f6b569319268c555d5110590bf07))
+* add release automation config file ([bd2e220](https://github.com/bniladridas/hybrid-compute/commit/bd2e22033ef4f6b569319268c555d5110590bf07))
 * add sarif upload permission ([bbbe1b8](https://github.com/bniladridas/hybrid-compute/commit/bbbe1b8dc398bcedac52038fca3f580081f1b6fe))
 * add test_preprocess test outside opencv check ([5f50648](https://github.com/bniladridas/hybrid-compute/commit/5f50648ba9b84decd3891c1675ccd9497db46097))
 * async cudamemcpy race in metal shim ([#28](https://github.com/bniladridas/hybrid-compute/issues/28)) ([ee56946](https://github.com/bniladridas/hybrid-compute/commit/ee569469e0ad9639e2157af05e79460c033bd8b0))
