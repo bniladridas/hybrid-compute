@@ -2,30 +2,147 @@
 name: Fix Commit Messages
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Repository branch to rewrite into a new PR branch'
+        required: true
+        type: string
+      base_branch:
+        description: 'Base branch for the follow-up PR'
+        required: false
+        default: 'main'
+        type: string
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   fix:
     runs-on: ubuntu-latest
     steps:
+      - name: Determine branches
+        id: branches
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
+          INPUT_SOURCE_BRANCH: ${{ inputs.source_branch }}
+          INPUT_BASE_BRANCH: ${{ inputs.base_branch }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            if [ "$PR_HEAD_REPO" != "$REPOSITORY" ]; then
+              echo "[INFO] Skipping fork PR because this workflow cannot push to fork branches."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            source_branch="$PR_HEAD_REF"
+            base_branch="$PR_BASE_REF"
+          else
+            source_branch="$INPUT_SOURCE_BRANCH"
+            base_branch="$INPUT_BASE_BRANCH"
+          fi
+
+          if [ -z "$source_branch" ]; then
+            echo "[ERROR] source_branch is required" >&2
+            exit 1
+          fi
+
+          if [ "$source_branch" = "$base_branch" ]; then
+            echo "[ERROR] source_branch and base_branch must differ" >&2
+            exit 1
+          fi
+
+          fix_branch="fix-commit-messages/${source_branch//\//-}-${GITHUB_RUN_ID}"
+          {
+            echo "skip=false"
+            echo "source_branch=$source_branch"
+            echo "base_branch=$base_branch"
+            echo "fix_branch=$fix_branch"
+          } >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v6
+        if: steps.branches.outputs.skip != 'true'
         with:
           fetch-depth: 0
+          ref: ${{ steps.branches.outputs.source_branch }}
 
-      - name: Fix commit messages
+      - name: Setup Git
+        if: steps.branches.outputs.skip != 'true'
         run: |
-          git filter-branch -f --msg-filter 'commit_msg=$(cat);
-            commit_msg=$(echo "$commit_msg" | sed "s/ add / /g");
-            commit_msg=$(echo "$commit_msg" | sed "s/^add //");
-            echo "$commit_msg"' HEAD || true
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Force push if changed
+      - name: Rewrite commit messages
+        if: steps.branches.outputs.skip != 'true'
+        id: rewrite
         run: |
-          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
-            git push --force origin main
+          git fetch origin "${{ steps.branches.outputs.base_branch }}"
+          original_head="$(git rev-parse HEAD)"
+          base_commit="$(git merge-base HEAD "origin/${{ steps.branches.outputs.base_branch }}")"
+
+          git filter-branch -f \
+            --msg-filter 'bash scripts/rewrite_msg.sh' \
+            "${base_commit}..HEAD" || true
+
+          rewritten_head="$(git rev-parse HEAD)"
+          if [ "$original_head" = "$rewritten_head" ]; then
+            echo "[INFO] No commit message rewrite was needed."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "[INFO] Rewrote commit messages from"
+            echo "       $original_head to $rewritten_head"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push rewritten branch
+        if: steps.branches.outputs.skip != 'true' && steps.rewrite.outputs.changed == 'true'
+        run: |
+          git checkout -b "${{ steps.branches.outputs.fix_branch }}"
+          git push --force-with-lease origin "${{ steps.branches.outputs.fix_branch }}"
+
+      - name: Open pull request
+        if: steps.branches.outputs.skip != 'true' && steps.rewrite.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing_pr="$(gh pr list \
+            --head "${{ steps.branches.outputs.fix_branch }}" \
+            --base "${{ steps.branches.outputs.base_branch }}" \
+            --state open \
+            --json number \
+            --jq '.[0].number')"
+
+          if [ -n "$existing_pr" ] && [ "$existing_pr" != "null" ]; then
+            echo "[INFO] PR #$existing_pr already exists for rewritten branch."
+            exit 0
+          fi
+
+          pr_title="fix(ci): normalize commit messages"
+          pr_body=$'This PR keeps the same code but rewrites commit messages'
+          pr_body+=$' with the fix workflow.\n\n'
+          pr_body+=$'The workflow now pushes a separate branch and opens a PR, '
+          pr_body+=$'so protected branch rules on `main` stay intact.'
+
+          gh pr create \
+            --base "${{ steps.branches.outputs.base_branch }}" \
+            --head "${{ steps.branches.outputs.fix_branch }}" \
+            --title "$pr_title" \
+            --body "$pr_body"
+
+      - name: Summary
+        if: steps.branches.outputs.skip != 'true'
+        run: |
+          if [ "${{ steps.rewrite.outputs.changed }}" = "true" ]; then
+            echo "[PASS] Rewritten branch pushed: ${{ steps.branches.outputs.fix_branch }}"
+          else
+            echo "[INFO] No rewritten branch was needed."
           fi
