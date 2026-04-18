@@ -38,17 +38,46 @@ if issues_path.exists():
 elif "ISSUES" in os.environ:
     issues = base64.b64decode(os.environ["ISSUES"]).decode()
 
-body = f"""## PR Analysis
+marker = "<!-- pr-issue-analysis -->"
+body = f"""{marker}
 
-I found issues in this PR:
+## Review note
+
+☑️ I found a few things to fix in this PR.
 
 {issues}
 
-### Fix Commands
+### Commands you can use
 
-- /fix-workflow-permissions - Fix permissions
-- /fix precommit - Fix pre-commit issues
-- /fix all - Apply all fixes
+- `/fix-workflow-permissions` to fix workflow permissions
+- `/fix precommit` to run the pre-commit fixes
+- `/fix all` to apply everything
 """
 
-subprocess.run(["/usr/bin/gh", "pr", "comment", pr_num, "--body", body], check=True)
+comments = subprocess.run(
+    ["/usr/bin/gh", "api", f"repos/{os.environ['GITHUB_REPOSITORY']}/issues/{pr_num}/comments"],
+    capture_output=True,
+    text=True,
+    check=True,
+)
+
+existing_comment_id = ""
+for comment in json.loads(comments.stdout):
+    if comment["user"]["login"] == "github-actions[bot]" and marker in comment["body"]:
+        existing_comment_id = str(comment["id"])
+
+if existing_comment_id:
+    subprocess.run(
+        [
+            "/usr/bin/gh",
+            "api",
+            "--method",
+            "PATCH",
+            f"repos/{os.environ['GITHUB_REPOSITORY']}/issues/comments/{existing_comment_id}",
+            "-f",
+            f"body={body}",
+        ],
+        check=True,
+    )
+else:
+    subprocess.run(["/usr/bin/gh", "pr", "comment", pr_num, "--body", body], check=True)

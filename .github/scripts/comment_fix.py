@@ -21,13 +21,48 @@ if not pr_num:
     )
     pr_num = result.stdout.strip()
 
-body = """## Fix Applied
+marker = "<!-- pr-issue-fixer -->"
+commit_sha = os.environ.get("FIX_COMMIT_SHA", "").strip()
+commit_line = ""
+if commit_sha:
+    commit_line = f"\nCommit: `{commit_sha}`\n"
 
-Fixed:
-- Added missing permissions to workflow jobs
-- Applied pre-commit auto-fixes
+body = f"""{marker}
 
-Changes have been pushed to this PR.
+## Update
+
+☑️ I applied the requested fixes and pushed them to this PR.
+{commit_line}
+
+What changed:
+- added the missing workflow permissions
+- applied the pre-commit fixes
 """
 
-subprocess.run(["/usr/bin/gh", "pr", "comment", pr_num, "--body", body], check=True)
+comments = subprocess.run(
+    ["/usr/bin/gh", "api", f"repos/{os.environ['GITHUB_REPOSITORY']}/issues/{pr_num}/comments"],
+    capture_output=True,
+    text=True,
+    check=True,
+)
+
+existing_comment_id = ""
+for comment in json.loads(comments.stdout):
+    if comment["user"]["login"] == "github-actions[bot]" and marker in comment["body"]:
+        existing_comment_id = str(comment["id"])
+
+if existing_comment_id:
+    subprocess.run(
+        [
+            "/usr/bin/gh",
+            "api",
+            "--method",
+            "PATCH",
+            f"repos/{os.environ['GITHUB_REPOSITORY']}/issues/comments/{existing_comment_id}",
+            "-f",
+            f"body={body}",
+        ],
+        check=True,
+    )
+else:
+    subprocess.run(["/usr/bin/gh", "pr", "comment", pr_num, "--body", body], check=True)

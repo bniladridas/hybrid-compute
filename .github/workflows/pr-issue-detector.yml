@@ -54,17 +54,19 @@ jobs:
     steps:
       - name: Get PR info
         id: pr-info
+        env:
+          ISSUE_URL: ${{ github.event.comment.issue_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_URL="${{ github.event.comment.issue_url }}"
-          PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
-          PR_DATA=$(gh pr view $PR_NUM --json headRefName,headRefOid)
+          PR_NUM="$(echo "$ISSUE_URL" | grep -oP '\d+$')"
+          PR_DATA="$(gh pr view "$PR_NUM" --json headRefName,headRefOid)"
           BRANCH=$(echo "$PR_DATA" | jq -r '.headRefName')
           SHA=$(echo "$PR_DATA" | jq -r '.headRefOid')
-          echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
-          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          {
+            echo "pr_num=$PR_NUM"
+            echo "branch=$BRANCH"
+            echo "sha=$SHA"
+          } >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v6
         with:
@@ -94,14 +96,17 @@ jobs:
         id: commit
         run: |
           if git diff --exit-code --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git config --local user.email "github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
             git add -A
             git commit -m "style: auto-fix PR issues"
-            git push
-            echo "changed=true" >> $GITHUB_OUTPUT
+            git push origin HEAD
+            {
+              echo "changed=true"
+              echo "commit_sha=$(git rev-parse --short HEAD)"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Comment results
@@ -109,3 +114,4 @@ jobs:
         run: python3 .github/scripts/comment_fix.py
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FIX_COMMIT_SHA: ${{ steps.commit.outputs.commit_sha }}

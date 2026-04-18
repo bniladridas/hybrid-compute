@@ -25,24 +25,32 @@ jobs:
     steps:
       - name: Get PR branch
         id: pr-info
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE_URL: ${{ github.event.comment.issue_url }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ github.event_name }}" == "issue_comment" ]; then
-            PR_URL="${{ github.event.comment.issue_url }}"
-            PR_NUM=$(echo $PR_URL | grep -oP '\d+$')
+          if [ "$EVENT_NAME" = "issue_comment" ]; then
+            PR_NUM="$(echo "$ISSUE_URL" | grep -oP '\d+$')"
             # Retrieve both the branch name and immutable head commit SHA for the PR
-            BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
-            SHA=$(gh pr view $PR_NUM --json headRefOid -q '.headRefOid')
-            echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-            echo "sha=$SHA" >> $GITHUB_OUTPUT
-            echo "pr_num=$PR_NUM" >> $GITHUB_OUTPUT
+            BRANCH="$(gh pr view "$PR_NUM" --json headRefName -q '.headRefName')"
+            SHA="$(gh pr view "$PR_NUM" --json headRefOid -q '.headRefOid')"
+            {
+              echo "branch=$BRANCH"
+              echo "sha=$SHA"
+              echo "pr_num=$PR_NUM"
+            } >> "$GITHUB_OUTPUT"
           else
             # For pull_request events, use the immutable head SHA directly
-            echo "branch=${{ github.head_ref }}" >> $GITHUB_OUTPUT
-            echo "sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-            echo "pr_num=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            {
+              echo "branch=$PR_HEAD_REF"
+              echo "sha=$PR_HEAD_SHA"
+              echo "pr_num=$PR_NUMBER"
+            } >> "$GITHUB_OUTPUT"
           fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -66,26 +74,54 @@ jobs:
           pre-commit run --all-files || true
 
           if git diff --exit-code --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "changed=true" >> "$GITHUB_OUTPUT"
             git diff --stat
           fi
 
       - name: Commit and push fixes
         if: steps.precommit.outputs.changed == 'true'
+        id: pushfix
         run: |
           git add -A
           git commit -m "style: auto-fix pre-commit issues"
-          git push
+          git push origin HEAD
+          echo "commit_sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Comment on PR
-        run: |
-          if [ "${{ steps.precommit.outputs.changed }}" == "true" ]; then
-            BODY="✅ Pre-commit fixes have been automatically applied and pushed."
-          else
-            BODY="✅ Pre-commit check ran - no fixes needed."
-          fi
-          gh pr comment ${{ steps.pr-info.outputs.pr_num }} --body "$BODY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ steps.pushfix.outputs.commit_sha }}
+          CURRENT_SHA: ${{ steps.pr-info.outputs.sha }}
+        run: |
+          MARKER="<!-- pre-commit-auto-fix -->"
+          if [ "${{ steps.precommit.outputs.changed }}" == "true" ]; then
+            MESSAGE="☑️ I applied the pre-commit fixes and pushed"
+            MESSAGE="$MESSAGE commit \`$COMMIT_SHA\` to this branch."
+          else
+            SHORT_SHA="${CURRENT_SHA:0:7}"
+            MESSAGE="☑️ I checked the pre-commit hooks and there was"
+            MESSAGE="$MESSAGE nothing to fix at commit \`$SHORT_SHA\`."
+          fi
+
+          BODY="$(printf '%s\n\n%s\n' \
+            "$MARKER" \
+            "$MESSAGE")"
+
+          EXISTING_COMMENT_ID="$(gh api \
+            repos/${{ github.repository }}/issues/${{ steps.pr-info.outputs.pr_num }}/comments \
+            --jq '.[] | select(
+              .user.login == "github-actions[bot]" and
+              (.body | contains("<!-- pre-commit-auto-fix -->"))
+            ) | .id' \
+            | tail -n 1)"
+
+          if [ -n "$EXISTING_COMMENT_ID" ]; then
+            gh api \
+              --method PATCH \
+              repos/${{ github.repository }}/issues/comments/"$EXISTING_COMMENT_ID" \
+              -f body="$BODY" >/dev/null
+          else
+            gh pr comment ${{ steps.pr-info.outputs.pr_num }} --body "$BODY"
+          fi
