@@ -5,6 +5,7 @@
 _Internal version published 2026 Feb 1_
 
 - [Documentation Index](docs/index.md)
+- [Compatibility Guide](docs/COMPATIBILITY.md)
 - [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 - [API Test Results](api/TEST_RESULTS.md)
 
