@@ -11,10 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set workflow variables
+        id: vars
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          base_branch="${DEFAULT_BRANCH:-main}"
+          maintenance_branch="automation/maintenance"
+          {
+            echo "base_branch=$base_branch"
+            echo "maintenance_branch=$maintenance_branch"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Setup Git
         run: |
@@ -28,12 +43,57 @@ jobs:
           echo "build_number: ${{ github.run_number }}" >> .github/MAINTENANCE.yml
 
       - name: Commit Maintenance
+        id: commit
         run: |
           git add .github/MAINTENANCE.yml
           if git diff --staged --quiet; then
             echo "No changes to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "chore(maintenance): automated update $(date +%Y%m%d)"
-            git pull --rebase origin main
-            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push maintenance branch
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          git checkout -B "${{ steps.vars.outputs.maintenance_branch }}"
+          git push --force-with-lease origin "HEAD:${{ steps.vars.outputs.maintenance_branch }}"
+
+      - name: Open or update pull request
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_title="chore(maintenance): automated update"
+          pr_body=$'This PR updates `.github/MAINTENANCE.yml`'
+          pr_body+=$' with the latest maintenance timestamp.\n\n'
+          pr_body+=$'It is opened by the scheduled maintenance workflow'
+          pr_body+=$' because `main` now requires PR-based changes.'
+
+          existing_pr="$(gh pr list \
+            --head "${{ steps.vars.outputs.maintenance_branch }}" \
+            --base "${{ steps.vars.outputs.base_branch }}" \
+            --state open \
+            --json number \
+            --jq '.[0].number')"
+
+          if [ -n "$existing_pr" ] && [ "$existing_pr" != "null" ]; then
+            gh pr edit "$existing_pr" --title "$pr_title" --body "$pr_body"
+            echo "[INFO] Updated existing PR #$existing_pr"
+          else
+            gh pr create \
+              --base "${{ steps.vars.outputs.base_branch }}" \
+              --head "${{ steps.vars.outputs.maintenance_branch }}" \
+              --title "$pr_title" \
+              --body "$pr_body"
+          fi
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.commit.outputs.changed }}" = "true" ]; then
+            echo "[PASS] Maintenance changes were pushed to"
+            echo "       ${{ steps.vars.outputs.maintenance_branch }}"
+          else
+            echo "[INFO] No maintenance changes were needed."
           fi
