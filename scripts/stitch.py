@@ -44,6 +44,15 @@ def determine_grid_dimensions(tile_count: int, rows: Union[int, None], cols: Uni
     return grid_size, grid_size
 
 
+def preprocess_image(img: np.ndarray[Any, np.dtype[Any]]) -> np.ndarray[Any, np.dtype[Any]]:
+    """Preprocess image: normalize to grayscale if needed, apply CLAHE for contrast."""
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
+
+    # Apply CLAHE for better contrast
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    return clahe.apply(gray)
+
+
 def stitch_tiles(
     input_dir: str,
     output_path: str,
@@ -66,7 +75,9 @@ def stitch_tiles(
         img = cv2.imread(str(tile_file))
         if img is None:
             raise ValueError(f"Could not load {tile_file}")
-        tiles.append(img)
+        # Preprocess each tile
+        processed = preprocess_image(img)
+        tiles.append(processed)
 
     tile_count = len(tiles)
     rows, cols = determine_grid_dimensions(tile_count, rows, cols)

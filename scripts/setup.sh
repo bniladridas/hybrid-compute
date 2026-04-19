@@ -86,6 +86,7 @@ install_dependencies() {
 
 		# Install build tools
 		brew install cmake ninja llvm
+		brew link llvm --force
 
 		# Xcode command line tools
 		if ! xcode-select -p &>/dev/null; then
@@ -97,6 +98,9 @@ install_dependencies() {
 
 		# Accept Xcode license
 		sudo xcodebuild -license accept
+
+		# Download Metal toolchain for GPU acceleration
+		xcodebuild -downloadComponent MetalToolchain
 
 		# Install miniforge if not present
 		if ! check_command mamba; then
@@ -226,6 +230,7 @@ setup_python() {
 		pre-commit
 
 	# Setup pre-commit hooks
+	git config --global --unset core.hooksPath || true
 	pre-commit install
 }
 

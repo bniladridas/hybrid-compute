@@ -9,9 +9,9 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-API_VERSION = "v1"
-UPLOAD_FOLDER = "/tmp/hybrid-compute/uploads"
-OUTPUT_FOLDER = "/tmp/hybrid-compute/output"
+API_VERSION = os.getenv("API_VERSION", "v1")
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "/tmp/hybrid-compute/uploads")
+OUTPUT_FOLDER = os.getenv("OUTPUT_FOLDER", "/tmp/hybrid-compute/output")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "bmp", "tiff"}
 
 
@@ -79,7 +79,7 @@ def upload_image():
         )
 
     image_id = generate_squuid()
-    filename = secure_filename(file.filename)
+    filename = secure_filename(file.filename or "")
     filepath = os.path.join(UPLOAD_FOLDER, f"{image_id}_{filename}")
     file.save(filepath)
 
@@ -363,7 +363,24 @@ def get_job_status(job_id):
     )
 
 
+@app.route("/", methods=["GET"])
+def api_root():
+    """API root endpoint"""
+    return jsonify(
+        {
+            "message": f"Hybrid Compute API {API_VERSION}",
+            "endpoints": {
+                "health": f"/{API_VERSION}/health",
+                "images": f"/{API_VERSION}/images",
+                "tiles": f"/{API_VERSION}/tiles",
+                "stitch": f"/{API_VERSION}/stitch",
+            },
+        }
+    )
+
+
 @app.route("/health", methods=["GET"])
+@app.route(f"/{API_VERSION}/health", methods=["GET"])
 def health_check():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "version": API_VERSION})
@@ -386,4 +403,5 @@ def internal_error(e):
 
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "").lower() in ("1", "true", "yes")
-    app.run(host="0.0.0.0", port=5000, debug=debug_mode)
+    port = int(os.getenv("PORT", "5001"))
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
