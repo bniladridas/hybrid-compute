@@ -518,7 +518,7 @@ See [API Test Results](api/TEST_RESULTS.md) for test execution details.
 ### Base URL
 
 ```
-http://localhost:5000/v1
+http://localhost:5001/v1
 ```
 
 ### Endpoints
@@ -560,14 +560,14 @@ http://localhost:5000/v1
 **Upload an image:**
 
 ```bash
-curl -X POST http://localhost:5000/v1/images \
+curl -X POST http://localhost:5001/v1/images \
   -F "file=@image.jpg"
 ```
 
 **List images with pagination:**
 
 ```bash
-curl "http://localhost:5000/v1/images?offset=0&limit=25"
+curl "http://localhost:5001/v1/images?offset=0&limit=25"
 ```
 
 **Response:**
@@ -595,7 +595,7 @@ curl "http://localhost:5000/v1/images?offset=0&limit=25"
 **Create tiles from an image:**
 
 ```bash
-curl -X POST http://localhost:5000/v1/images/abc123/tiles \
+curl -X POST http://localhost:5001/v1/images/abc123/tiles \
   -H "Content-Type: application/json" \
   -d '{"tile_size": 512}'
 ```
@@ -603,7 +603,7 @@ curl -X POST http://localhost:5000/v1/images/abc123/tiles \
 **Upscale a tile:**
 
 ```bash
-curl -X POST http://localhost:5000/v1/tiles/tile123/upscale \
+curl -X POST http://localhost:5001/v1/tiles/tile123/upscale \
   -H "Content-Type: application/json" \
   -d '{"scale": 2}'
 ```
@@ -611,7 +611,7 @@ curl -X POST http://localhost:5000/v1/tiles/tile123/upscale \
 **Stitch tiles:**
 
 ```bash
-curl -X POST http://localhost:5000/v1/stitch \
+curl -X POST http://localhost:5001/v1/stitch \
   -H "Content-Type: application/json" \
   -d '{"tile_ids": ["tile1", "tile2"], "rows": 2, "cols": 1}'
 ```
@@ -640,7 +640,7 @@ pip install flask werkzeug
 python api/server.py
 ```
 
-The server will start on `http://localhost:5000`
+The server will start on `http://localhost:5001`
 
 ---
 
