@@ -11,7 +11,7 @@
 <br>
 
 > *This is not a dump.*
-> 
+>
 > *It is a single sheet, laid on the table,*
 > *typed slowly, with space to breathe.*
 > *Every command here has been held and checked.*
