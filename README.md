@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <em>thread, London, 2026</em><br>
-  <sub>an image pipeline, hand-typed and stitched with care</sub><br>
+  <em>📍 thread, Kolkata, 2026</em><br>
+  <sub>an image pipeline, stitched with care</sub><br>
   <sub>0.1.0 &nbsp;·&nbsp; BSD 3-Clause</sub>
 </p>
 
@@ -377,7 +377,7 @@ We treat checks as part of the work, not an afterthought.
 Formatting is `black` (127), `isort` (black), `ruff` (E,F,W,C90,I,N,UP…), `clang-format` for C++. Commits are conventional: `feat(api): …` / `fix(ci): …` / `docs(readme): …`.
 
 ```bash
-# before you push, the London way: slowly, then once
+# before you push, slowly, then once
 pre-commit run --all-files
 python -m pytest
 ctest --test-dir build --output-on-failure
@@ -412,7 +412,7 @@ Full matrix: [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) · Onboarding: [`d
 Thread
 : a tiled image pipeline
 
-Set in London. Typed by hand.
+📍 Kolkata
 Printed with care on quiet paper.
 No tracking. No cloud. Just tiles and stitch.
 
@@ -437,5 +437,5 @@ Docs site: mkdocs.yml  (theme: readthedocs)
 </p>
 
 <p align="center">
-  <sub>hand-typed in London &nbsp;·&nbsp; 100% sensitive &nbsp;·&nbsp; not a dump</sub>
+  <sub>📍 Kolkata &nbsp;·&nbsp; 100% sensitive &nbsp;·&nbsp; not a dump</sub>
 </p>
