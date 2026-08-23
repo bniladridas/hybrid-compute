@@ -150,7 +150,7 @@ jobs:
           ctest --output-on-failure --parallel 2
 
   codeql-analysis:
-    needs: build-and-test
+    needs: extra-ci
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -219,3 +219,8 @@ jobs:
 
           # Build with CodeQL using limited parallelism
           cmake --build . --config Release -- -j2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:cpp"
