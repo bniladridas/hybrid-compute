@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="https://raw.githubusercontent.com/Coccinella-Labs/thread/main/.github/assets/thumbnail.png" alt="thread" width="100%">
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/bniladridas/thread/main/.github/thread-flow.png" alt="Thread: image flow, stitched with care" style="width:100%; max-width:100%; height:auto; display:block;">
 </p>
 
